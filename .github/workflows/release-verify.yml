@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# After a release is published, check it from the outside on a GitHub-hosted arm64 runner
+# (never a self-hosted runner): the signature with the key in this repository, every SHA-256,
+# every file inside the bundle, and that the wizard binary in the bundle is exactly what the
+# pinned omc makes from the shipped aienos.om. Signing itself happens offline (tools/sign.sh).
+name: Release verify
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: release tag to check
+        required: true
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+      OMEGA_REV: 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9
+      OMC_PIN: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Download the release
+        run: |
+          mkdir -p "$RUNNER_TEMP/dist"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/dist"
+          ls -la "$RUNNER_TEMP/dist"
+      - name: Signature and SHA-256
+        run: |
+          set -eu
+          cd "$RUNNER_TEMP/dist"
+          openssl pkeyutl -verify -pubin -inkey "$GITHUB_WORKSPACE/keys/release.pub.pem" -rawin \
+              -in SHA256SUMS -sigfile SHA256SUMS.sig
+          sha256sum -c SHA256SUMS
+          cmp install.sh "$GITHUB_WORKSPACE/installer/install.sh"
+      - name: Every file inside the bundle
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/b"
+          tar -xzf "$RUNNER_TEMP/dist/aienos-$TAG-linux-arm64.tar.gz" -C "$RUNNER_TEMP/b"
+          cd "$RUNNER_TEMP/b" && sha256sum --quiet -c SHA256SUMS
+          cmp share/aienos/aienos.om "$RUNNER_TEMP/dist/aienos.om"
+      - name: The wizard binary is the pinned compile of aienos.om
+        run: |
+          set -eu
+          git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"
+          git -C "$RUNNER_TEMP/omega" checkout --quiet "$OMEGA_REV"
+          echo "$OMC_PIN  $RUNNER_TEMP/omega/seed/out/omc" | sha256sum -c -
+          "$RUNNER_TEMP/omega/seed/out/omc" < "$RUNNER_TEMP/dist/aienos.om" > "$RUNNER_TEMP/aienos" 2> "$RUNNER_TEMP/omc.err"
+          test ! -s "$RUNNER_TEMP/omc.err"
+          cmp "$RUNNER_TEMP/aienos" "$RUNNER_TEMP/b/bin/aienos"
+          sha256sum "$RUNNER_TEMP/aienos"

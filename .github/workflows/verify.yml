@@ -1,0 +1,61 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# Checks on every pull request and on main, on GitHub-hosted arm64 runners only (never a
+# self-hosted runner): shell syntax, the vendored SHA-256 unit, a reproducible compile of the
+# wizard with the pinned omc, and the doctor against fake hardware trees.
+name: AIEN Verification
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    env:
+      OMEGA_REV: 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9
+      OMC_PIN: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Shell syntax
+        run: for f in install.sh build.sh tests/run.sh tests/fake-root.sh tests/container.sh tests/host-untouched.sh tools/sign.sh tools/release.sh; do sh -n "installer/$f"; done
+      - name: Pinned omega-mv
+        run: |
+          git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"
+          git -C "$RUNNER_TEMP/omega" checkout --quiet "$OMEGA_REV"
+          echo "$OMC_PIN  $RUNNER_TEMP/omega/seed/out/omc" | sha256sum -c -
+      - name: Vendored SHA-256 unit is the derivation of omega-mv's
+        run: |
+          sed 's/^export fn /fn /' "$RUNNER_TEMP/omega/om/sha256/sha256-om2.om" > "$RUNNER_TEMP/sha.body"
+          tail -n +6 installer/wizard/sha256.om | cmp - "$RUNNER_TEMP/sha.body"
+      - name: Compile the wizard twice
+        run: |
+          set -eu
+          (cd installer/wizard && cat sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om) > "$RUNNER_TEMP/aienos.om"
+          omc="$RUNNER_TEMP/omega/seed/out/omc"
+          "$omc" < "$RUNNER_TEMP/aienos.om" > "$RUNNER_TEMP/a1" 2> "$RUNNER_TEMP/e1"
+          "$omc" < "$RUNNER_TEMP/aienos.om" > "$RUNNER_TEMP/a2" 2> "$RUNNER_TEMP/e2"
+          test ! -s "$RUNNER_TEMP/e1"
+          cmp "$RUNNER_TEMP/a1" "$RUNNER_TEMP/a2"
+          chmod +x "$RUNNER_TEMP/a1"
+          sha256sum "$RUNNER_TEMP/aienos.om" "$RUNNER_TEMP/a1"
+      - name: Doctor on fake hardware
+        run: |
+          set -u
+          bin="$RUNNER_TEMP/a1"
+          mkdir -p "$RUNNER_TEMP/r/bin" "$RUNNER_TEMP/r/share/aienos" "$RUNNER_TEMP/home"
+          cp "$bin" "$RUNNER_TEMP/r/bin/aienos"
+          cp installer/share/model.manifest "$RUNNER_TEMP/r/share/aienos/"
+          for k in gb10 nogpu othergpu olddrv; do
+            sh installer/tests/fake-root.sh "$RUNNER_TEMP/fr-$k" "$k"
+            rc=0
+            HOME="$RUNNER_TEMP/home" AIENOS_PROBE_ROOT="$RUNNER_TEMP/fr-$k" "$RUNNER_TEMP/r/bin/aienos" doctor > "$RUNNER_TEMP/d-$k" || rc=$?
+            cat "$RUNNER_TEMP/d-$k"
+            if [ "$k" = gb10 ]; then want=0; else want=1; fi
+            echo "doctor $k rc=$rc want=$want"
+            [ "$rc" = "$want" ] || exit 1
+          done

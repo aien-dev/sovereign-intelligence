@@ -1,0 +1,85 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note fake-engine.om: a test stand-in for aien-serve-http, used only by tests/run.sh. It listens on
+note 127.0.0.1:18100, answers GET /health with 200, and answers any POST with a short server-sent
+note event stream (two content deltas, one with a JSON \u escape, then [DONE]). It never opens a GPU
+note device. It serves at most 64 connections, then exits.
+om2
+
+global buf uchar 65536
+global addr uchar 16
+text r_ok "HTTP/1.0 200 OK"
+text r_ct "Content-Type: text/event-stream"
+text ev1 "data: {\"choices\":[{\"delta\":{\"role\":\"assistant\",\"content\":\"Hello from the fake engine\"}}]}"
+text ev2 "data: {\"choices\":[{\"delta\":{\"content\":\", caf\\u00e9 \\\"ok\\\"\"}}]}"
+text ev3 "data: [DONE]"
+text okb "ok"
+
+fn sendt fd int t view uchar * to void
+r = send fd t 0 len t 0
+end
+
+fn crlf fd int to void
+put buf 0 13
+put buf 1 10
+r = send fd buf 0 2 0
+end
+
+fn line fd int t view uchar * to void
+sendt fd t
+crlf fd
+end
+
+fn reply fd int to void
+k = waitio fd 1 5000000000
+if le k 0
+ret
+end
+n = recv fd buf 0 len buf 0
+if le n 0
+ret
+end
+g = get buf 0
+line fd r_ok
+if eq g 71
+crlf fd
+sendt fd okb
+ret
+end
+line fd r_ct
+crlf fd
+line fd ev1
+crlf fd
+s = sleepns 50000000
+line fd ev2
+crlf fd
+line fd ev3
+crlf fd
+end
+
+fn main to int
+put addr 0 2
+put addr 2 70
+put addr 3 180
+put addr 4 127
+put addr 7 1
+fd = socknew 2 524289 0
+if lt fd 0
+ret 1
+end
+one = new uchar 4 0
+put one 0 1
+r = sockopt int fd 1 2 one 0 4
+r = bind int fd addr 0 16
+if ne r 0
+ret 2
+end
+r = listen int fd 16
+for i ulong 64
+c = accept int fd 524288
+if ge c 0
+reply int c
+x = fclose int c
+end
+end
+ret 0
+end

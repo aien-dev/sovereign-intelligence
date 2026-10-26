@@ -1,0 +1,379 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note hole.om: the animated black hole. Each terminal cell shows two square pixels with the upper
+note half block (U+2580): the foreground colour is the upper pixel, the background the lower one.
+note No floating point and no trigonometry beyond the 64-entry sine table: the angle around the
+note hole is the integer "diamond angle" (0..255 for one turn), and every radius is compared squared.
+
+global gm long 12
+global tw ulong 1
+global th ulong 1
+global tick ulong 1
+text lb0 "libcuda.so"
+text lb1 "cuBLAS"
+text lb2 "nvcc"
+text lb3 "CUDA toolkit"
+text lb4 "libcudart"
+text lb5 "cuDNN"
+text lb6 "NCCL"
+text lb7 "TensorRT"
+text tblk "▀"
+
+note gm: 0 cx, 1 cy (pixels), 2 R, 3 horizon^2, 4 photon ring^2, 5 disk inner^2, 6 disk outer^2,
+note 7 glow^2, 8 scene rows, 9 horizon radius, 10 lensed arc^2.
+fn hgeom rows ulong to void
+cx = long div get tw 0 2
+cy = long rows
+r = cx
+if lt cy r
+r = cy
+end
+r = div mul r 95 100
+rh = div mul r 44 100
+put gm 0 cx
+put gm 1 cy
+put gm 2 r
+put gm 3 mul rh rh
+rp = add rh add div r 16 1
+put gm 4 mul rp rp
+di = div mul rh 135 100
+put gm 5 mul di di
+ro = div mul r 26 10
+lim = div mul cx 92 100
+if gt ro lim
+ro = lim
+end
+put gm 6 mul ro ro
+gl = div mul rp 160 100
+put gm 7 mul gl gl
+put gm 8 long rows
+put gm 9 rh
+lz = div mul rh 150 100
+put gm 10 mul lz lz
+end
+
+note Diamond angle of (x, y): 0..255 for one counter-clockwise turn, monotone in the true angle.
+fn dang x long y long to ulong
+ax = x
+if lt ax 0
+ax = neg ax
+end
+ay = y
+if lt ay 0
+ay = neg ay
+end
+s = add ax ay
+if eq s 0
+ret 0
+end
+if ge y 0
+if ge x 0
+ret ulong div mul 64 ay s
+end
+ret ulong add 64 div mul 64 ax s
+end
+if lt x 0
+ret ulong add 128 div mul 64 ay s
+end
+ret ulong add 192 div mul 64 ax s
+end
+
+fn pack r long g long b long to ulong
+ret or or shl ulong r 16 shl ulong g 8 ulong b
+end
+
+note Scale a packed colour by m/1000 and clamp each channel to 255.
+fn scale c ulong m long to ulong
+r = div mul long and shr c 16 255 m 1000
+g = div mul long and shr c 8 255 m 1000
+b = div mul long and c 255 m 1000
+if gt r 255
+r = 255
+end
+if gt g 255
+g = 255
+end
+if gt b 255
+b = 255
+end
+if lt r 0
+r = 0
+end
+if lt g 0
+g = 0
+end
+if lt b 0
+b = 0
+end
+ret pack r g b
+end
+
+note One channel of a mix: (x u + y t) / 256.
+fn mixc x long y long u long t long to long
+ret div add mul x u mul y t 256
+end
+
+note Mix two packed colours: t/256 of b over a.
+fn mix a ulong b ulong t long to ulong
+u = sub 256 t
+r = mixc long and shr a 16 255 long and shr b 16 255 u t
+g = mixc long and shr a 8 255 long and shr b 8 255 u t
+c = mixc long and a 255 long and b 255 u t
+ret pack r g c
+end
+
+note Accretion disk at (dx, dyd) with dd2 = dx^2 + dyd^2: hot white at the inner edge through orange
+note to violet at the rim, three spiral arms that wind tighter inward, the approaching side brighter.
+fn dcol t long to ulong
+if ge t 128
+ret mix pack 255 132 36 pack 110 28 120 mul sub t 128 2
+end
+ret mix pack 255 240 210 pack 255 132 36 mul t 2
+end
+
+fn dlum dx long dyd long tw2 long to long
+p = add div dang dx dyd 4 ulong tw2
+p = add p mul get tick 0 2
+ret add 640 div mul 360 isin mul p 3 1000
+end
+
+fn diskc dx long dyd long dd2 long to ulong
+in2 = get gm 5
+t = div mul sub dd2 in2 256 add sub get gm 6 in2 1
+c = dcol t
+i = dlum dx dyd div mul in2 40 add dd2 1
+dop = sub 1000 div mul dx 350 add get gm 2 1
+ret scale c div mul i dop 1000
+end
+
+fn shash x ulong y ulong to ulong
+h = xor mul x 374761393 mul y 668265263
+h = mul xor h shr h 13 1274126177
+ret and shr xor h shr h 16 7 2047
+end
+
+fn star x ulong y ulong to ulong
+h = shash x y
+if ge h 12
+ret pack 3 3 10
+end
+v = long add 70 mul h 15
+if eq and shr add get tick 0 mul h 5 3 1 1
+v = div mul v 2 3
+end
+ret pack v v add v 25
+end
+
+note The far side of the disk, bent over and under the shadow by the hole's gravity.
+fn lensc dx long dy long d2 long to ulong
+rp2 = get gm 4
+t = div mul sub d2 rp2 256 add sub get gm 10 rp2 1
+c = dcol t
+ret scale c dlum dx mul dy 4 64
+end
+
+note Faint orange halo just outside the photon ring, fading into the stars.
+fn glow x ulong y ulong d2 long to ulong
+g7 = get gm 7
+t = div mul sub g7 d2 200 sub g7 get gm 4
+ret mix star x y pack 160 60 20 t
+end
+
+note Colour of pixel (x, y) of the scene.
+fn px x ulong y ulong to ulong
+dx = sub long x get gm 0
+dy = sub long y get gm 1
+d2 = add mul dx dx mul dy dy
+dyd = mul dy 4
+dd2 = add mul dx dx mul dyd dyd
+indisk = and ge dd2 get gm 5 le dd2 get gm 6
+if and indisk ge dy 0
+ret diskc dx dyd dd2
+end
+if lt d2 get gm 3
+ret 0
+end
+if lt d2 get gm 4
+f = add 820 div mul 180 isin add div dang dx dy 4 get tick 0 1000
+ret scale pack 255 226 170 f
+end
+if lt d2 get gm 10
+ret lensc dx dy d2
+end
+if indisk
+ret diskc dx dyd dd2
+end
+if lt d2 get gm 7
+ret glow x y d2
+end
+ret star x y
+end
+
+fn hpix c ulong top bool to void
+r = and shr c 16 255
+g = and shr c 8 255
+b = and c 255
+if top
+fg r g b
+else
+bg r g b
+end
+end
+
+note Draw the scene rows 1..rows at full terminal width into the output buffer.
+fn hdraw rows ulong to void
+lf = ulong 16777216
+lb = ulong 16777216
+for row ulong rows
+mv add row 1 1
+lf = 16777216
+lb = 16777216
+for x ulong get tw 0
+a = px x mul row 2
+b = px x add mul row 2 1
+if ne a lf
+hpix a true
+lf = a
+end
+if ne b lb
+hpix b false
+lb = b
+end
+emit tblk
+end
+sgr0
+end
+end
+
+fn lemit i ulong o ulong k ulong to void
+if eq i 0
+emit part lb0 o k
+end
+if eq i 1
+emit part lb1 o k
+end
+if eq i 2
+emit part lb2 o k
+end
+if eq i 3
+emit part lb3 o k
+end
+if eq i 4
+emit part lb4 o k
+end
+if eq i 5
+emit part lb5 o k
+end
+if eq i 6
+emit part lb6 o k
+end
+if eq i 7
+emit part lb7 o k
+end
+end
+
+fn llen i ulong to ulong
+if eq i 0
+ret len lb0
+end
+if eq i 1
+ret len lb1
+end
+if eq i 2
+ret len lb2
+end
+if eq i 3
+ret len lb3
+end
+if eq i 4
+ret len lb4
+end
+if eq i 5
+ret len lb5
+end
+if eq i 6
+ret len lb6
+end
+ret len lb7
+end
+
+note Label i of the NVIDIA user-space stack spirals inward along the disk plane. It starts green
+note at the edge of the picture, turns red as it falls, loses letters at the horizon and is gone.
+fn lfrm i ulong to ulong
+ret rem add get tick 0 mul i 15 120
+end
+
+fn lrad i ulong to long
+f = lfrm i
+ret div mul mul get gm 2 3 long sub 120 f 240
+end
+
+fn lang i ulong to ulong
+f = lfrm i
+ret add add mul i 8 div mul f 3 2 div mul f f 90
+end
+
+fn lpos i ulong to void
+r = lrad i
+a = lang i
+x = add get gm 0 div mul r icos a 1000
+y = add get gm 1 div mul mul r isin a 2 5000
+rh = get gm 9
+if or le r rh lt y 0
+ret
+end
+lshow i r x y
+end
+
+fn lshow i ulong r long x long y long to void
+rh = get gm 9
+n = llen i
+k = n
+if lt r mul rh 2
+k = ulong div mul long n sub r rh rh
+end
+if eq k 0
+ret
+end
+row = add ulong div y 2 1
+if gt row ulong get gm 8
+ret
+end
+col = sub x long div k 2
+if or lt col 1 gt add ulong col k get tw 0
+ret
+end
+lpaint i sub n k k lfade r row ulong col
+end
+
+fn lfade r long to long
+d = mul sub r get gm 9 256
+t = div d add mul get gm 2 2 1
+if gt t 256
+ret 256
+end
+ret t
+end
+
+fn lpaint i ulong d ulong k ulong t long row ulong col ulong to void
+c = mix pack 255 70 30 pack 118 185 0 t
+mv row col
+fg and shr c 16 255 and shr c 8 255 and c 255
+bg 0 0 0
+bold
+lemit i div d 2 k
+sgr0
+end
+
+fn hlabels to void
+for i ulong 8
+lpos i
+end
+end
+
+note One complete frame of the scene: picture, then labels over it.
+fn hframe rows ulong to void
+hgeom rows
+hdraw rows
+hlabels
+put tick 0 add get tick 0 1
+end

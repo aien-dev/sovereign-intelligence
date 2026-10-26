@@ -1,0 +1,22 @@
+AienOS release keys
+
+alpha release key (Ed25519), in use from alpha-20261026.1
+  raw public key (hex):  ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a
+  PEM (SubjectPublicKeyInfo), also keys/release.pub.pem:
+    -----BEGIN PUBLIC KEY-----
+    MCowBQYDK2VwAyEA/5SVBLQnaAA51TwzyFxEhUa1fVkOsezuO7LtbC6q9Uo=
+    -----END PUBLIC KEY-----
+
+  Status: an ALPHA key. Created 2026-10-26 on the build machine; the private seed lives
+  only in a TPM-bound vault there and was never written to disk in clear. Drake Stapleton
+  approved it as the alpha trust root on 2026-10-26. It is not a ceremony key: before
+  beta it is replaced by a key made at a witnessed offline ceremony, and that change is
+  announced here and on https://www.aienos.com/alpha/.
+
+What it signs: the bytes of each release's SHA256SUMS (Ed25519 over the raw file, no
+prehash). SHA256SUMS lists the bundle, install.sh, aienos.om and these key files.
+
+Check a release with stock tools (OpenSSL 3.0 or newer):
+  openssl pkeyutl -verify -pubin -inkey release.pub.pem -rawin \
+      -in SHA256SUMS -sigfile SHA256SUMS.sig
+  sha256sum -c SHA256SUMS
