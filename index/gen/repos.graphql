@@ -1,0 +1,13 @@
+query($endCursor: String) {
+  organization(login: "aien-dev") {
+    repositories(privacy: PUBLIC, first: 25, after: $endCursor, orderBy: {field: NAME, direction: ASC}) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        name url description isPrivate isArchived isFork pushedAt
+        licenseInfo { spdxId }
+        repositoryTopics(first: 50) { nodes { topic { name } } }
+        defaultBranchRef { name target { oid } }
+      }
+    }
+  }
+}

@@ -1,0 +1,1573 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note index.om: builds the Sovereign Intelligence project index from GitHub's list of public
+note aien-dev repositories and the hand-curated index/curated.yml. Run from the repository root.
+note   index fetch API.json  API.json is the GraphQL response (gh api graphql --paginate --slurp).
+note                         Writes index/repos.json and the README.md index section.
+note   index check           Offline: index/repos.json, index/curated.yml and README.md agree.
+note Exit 0 ok; 1 a public repository has no curated entry, a curated entry is not public, or
+note README.md is out of date; 2 usage; 3 malformed input or a full buffer; 4 file error.
+note Linux arm64; every kernel result is a count or minus the Linux errno and is checked.
+om2
+
+note Buffers hold at most 983040 bytes, so a loop that moves at least one byte per pass over one
+note of them needs at most 983041 passes, inside the 999999 bound limit.
+global ib uchar 983040
+global ibn ulong 1
+global cb uchar 262144
+global cbn ulong 1
+global rm uchar 983040
+global rmn ulong 1
+global ob uchar 983040
+global obn ulong 1
+global pb uchar 4096
+global pbn ulong 1
+global cur ulong 1
+global jerr ulong 1
+global ovf ulong 1
+note Repositories: 10 raw JSON token spans each (offset into ib, length; length 0 = absent):
+note 0 name, 1 url, 2 description, 3 license, 4 archived, 5 fork, 6 pushed_at,
+note 7 default_branch, 8 head, 9 isPrivate. Topics are raw spans ts/tl, repository r owns ta..tz.
+global rs ulong 10240
+global rl ulong 10240
+global nr ulong 1
+global ts ulong 16384
+global tl ulong 16384
+global ntp ulong 1
+global ta ulong 1024
+global tz ulong 1024
+global rcur ulong 1024
+note Curated layers: 3 spans into cb each (0 key, 1 title, 2 blurb). Curated repositories: 5 spans
+note (0 name, 1 layer, 2 evidence, 3 purpose, 4 license); cly is each entry's layer number.
+global ys ulong 192
+global yl ulong 192
+global ny ulong 1
+global cs ulong 5120
+global cl ulong 5120
+global nc ulong 1
+global cly ulong 1024
+global csec ulong 1
+global lno ulong 1
+
+text tfetch "fetch"
+text tcheck "check"
+text pcur "index/curated.yml"
+text prepos "index/repos.json"
+text preadme "README.md"
+text tusage "usage: index fetch API.json | index check\n"
+text tpre "gen_index: "
+text tnl "\n"
+text tdash "  - "
+text tcurf "gen_index: index/curated.yml: "
+text tind "'[{&*!|>%@`#"
+text tmiss "gen_index: public repositories with no entry in index/curated.yml:\n"
+text tmiss2 "add each one (layer, evidence, purpose) in the same change\n"
+text tstale "gen_index: index/curated.yml names repositories that are not public in aien-dev:\n"
+text tstale2 "remove them (a private repository must never be named here)\n"
+text tcurl "gen_index: index/curated.yml:"
+text tcolsp ": "
+text e_line "unexpected line (expected `layers:`, `repos:`, `  - field: value` or `    field: value`)\n"
+text e_field "unknown field for this section\n"
+text e_value "write the value as a plain word or a double-quoted string without \\ or inner quotes\n"
+text e_dup "field given twice\n"
+text e_cap "too many entries\n"
+text e_orph "field outside a list item\n"
+text e_lneed "a layer needs key and title\n"
+text e_ldup "layer key listed twice\n"
+text e_rneed "missing name, layer, evidence or purpose\n"
+text e_rdup "listed twice\n"
+text e_rlay "unknown layer\n"
+text e_revid "evidence must be one of QUALIFIED, EXERCISED, IMPLEMENTED, PROPOSED, n/a\n"
+text e_json "gen_index: the repository JSON is malformed or has more than 1024 repositories\n"
+text e_priv "gen_index: the API response contains a private repository; refusing\n"
+text e_noname "gen_index: a repository record has no name\n"
+text e_full "gen_index: an output buffer is full\n"
+text e_file "gen_index: cannot read or write "
+text e_mark "gen_index: README.md must contain exactly one index section between the index markers\n"
+text e_stale "gen_index: README.md index section is out of date: run index fetch\n"
+text t_ok1 "index: "
+text t_ok2 " public repositories, all curated\n"
+text t_ok3 " repositories, curated and rendered\n"
+text tlayers "layers:"
+text trepos "repos:"
+text titem "  - "
+text tcont "    "
+text kkey "key"
+text ktitle "title"
+text kblurb "blurb"
+text kname "name"
+text klayer "layer"
+text kevid "evidence"
+text kpurp "purpose"
+text klic "license"
+text v_q "QUALIFIED"
+text v_x "EXERCISED"
+text v_i "IMPLEMENTED"
+text v_p "PROPOSED"
+text v_na "n/a"
+text jrepos "repositories"
+text jnodes "nodes"
+text jlicinf "licenseInfo"
+text jdbr "defaultBranchRef"
+text jrtop "repositoryTopics"
+text jtopics "topics"
+text jtarget "target"
+text jtopic "topic"
+text jurl "url"
+text jdesc "description"
+text jlic "license"
+text jisarch "isArchived"
+text jarch "archived"
+text jisfork "isFork"
+text jfork "fork"
+text jpushat "pushedAt"
+text jpushed "pushed_at"
+text jbranch "default_branch"
+text jhead "head"
+text jispriv "isPrivate"
+text jspdx "spdxId"
+text joid "oid"
+text jtrue "true"
+text tbegin "<!-- index:begin (generated by index/gen/index.om; edit index/curated.yml instead) -->"
+text tend "<!-- index:end -->"
+text s_cnt1 " public repositories in [aien-dev](https://github.com/aien-dev): "
+text s_cnt2 " active, "
+text s_cnt3 " archived. Machine-readable: [index/repos.json](index/repos.json).\n\n"
+text s_h3 "### "
+text s_nn "\n\n"
+text s_head "| Repository | What it is | Evidence | License | Last push |\n| :--- | :--- | :---: | :--- | :--- |\n"
+text s_arch1 "<details>\n<summary><b>Archived ("
+text s_arch2 ")</b>: read-only history, kept for the record</summary>\n\n"
+text s_arch3 "\n</details>\n\n"
+text s_row1 "| ["
+text s_row2 "]("
+text s_row3 ") | "
+text s_fork " *(fork)*"
+text s_row4 " | `"
+text s_row5 "` | "
+text s_bar " | "
+text s_row6 " |\n"
+text s_none "none"
+text j_open "{\n  \"org\": \"aien-dev\",\n  \"repositories\": [\n"
+text j_close "  ]\n}\n"
+text j_rec "    {"
+text j_recend "}"
+text j_comma ", "
+text j_null "null"
+text j_lb "["
+text j_rb "]"
+text f_name "\"name\": "
+text f_url "\"url\": "
+text f_desc "\"description\": "
+text f_topics "\"topics\": "
+text f_lic "\"license\": "
+text f_arch "\"archived\": "
+text f_fork "\"fork\": "
+text f_push "\"pushed_at\": "
+text f_branch "\"default_branch\": "
+text f_head "\"head\": "
+
+note ---- output buffer ob ----
+
+fn ob1 b uchar to void
+n = get obn 0
+if ge n len ob
+put ovf 0 1
+ret
+end
+put ob n b
+put obn 0 add n 1
+end
+
+fn emit t view uchar * to void
+for i ulong len t
+ob1 get t i
+end
+end
+
+fn eib s ulong n ulong to void
+for i ulong n
+ob1 get ib add s i
+end
+end
+
+fn ecb s ulong n ulong to void
+for i ulong n
+ob1 get cb add s i
+end
+end
+
+fn erm s ulong n ulong to void
+for i ulong n
+ob1 get rm add s i
+end
+end
+
+note Decimal digits of v, most significant first.
+fn enum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+ob1 get d sub sub k 1 i
+end
+end
+
+note ---- messages on stderr ----
+
+fn say t view uchar * to void
+w = write 2 t 0 len t
+end
+
+fn sayib s ulong n ulong to void
+w = write 2 ib s n
+end
+
+fn saycb s ulong n ulong to void
+w = write 2 cb s n
+end
+
+fn saynum v ulong to void
+d = new uchar 20 0
+o = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+put o i get d sub sub k 1 i
+end
+w = write 2 o 0 k
+end
+
+note ---- files: the path is always pb ----
+
+fn setp t view uchar * to void
+for i ulong len t
+put pb i get t i
+end
+put pbn 0 len t
+end
+
+fn sayp to void
+w = write 2 pb 0 get pbn 0
+say tnl
+end
+
+fn rdib to long
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+n = ulong 0
+while lt n len ib bound 983041
+k = read int fd ib n sub len ib n
+if lt k 0
+c = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+put ibn 0 n
+if eq n len ib
+ret -27
+end
+ret long n
+end
+
+fn rdcb to long
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+n = ulong 0
+while lt n len cb bound 262145
+k = read int fd cb n sub len cb n
+if lt k 0
+c = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+put cbn 0 n
+if eq n len cb
+ret -27
+end
+ret long n
+end
+
+fn rdrm to long
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+n = ulong 0
+while lt n len rm bound 983041
+k = read int fd rm n sub len rm n
+if lt k 0
+c = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+put rmn 0 n
+if eq n len rm
+ret -27
+end
+ret long n
+end
+
+note Write ob to pb, created or truncated, mode 0644.
+fn spill to long
+fd = fopen pb 0 get pbn 0 525889 420
+if lt fd 0
+ret fd
+end
+n = get obn 0
+o = ulong 0
+while lt o n bound 983041
+k = write int fd ob o sub n o
+if le k 0
+c = fclose int fd
+ret -5
+end
+o = add o ulong k
+end
+c = fclose int fd
+ret 0
+end
+
+note ---- JSON reader over ib ----
+
+fn ibis s ulong n ulong t view uchar * to bool
+if ne n len t
+ret false
+end
+for i ulong n
+if ne get ib add s i get t i
+ret false
+end
+end
+ret true
+end
+
+fn jws to void
+i = get cur 0
+n = get ibn 0
+while lt i n bound 983041
+c = get ib i
+if and and ne c 32 ne c 10 and ne c 13 ne c 9
+break
+end
+i = add i 1
+end
+put cur 0 i
+end
+
+note The next byte after white space, or 256 at the end of the input.
+fn jpeek to ulong
+jws
+i = get cur 0
+if ge i get ibn 0
+ret 256
+end
+ret ulong get ib i
+end
+
+fn jskip to void
+put cur 0 add get cur 0 1
+end
+
+note A string starting at the quote under the cursor; the cursor ends after its closing quote.
+fn jstr to bool
+i = add get cur 0 1
+n = get ibn 0
+while lt i n bound 983041
+c = get ib i
+if eq c 34
+put cur 0 add i 1
+ret true
+end
+if lt c 32
+ret false
+end
+if eq c 92
+i = add i 1
+end
+i = add i 1
+end
+ret false
+end
+
+note A number or literal: the bytes up to the next delimiter, at least one.
+fn jlit to bool
+s = get cur 0
+i = s
+n = get ibn 0
+while lt i n bound 983041
+c = get ib i
+if or or eq c 44 eq c 125 or eq c 93 le c 32
+break
+end
+i = add i 1
+end
+put cur 0 i
+ret gt i s
+end
+
+note Roles: 0 other, 1 array of repositories, 2 repository, 3 licenseInfo, 4 defaultBranchRef,
+note 5 its target, 6 repositoryTopics, 7 its nodes, 8 one topic node, 9 its topic, 10 snapshot
+note topics, 11 one snapshot topic string, 12 repositories (object in the API, array in a snapshot).
+fn jkid r ulong s ulong n ulong to ulong
+if and eq r 0 ibis s n jrepos
+ret 12
+end
+if and eq r 12 ibis s n jnodes
+ret 1
+end
+if eq r 2
+ret jkidrepo s n
+end
+if and eq r 4 ibis s n jtarget
+ret 5
+end
+if and eq r 6 ibis s n jnodes
+ret 7
+end
+if and eq r 8 ibis s n jtopic
+ret 9
+end
+ret 0
+end
+
+fn jkidrepo s ulong n ulong to ulong
+if ibis s n jlicinf
+ret 3
+end
+if ibis s n jdbr
+ret 4
+end
+if ibis s n jrtop
+ret 6
+end
+if ibis s n jtopics
+ret 10
+end
+ret 0
+end
+
+fn jelem r ulong to ulong
+if or eq r 1 eq r 12
+ret 2
+end
+if eq r 7
+ret 8
+end
+if eq r 10
+ret 11
+end
+ret 0
+end
+
+note The repository field a scalar under key s..n in role r fills: 0..9, 20 a topic, 99 none.
+fn jfield r ulong s ulong n ulong to ulong
+if eq r 2
+ret jfrepo s n
+end
+if and eq r 3 ibis s n jspdx
+ret 3
+end
+if and eq r 4 ibis s n kname
+ret 7
+end
+if and eq r 5 ibis s n joid
+ret 8
+end
+if and eq r 9 ibis s n kname
+ret 20
+end
+ret 99
+end
+
+fn jfrepo s ulong n ulong to ulong
+if ibis s n kname
+ret 0
+end
+if ibis s n jurl
+ret 1
+end
+if ibis s n jdesc
+ret 2
+end
+if ibis s n jlic
+ret 3
+end
+if or ibis s n jisarch ibis s n jarch
+ret 4
+end
+if or ibis s n jisfork ibis s n jfork
+ret 5
+end
+if or ibis s n jpushat ibis s n jpushed
+ret 6
+end
+ret jfrepo2 s n
+end
+
+fn jfrepo2 s ulong n ulong to ulong
+if ibis s n jbranch
+ret 7
+end
+if ibis s n jhead
+ret 8
+end
+if ibis s n jispriv
+ret 9
+end
+ret 99
+end
+
+fn tadd s ulong n ulong to void
+k = get ntp 0
+if ge k len ts
+put jerr 0 1
+ret
+end
+put ts k s
+put tl k n
+put ntp 0 add k 1
+end
+
+fn jset r ulong s ulong n ulong vs ulong vn ulong to void
+f = jfield r s n
+if lt f 10
+k = add mul get nr 0 10 f
+put rs k vs
+put rl k vn
+end
+if eq f 20
+tadd vs vn
+end
+end
+
+fn rbegin to void
+r = get nr 0
+if ge r len ta
+put jerr 0 1
+ret
+end
+for f ulong 10
+put rs add mul r 10 f 0
+put rl add mul r 10 f 0
+end
+put ta r get ntp 0
+end
+
+fn jclose r ulong to bool
+if eq r 2
+r2 = get nr 0
+put tz r2 get ntp 0
+put nr 0 add r2 1
+end
+ret true
+end
+
+fn jval r ulong d ulong to bool
+if gt d 64
+ret false
+end
+c = jpeek
+if eq c 123
+ret jobj r d
+end
+if eq c 91
+ret jarr r d
+end
+if eq c 34
+ret jstr
+end
+ret jlit
+end
+
+fn jmember r ulong d ulong to bool
+if ne jpeek 34
+ret false
+end
+ks = add get cur 0 1
+if not jstr
+ret false
+end
+kn = sub sub get cur 0 ks 1
+if ne jpeek 58
+ret false
+end
+jskip
+k = jkid r ks kn
+c = jpeek
+if or eq c 123 eq c 91
+ret jval k add d 1
+end
+s = get cur 0
+if not jval 0 d
+ret false
+end
+jset r ks kn s sub get cur 0 s
+ret true
+end
+
+fn jobj r ulong d ulong to bool
+jskip
+if eq r 2
+rbegin
+if ne get jerr 0 0
+ret false
+end
+end
+if eq jpeek 125
+jskip
+ret jclose r
+end
+while true bound 983041
+if not jmember r d
+ret false
+end
+c = jpeek
+jskip
+if eq c 125
+ret jclose r
+end
+if ne c 44
+ret false
+end
+end
+ret false
+end
+
+fn jitem e ulong d ulong to bool
+c = jpeek
+if and eq e 11 eq c 34
+s = get cur 0
+if not jstr
+ret false
+end
+tadd s sub get cur 0 s
+ret true
+end
+ret jval e add d 1
+end
+
+fn jarr r ulong d ulong to bool
+jskip
+e = jelem r
+if eq jpeek 93
+jskip
+ret true
+end
+while true bound 983041
+if not jitem e d
+ret false
+end
+c = jpeek
+jskip
+if eq c 93
+ret true
+end
+if ne c 44
+ret false
+end
+end
+ret false
+end
+
+note Parse all of ib: one JSON value, or several back to back (gh api --paginate prints one
+note document per page). Then every repository needs a string name and must not be private.
+fn jdoc to int
+put cur 0 0
+if eq jpeek 256
+say e_json
+ret 3
+end
+while ne jpeek 256 bound 983041
+ok = jval 0 0
+if or not ok ne get jerr 0 0
+say e_json
+ret 3
+end
+end
+for r ulong get nr 0
+k = mul r 10
+if lt get rl k 3
+say e_noname
+ret 3
+end
+if ne get ib get rs k 34
+say e_noname
+ret 3
+end
+if ibis get rs add k 9 get rl add k 9 jtrue
+say e_priv
+ret 3
+end
+end
+ret 0
+end
+
+note ---- curated.yml ----
+
+fn cbat o ulong e ulong t view uchar * to bool
+if gt add o len t e
+ret false
+end
+for i ulong len t
+if ne get cb add o i get t i
+ret false
+end
+end
+ret true
+end
+
+fn cbis s ulong n ulong t view uchar * to bool
+if ne n len t
+ret false
+end
+ret cbat s add s n t
+end
+
+note Two spans of cb hold the same bytes.
+fn cbeq a ulong an ulong b ulong bn ulong to bool
+if ne an bn
+ret false
+end
+for i ulong an
+if ne get cb add a i get cb add b i
+ret false
+end
+end
+ret true
+end
+
+note Blank, or a comment after optional spaces.
+fn cskip s ulong e ulong to bool
+i = s
+while lt i e bound 262145
+c = get cb i
+if eq c 35
+ret true
+end
+if ne c 32
+ret false
+end
+i = add i 1
+end
+ret true
+end
+
+fn cfield k ulong n ulong to ulong
+if eq get csec 0 1
+if cbis k n kkey
+ret 0
+end
+if cbis k n ktitle
+ret 1
+end
+if cbis k n kblurb
+ret 2
+end
+ret 9
+end
+if cbis k n kname
+ret 0
+end
+if cbis k n klayer
+ret 1
+end
+if cbis k n kevid
+ret 2
+end
+if cbis k n kpurp
+ret 3
+end
+if cbis k n klic
+ret 4
+end
+ret 9
+end
+
+note Value v..e: a plain word not starting with a YAML indicator, or "..." with no \ or " inside.
+note Returns the content start, or e + 1 when the value is refused.
+fn cval v ulong e ulong to ulong
+c = get cb v
+if eq c 34
+if or lt sub e v 3 ne get cb sub e 1 34
+ret add e 1
+end
+for i ulong sub sub e v 2
+c2 = get cb add add v 1 i
+if or eq c2 34 eq c2 92
+ret add e 1
+end
+end
+ret add v 1
+end
+if yind c
+ret add e 1
+end
+ret v
+end
+
+note A YAML indicator that may not start a plain value.
+fn yind c uchar to bool
+for i ulong len tind
+if eq c get tind i
+ret true
+end
+end
+ret false
+end
+
+note Start a new list item in the current section. Returns 0, or an error id.
+fn cnew to ulong
+if eq get csec 0 1
+n = get ny 0
+if ge n 64
+ret 5
+end
+put ny 0 add n 1
+ret 0
+end
+n2 = get nc 0
+if ge n2 1024
+ret 5
+end
+put nc 0 add n2 1
+ret 0
+end
+
+note Store span s..n as field f of the current item. Returns 0, or an error id.
+fn cstore f ulong s ulong n ulong to ulong
+if eq get csec 0 1
+k = add mul sub get ny 0 1 3 f
+if ne get yl k 0
+ret 4
+end
+put ys k s
+put yl k n
+ret 0
+end
+k2 = add mul sub get nc 0 1 5 f
+if ne get cl k2 0
+ret 4
+end
+put cs k2 s
+put cl k2 n
+ret 0
+end
+
+note One line s..e. Returns 0, or an error id: 1 line, 2 field, 3 value, 4 duplicate,
+note 5 capacity, 6 outside an item.
+fn cline s ulong e ulong to ulong
+if cskip s e
+ret 0
+end
+if cbis s sub e s tlayers
+put csec 0 1
+ret 0
+end
+if cbis s sub e s trepos
+put csec 0 2
+ret 0
+end
+if eq get csec 0 0
+ret 1
+end
+isnew = cbat s e titem
+if and not isnew not cbat s e tcont
+ret 1
+end
+ret cpair add s 4 e isnew
+end
+
+fn cpair k ulong e ulong isnew bool to ulong
+j = k
+while and lt j e ge get cb j 97 bound 262145
+if gt get cb j 122
+break
+end
+j = add j 1
+end
+if or eq j k ge add j 2 e
+ret 1
+end
+if or ne get cb j 58 ne get cb add j 1 32
+ret 1
+end
+f = cfield k sub j k
+if eq f 9
+ret 2
+end
+v = cval add j 2 e
+if gt v e
+ret 3
+end
+if isnew
+x = cnew
+if ne x 0
+ret x
+end
+end
+if and eq get csec 0 1 eq get ny 0 0
+ret 6
+end
+if and eq get csec 0 2 eq get nc 0 0
+ret 6
+end
+n = sub e v
+if ne v add j 2
+n = sub n 1
+end
+ret cstore f v n
+end
+
+fn cerr id ulong to void
+say tcurl
+saynum get lno 0
+say tcolsp
+if eq id 1
+say e_line
+end
+if eq id 2
+say e_field
+end
+if eq id 3
+say e_value
+end
+if eq id 4
+say e_dup
+end
+if eq id 5
+say e_cap
+end
+if eq id 6
+say e_orph
+end
+end
+
+fn cparse to int
+s = ulong 0
+n = get cbn 0
+put lno 0 0
+while lt s n bound 262145
+e = s
+while lt e n bound 262145
+if eq get cb e 10
+break
+end
+e = add e 1
+end
+put lno 0 add get lno 0 1
+x = cline s e
+if ne x 0
+cerr x
+ret 3
+end
+s = add e 1
+end
+ret ccheck
+end
+
+fn evok s ulong n ulong to bool
+if or cbis s n v_q cbis s n v_x
+ret true
+end
+ret or or cbis s n v_i cbis s n v_p cbis s n v_na
+end
+
+note Messages for one curated entry by index c.
+fn cnote c ulong m view uchar * to void
+say tcurf
+k = mul c 5
+saycb get cs k get cl k
+say tcolsp
+say m
+end
+
+fn ccheck to int
+for y ulong get ny 0
+if or eq get yl mul y 3 0 eq get yl add mul y 3 1 0
+say tcurf
+say e_lneed
+ret 3
+end
+for z ulong y
+if yeq y z
+say tcurf
+say e_ldup
+ret 3
+end
+end
+end
+for c ulong get nc 0
+x = crepo c
+if ne x 0
+ret x
+end
+end
+ret 0
+end
+
+fn crepo c ulong to int
+k = mul c 5
+if not cneed k
+cnote c e_rneed
+ret 3
+end
+if not evok get cs add k 2 get cl add k 2
+cnote c e_revid
+ret 3
+end
+for z ulong c
+if ceq c z
+cnote c e_rdup
+ret 3
+end
+end
+put cly c 64
+for y ulong get ny 0
+if cyeq c y
+put cly c y
+end
+end
+if eq get cly c 64
+cnote c e_rlay
+ret 3
+end
+ret 0
+end
+
+note Curated entry at k has name, layer, evidence and purpose.
+fn cneed k ulong to bool
+for f ulong 4
+if eq get cl add k f 0
+ret false
+end
+end
+ret true
+end
+
+note Layers y and z have the same key.
+fn yeq y ulong z ulong to bool
+a = mul y 3
+b = mul z 3
+ret cbeq get ys a get yl a get ys b get yl b
+end
+
+note Curated entries c and z have the same name.
+fn ceq c ulong z ulong to bool
+a = mul c 5
+b = mul z 5
+ret cbeq get cs a get cl a get cs b get cl b
+end
+
+note Curated entry c names layer y.
+fn cyeq c ulong y ulong to bool
+a = add mul c 5 1
+b = mul y 3
+ret cbeq get cs a get cl a get ys b get yl b
+end
+
+note ---- coverage ----
+
+note Repository r's name (inside its quotes) equals curated entry c's name.
+fn rceq r ulong c ulong to bool
+k = mul r 10
+n = sub get rl k 2
+if ne n get cl mul c 5
+ret false
+end
+a = add get rs k 1
+b = get cs mul c 5
+for i ulong n
+if ne get ib add a i get cb add b i
+ret false
+end
+end
+ret true
+end
+
+note Match every repository to its curated entry; list the ones without. Returns the count.
+fn cmiss to ulong
+miss = ulong 0
+for r ulong get nr 0
+put rcur r 1024
+for c ulong get nc 0
+if rceq r c
+put rcur r c
+end
+end
+if eq get rcur r 1024
+if eq miss 0
+say tmiss
+end
+miss = add miss 1
+say tdash
+k = mul r 10
+sayib add get rs k 1 sub get rl k 2
+say tnl
+end
+end
+if gt miss 0
+say tmiss2
+end
+ret miss
+end
+
+note List curated entries that name no public repository. Returns the count.
+fn cstale to ulong
+st = ulong 0
+for c ulong get nc 0
+f = false
+for r ulong get nr 0
+if rceq r c
+f = true
+end
+end
+if not f
+if eq st 0
+say tstale
+end
+st = add st 1
+say tdash
+k = mul c 5
+saycb get cs k get cl k
+say tnl
+end
+end
+if gt st 0
+say tstale2
+end
+ret st
+end
+
+fn cover to int
+m = cmiss
+s = cstale
+if gt add m s 0
+ret 1
+end
+ret 0
+end
+
+note ---- rendering ----
+
+fn isarch r ulong to bool
+k = add mul r 10 4
+ret ibis get rs k get rl k jtrue
+end
+
+fn isfork r ulong to bool
+k = add mul r 10 5
+ret ibis get rs k get rl k jtrue
+end
+
+note A raw string token's content, or alt when the token is absent or not a string.
+fn estr r ulong f ulong alt view uchar * to void
+k = add mul r 10 f
+n = get rl k
+if or lt n 2 ne get ib get rs k 34
+emit alt
+ret
+end
+eib add get rs k 1 sub n 2
+end
+
+fn epurp c ulong to void
+k = add mul c 5 3
+s = get cs k
+for i ulong get cl k
+b = get cb add s i
+if eq b 124
+ob1 92
+end
+ob1 b
+end
+end
+
+fn row r ulong to void
+c = get rcur r
+k = mul c 5
+emit s_row1
+estr r 0 s_none
+emit s_row2
+estr r 1 s_none
+emit s_row3
+epurp c
+if isfork r
+emit s_fork
+end
+emit s_row4
+ecb get cs add k 2 get cl add k 2
+emit s_row5
+if gt get cl add k 4 0
+ecb get cs add k 4 get cl add k 4
+else
+estr r 3 s_none
+end
+emit s_bar
+edate r
+emit s_row6
+end
+
+fn edate r ulong to void
+k = add mul r 10 6
+n = get rl k
+if lt n 12
+ret
+end
+eib add get rs k 1 10
+end
+
+fn rlayer y ulong to void
+cnt = ulong 0
+for r ulong get nr 0
+if and not isarch r eq get cly get rcur r y
+cnt = add cnt 1
+end
+end
+if eq cnt 0
+ret
+end
+k = mul y 3
+emit s_h3
+ecb get ys add k 1 get yl add k 1
+emit s_nn
+if gt get yl add k 2 0
+ecb get ys add k 2 get yl add k 2
+emit s_nn
+end
+emit s_head
+for r ulong get nr 0
+if and not isarch r eq get cly get rcur r y
+row r
+end
+end
+emit tnl
+end
+
+fn rsect to void
+na = ulong 0
+for r ulong get nr 0
+if isarch r
+na = add na 1
+end
+end
+emit tbegin
+emit s_nn
+enum get nr 0
+emit s_cnt1
+enum sub get nr 0 na
+emit s_cnt2
+enum na
+emit s_cnt3
+for y ulong get ny 0
+rlayer y
+end
+if gt na 0
+emit s_arch1
+enum na
+emit s_arch2
+emit s_head
+for r ulong get nr 0
+if isarch r
+row r
+end
+end
+emit s_arch3
+end
+emit tend
+end
+
+note Offset of t in rm at or after o, or rmn when absent.
+fn rmfind o ulong t view uchar * to ulong
+n = get rmn 0
+i = o
+while le add i len t n bound 983041
+f = true
+for j ulong len t
+if ne get rm add i j get t j
+f = false
+break
+end
+end
+if f
+ret i
+end
+i = add i 1
+end
+ret n
+end
+
+note ob = README with its index section replaced. 0, or 3 when the markers are wrong.
+fn splice to int
+n = get rmn 0
+b = rmfind 0 tbegin
+if eq b n
+say e_mark
+ret 3
+end
+e = rmfind b tend
+if eq e n
+say e_mark
+ret 3
+end
+if ne rmfind add b 1 tbegin n
+say e_mark
+ret 3
+end
+put obn 0 0
+erm 0 b
+rsect
+z = add e len tend
+erm z sub n z
+ret 0
+end
+
+note ---- snapshot writer ----
+
+fn wraw r ulong f ulong key view uchar * to void
+emit key
+k = add mul r 10 f
+n = get rl k
+if eq n 0
+emit j_null
+ret
+end
+eib get rs k n
+end
+
+fn wtopics r ulong to void
+emit f_topics
+emit j_lb
+a = get ta r
+z = get tz r
+i = a
+while lt i z bound 16385
+if gt i a
+emit j_comma
+end
+eib get ts i get tl i
+i = add i 1
+end
+emit j_rb
+end
+
+fn wrepo r ulong to void
+emit j_rec
+wraw r 0 f_name
+emit j_comma
+wraw r 1 f_url
+emit j_comma
+wraw r 2 f_desc
+emit j_comma
+wtopics r
+emit j_comma
+wraw r 3 f_lic
+emit j_comma
+wraw r 4 f_arch
+emit j_comma
+wraw r 5 f_fork
+emit j_comma
+wraw r 6 f_push
+emit j_comma
+wraw r 7 f_branch
+emit j_comma
+wraw r 8 f_head
+emit j_recend
+end
+
+fn snap to void
+put obn 0 0
+emit j_open
+n = get nr 0
+for r ulong n
+wrepo r
+if lt add r 1 n
+ob1 44
+end
+emit tnl
+end
+emit j_close
+end
+
+note ---- main ----
+
+fn ferr to int
+say e_file
+sayp
+ret 4
+end
+
+fn full to bool
+if ne get ovf 0 0
+say e_full
+ret true
+end
+ret false
+end
+
+note Read the repository JSON named by pb, then the curated file, and parse both.
+fn load to int
+if lt rdib 0
+ret ferr
+end
+setp pcur
+if lt rdcb 0
+ret ferr
+end
+x = cparse
+if ne x 0
+ret x
+end
+ret jdoc
+end
+
+fn dofetch to int
+x = load
+if ne x 0
+ret x
+end
+x = cover
+if ne x 0
+ret x
+end
+setp preadme
+if lt rdrm 0
+ret ferr
+end
+snap
+if full
+ret 3
+end
+setp prepos
+if lt spill 0
+ret ferr
+end
+x = splice
+if ne x 0
+ret x
+end
+if full
+ret 3
+end
+setp preadme
+if lt spill 0
+ret ferr
+end
+put obn 0 0
+emit t_ok1
+enum get nr 0
+emit t_ok2
+w = write 1 ob 0 get obn 0
+ret 0
+end
+
+fn docheck to int
+x = load
+if ne x 0
+ret x
+end
+x = cover
+if ne x 0
+ret x
+end
+setp preadme
+if lt rdrm 0
+ret ferr
+end
+x = splice
+if ne x 0
+ret x
+end
+if full
+ret 3
+end
+n = get obn 0
+if ne n get rmn 0
+say e_stale
+ret 1
+end
+for i ulong n
+if ne get ob i get rm i
+say e_stale
+ret 1
+end
+end
+put obn 0 0
+emit t_ok1
+enum get nr 0
+emit t_ok3
+w = write 1 ob 0 get obn 0
+ret 0
+end
+
+note The first argument equals t.
+fn argis a view uchar 16 m long t view uchar * to bool
+if ne m long len t
+ret false
+end
+for i ulong len t
+if ne get a i get t i
+ret false
+end
+end
+ret true
+end
+
+fn main to int
+a = new uchar 16 0
+argc = argcnt
+if lt argc 2
+say tusage
+ret 2
+end
+m = argread 1 a 0 16
+if and eq argc 3 argis a m tfetch
+k = argread 2 pb 0 4096
+if le k 0
+say tusage
+ret 2
+end
+put pbn 0 ulong k
+ret dofetch
+end
+if and eq argc 2 argis a m tcheck
+setp prepos
+ret docheck
+end
+say tusage
+ret 2
+end
