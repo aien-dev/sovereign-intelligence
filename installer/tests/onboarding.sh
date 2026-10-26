@@ -217,6 +217,19 @@ if [ "${1:-}" = --inside ]; then
         && [ "$(sha256sum "$H/models/tiny-test/weights.bin" | cut -d' ' -f1)" = "$bad" ]
     verdict tampered-local $?
 
+    # 7b. A good copy under ~/models/MANIFEST-NAME (the folder name aienos installs to, not the
+    #     repo name): found by the scan with Enter, both files linked, nothing downloaded.
+    fresh
+    mkdir -p "$H/models/test-model"
+    cp /s/www/model/config.json /s/www/model/weights.bin "$H/models/test-model/"
+    : > "$H/files.log"
+    out=$(wiz '\n\n\n\nyes\n\n\n\n\n\n\n\n\n' 2>&1); rc=$?
+    printf '%s\n' "$out" > "$H/manifest-name-local.out"
+    [ $rc -eq 0 ] && grep -q "Found 2 of 2 files of Tiny test model" "$H/manifest-name-local.out" \
+        && [ "$(readlink -f "$m/weights.bin")" = "$H/models/test-model/weights.bin" ] \
+        && [ -L "$m/config.json" ] && ! grep -q "GET /model/" "$H/files.log"
+    verdict manifest-name-local $?
+
     # 8. The engine's port is already taken: the running server is not stopped or recorded.
     fresh
     startv 8000 "$H/weights/tiny-test" test-org/tiny-test; v3=$vp
