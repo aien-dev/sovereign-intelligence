@@ -7,7 +7,7 @@
 # OUT before this script is used; their receipts go in evidence/TAG/.
 set -eu
 cd "$(dirname "$0")/../.."
-TAG=alpha-20261026.2
+TAG=alpha-20261026.3
 out=${1:?usage: tools/release.sh OUT}
 [ -f "notes/$TAG.md" ] || { echo "release.sh: no notes/$TAG.md" >&2; exit 2; }
 sh installer/build.sh "$out"

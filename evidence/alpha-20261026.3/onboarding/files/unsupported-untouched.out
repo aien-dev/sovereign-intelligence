@@ -1,0 +1,40 @@
+
+ Sovereign Intelligence alpha   step 1 of 9  welcome
+Welcome. I am Drake, and this is Sovereign Intelligence, the AienOS alpha.
+
+This installer is written in Omega, my own language. It sets up a local model on
+your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS.
+NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused.
+
+Next: your model, doctor, plan, your yes, install, model files, first chat. Nothing changes before your yes.
+Type about for versions and evidence, source for my .om source, q to quit.
+Press Enter to choose your model: 
+ Sovereign Intelligence alpha   step 2 of 9  your model
+I looked for model servers already running on this machine (read-only):
+
+  vLLM, pid 106, port 8001
+       serves other-org/mystery-model
+       weights /home/tester/weights/mystery-model
+       not supported yet. I will leave it untouched.
+  llama.cpp server, pid 110, port 8081
+       serves /home/tester/x.gguf
+       weights /home/tester/x.gguf
+       not supported yet. I will leave it untouched.
+  Ollama, pid 111, port 11435
+       serves llama3:8b
+       not supported yet. I will leave it untouched.
+
+I will leave them untouched. Next, choose the model to set up.
+Press Enter to continue: 
+ Sovereign Intelligence alpha   step 2 of 9  your model
+Which model should I set up? Type its number, or its Hugging Face name (org/model).
+
+  1  Tiny test model (2 MB)   0.0 GB in 2 files   <- selected
+       test entry, served by the fake engine.
+  2  tiny-random-gpt2 (0.5 MB, from huggingface.co)   0.0 GB in 7 files
+       test entry, downloaded from huggingface.co at a pinned revision.
+
+Enter keeps the selected one. A model that is not listed is not supported yet: I never download it.
+
+number or name: [0m
+Stopped. Nothing was changed.

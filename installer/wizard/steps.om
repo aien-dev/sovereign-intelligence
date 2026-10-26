@@ -22,15 +22,16 @@ global ppt uchar 4096
 global pptn ulong 1
 text s_title " Sovereign Intelligence alpha "
 text s_step "  step "
-text s_of " of 8  "
+text s_of " of 9  "
 text s_n0 "welcome"
-text s_n1 "doctor"
-text s_n2 "plan"
-text s_n3 "your yes"
-text s_n4 "install"
-text s_n5 "model"
-text s_n6 "first chat"
-text s_n7 "done"
+text s_n1 "your model"
+text s_n2 "doctor"
+text s_n3 "plan"
+text s_n4 "your yes"
+text s_n5 "install"
+text s_n6 "model files"
+text s_n7 "first chat"
+text s_n8 "done"
 text s_omega "  written in Omega (.om)"
 text t_tbase "~/.local/share/aienos"
 text t_files " files"
@@ -39,7 +40,6 @@ text m_name "name "
 text m_url "url "
 text m_bytes "bytes "
 text m_files "files "
-text t_share "/share/aienos/model.manifest"
 text t_base "/.local/share/aienos"
 text t_models "/models/"
 text t_vfy "/.aienos-verified"
@@ -47,7 +47,7 @@ text t_sums "/SHA256SUMS"
 text i_l1 "Checking every file of this release with SHA-256."
 text i_l2 "The hash runs in Omega (the sha256.om unit shipped beside me)."
 text i_ok " files match SHA256SUMS."
-text i_bad "A file does not match SHA256SUMS: "
+text i_bad "A file of this release does not match SHA256SUMS."
 text i_bad2 "This copy is damaged or was changed. Install again with the curl command."
 text i_cut "Meanwhile the user-space stack falls into the hole: libcuda, cuBLAS, nvcc."
 text i_cut2 "That is the picture only. On disk those stay installed; AienOS just never loads them."
@@ -76,8 +76,8 @@ text m_l3 " in "
 text m_l4 " files."
 text m_l5 "Every file is checked against its SHA-256 before it is used."
 text m_l6 "A cut connection resumes where it stopped. q is not read here; Ctrl+C stops."
-text m_fail "The download or a hash check failed. Nothing broken was kept."
-text m_fail2 "Run aienos again to resume. The log is ~/.local/share/aienos/download.log."
+text m_fail "The download or a hash check failed. No unverified file will be used."
+text m_fail2 "Partial downloads were kept. Reconnect, then run aienos to resume. See ~/.local/share/aienos/download.log."
 text m_done "Every model file is downloaded and matches its SHA-256."
 text t_dlocal "/.local"
 text t_dshare "/share"
@@ -202,6 +202,9 @@ emit s_n6
 end
 if eq i 7
 emit s_n7
+end
+if eq i 8
+emit s_n8
 end
 end
 
@@ -571,9 +574,10 @@ ret get mfn 0
 end
 
 fn mopen to bool
-pclr
-proot
-pstr t_share
+if not rsure
+ret false
+end
+pman rselb
 n = mload
 if lt n 0
 ret false
@@ -726,7 +730,7 @@ ret or eq r 0 eq r -17
 end
 
 fn stinst to bool
-enter 4
+enter 5
 pclear
 pl i_l1
 pln
@@ -825,6 +829,7 @@ pkstr c_r
 pkstr c_5
 pkstr c_ua
 pkstr c_uav
+pkauth
 pkstr c_c
 pkstr c_dash
 pkstr c_o
@@ -902,9 +907,19 @@ put pptn 0 get pbn 0
 end
 
 fn mstep to bool
-enter 5
+enter 6
 if not mopen
 ret false
+end
+if not mdone
+if not stlocal
+ret false
+end
+if lt lhave mfiles
+if not sttok
+ret false
+end
+end
 end
 if mdone
 pclear
@@ -1037,10 +1052,14 @@ c = fetch e sz
 put ui 4 st
 pmfile e
 pstr t_part
+note A transport failure must preserve the partial file for the next invocation.
+if ne c 0
+ret false
+end
 if and eq c 0 eq pstat 0
 if eq ssize sz
 h = fhash
-if dgis o
+if and eq h long sz dgis o
 ret mplace e
 end
 end

@@ -1,0 +1,8 @@
+ready pid 34 port 8000 id test-org/tiny-test
+stopped by SIGTERM
+ready pid 66 port 8000 id test-org/tiny-test
+stopped by SIGTERM
+ready pid 263 port 8000 id test-org/tiny-test
+stopped by SIGTERM
+ready pid 297 port 8000 id test-org/tiny-test
+stopped by SIGTERM

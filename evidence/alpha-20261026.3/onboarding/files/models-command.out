@@ -1,0 +1,4 @@
+  1  Tiny test model (2 MB)   0.0 GB in 2 files   <- selected
+       test entry, served by the fake engine.
+  2  tiny-random-gpt2 (0.5 MB, from huggingface.co)   0.0 GB in 7 files
+       test entry, downloaded from huggingface.co at a pinned revision.

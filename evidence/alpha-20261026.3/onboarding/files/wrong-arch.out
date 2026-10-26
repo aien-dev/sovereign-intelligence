@@ -1,0 +1,48 @@
+
+ Sovereign Intelligence alpha   step 1 of 9  welcome
+Welcome. I am Drake, and this is Sovereign Intelligence, the AienOS alpha.
+
+This installer is written in Omega, my own language. It sets up a local model on
+your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS.
+NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused.
+
+Next: your model, doctor, plan, your yes, install, model files, first chat. Nothing changes before your yes.
+Type about for versions and evidence, source for my .om source, q to quit.
+Press Enter to choose your model: 
+ Sovereign Intelligence alpha   step 2 of 9  your model
+I looked for model servers already running on this machine (read-only):
+
+  vLLM, pid 297, port 8000
+       weights /home/tester/weights/tiny-test
+       I can run this model on my engine: Tiny test model (2 MB)
+
+Would you like to connect? I check its weights by SHA-256 first, then let open requests finish,
+stop it gently (SIGTERM, never SIGKILL) and start my engine on the same weights on port 18100.
+aienos restore puts yours back as it was: same command, environment and folder.
+yes to connect, Enter to choose a model yourself: 
+ Sovereign Intelligence alpha   step 2 of 9  your model
+Which model should I set up? Type its number, or its Hugging Face name (org/model).
+
+  1  Tiny test model (2 MB)   0.0 GB in 2 files   <- selected
+       test entry, served by the fake engine.
+  2  tiny-random-gpt2 (0.5 MB, from huggingface.co)   0.0 GB in 7 files
+       test entry, downloaded from huggingface.co at a pinned revision.
+
+Enter keeps the selected one. A model that is not listed is not supported yet: I never download it.
+
+number or name: 
+ Sovereign Intelligence alpha   step 3 of 9  doctor
+  no   CPU      not arm64: this alpha needs Linux arm64
+  ok   GPU      NVIDIA GB10 found (PCI 10de:2e12), device nodes present
+  ok   Driver   kernel driver 580.173.02 (the version this alpha was built and tested against)
+  ok   Memory   130 GB memory, 122 GB free for a model
+  ok   Disk     465.6 GB free in your home
+ info  AienOS   installed: alpha-20261026.3, model not downloaded yet
+  ok   GPU lock the GB10 lock (/tmp/aien-gb10.lock) is not held right now
+ info  NVIDIA   no NVIDIA user-space libraries found; AienOS does not need them
+
+This alpha runs on Linux arm64 with an NVIDIA GB10 (DGX Spark) only.
+Here is what is coming: https://www.aienos.com/alpha/
+I changed nothing. The files the installer unpacked go away with:  aienos uninstall
+Press Enter to close: [0m
+I changed nothing. The files the installer unpacked go away with:  aienos uninstall

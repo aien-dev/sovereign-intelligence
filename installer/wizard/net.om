@@ -9,7 +9,9 @@ global hs uchar 262144
 global hsn ulong 1
 global ab uchar 65536
 global abn ulong 1
-global nt ulong 4
+note nt: 0 content events, 1 first-content ns, 2 request start, 3 last-content ns,
+note 4 completion_tokens when the server reported it (else 0).
+global nt ulong 6
 text j_open "{\"stream\":true,\"max_tokens\":1024,\"messages\":["
 text j_close "]}"
 text j_user "{\"role\":\"user\",\"content\":\""
@@ -25,6 +27,7 @@ text h_get2 " HTTP/1.0"
 text h_data "data: "
 text h_done "[DONE]"
 text h_cont "\"content\":\""
+text h_ctok "\"completion_tokens\":"
 text h_health "/health"
 
 fn qstr t view uchar * to void
@@ -326,11 +329,20 @@ if rbat i h_data
 if rbat add i len h_data h_done
 ret add get rbn 0 1
 end
+u = rbfind i h_ctok
+if lt u nl
+q = add u len h_ctok
+if eq get rb q 32
+q = add q 1
+end
+put nt 4 rbnum q
+end
 c = rbfind i h_cont
 if lt c nl
 if eq get nt 0 0
 put nt 1 ulong sub monons long get nt 2
 end
+put nt 3 ulong sub monons long get nt 2
 put nt 0 add get nt 0 1
 x = jshow add c len h_cont nl
 w = flush
@@ -372,6 +384,9 @@ ret r
 end
 put abn 0 0
 put nt 0 0
+put nt 1 0
+put nt 3 0
+put nt 4 0
 put nt 2 ulong monons
 r = chatrx int fd
 c = fclose int fd
@@ -408,12 +423,13 @@ end
 if gt hb2 0
 o = events o
 if gt o get rbn 0
+if gt get nt 0 0
 ret 0
 end
-end
-end
-if eq hb2 0
 ret -71
 end
-ret 0
+end
+end
+note EOF without the terminating event is an interrupted reply, not successful chat.
+ret -71
 end

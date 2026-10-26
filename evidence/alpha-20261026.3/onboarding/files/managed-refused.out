@@ -1,0 +1,9 @@
+  vLLM, pid 4243, port 7001
+       weights /w/tiny-test
+       runs in a container: I will not stop it from here.
+  vLLM, pid 4244, port 7002
+       weights /w/tiny-test
+       I can run this model on my engine: Tiny test model (2 MB)
+  vLLM, pid 4242, port 7000
+       weights /w/tiny-test
+       a systemd service: I will not stop it. Stop it yourself if you want to switch.

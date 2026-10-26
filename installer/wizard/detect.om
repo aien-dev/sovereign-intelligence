@@ -1,0 +1,1352 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note detect.om: find model servers already running on this machine (vLLM, llama.cpp llama-server,
+note Ollama, SGLang, Text Generation Inference, NVIDIA NIM, aien-serve-http), offer to connect, and
+note the consented swap: record the server's argv, environment and folder, let open requests finish,
+note SIGTERM (never SIGKILL), start the engine on the same weights; aienos restore puts it back.
+note
+note Reading is read-only. AIENOS_PROC_ROOT, when set, is put in front of /proc (tests use it so the
+note host's processes are never scanned). srv holds 8 servers of 12 words: 0 pid, 1 kind, 2 port,
+note 3 registry block + 1 (0 not supported), 4/5 weights path in srvs, 6/7 model id in srvs, 8 why it
+note is left alone (1 a systemd service, 2 a container, 3 another user), 9/10 its folder in srvs.
+
+text v_proc "AIENOS_PROC_ROOT"
+text v_procd "/proc"
+text v_sl "/"
+text v_cmd "/cmdline"
+text v_env "/environ"
+text v_cg "/cgroup"
+text v_cwd "/cwd"
+text v_fd1 "/fd/1"
+text v_stat "/stat"
+text v_tcp "/net/tcp"
+text v_tcp6 "/net/tcp6"
+text v_mod "/v1/models"
+text v_id "\"id\""
+text v_k1 "vLLM"
+text v_k2 "llama.cpp server"
+text v_k3 "Ollama"
+text v_k4 "SGLang"
+text v_k5 "Text Generation Inference"
+text v_k6 "NVIDIA NIM"
+text v_k7 "aien-serve-http"
+text b_vllm "vllm"
+text b_llama "llama-server"
+text b_oll "ollama"
+text b_tgl "text-generation-launcher"
+text b_tgs "text-generation-server"
+text b_nim "/opt/nim/"
+text m_vllm "vllm.entrypoints"
+text m_sgl "sglang.launch_server"
+text m_tgi "text_generation_server"
+text a_serve "serve"
+text a_port "--port"
+text a_porte "--port="
+text a_model "--model"
+text a_m "-m"
+text a_mp "--model-path"
+text a_md "--model-dir"
+text a_mid "--model-id"
+text a_oh "OLLAMA_HOST="
+text a_dock "docker"
+text a_ctrd "containerd"
+text a_kube "kubepods"
+text a_pod "libpod"
+text a_svc ".service"
+text a_rp ") "
+text a_cs ": "
+text a_dev "/dev/"
+text v_pid ", pid "
+text v_port ", port "
+text v_serv "serves "
+text v_from "weights "
+text v_r1 "a systemd service: I will not stop it. Stop it yourself if you want to switch."
+text v_r2 "runs in a container: I will not stop it from here."
+text v_r3 "belongs to another user: I will not touch it."
+text v_r7 "already an Aien engine: I leave it alone."
+text v_uns "not supported yet. I will leave it untouched."
+text v_can "I can run this model on my engine: "
+text v_h1 "I looked for model servers already running on this machine (read-only):"
+text v_none "I will leave them untouched. Next, choose the model to set up."
+text v_c1 "Would you like to connect? I check its weights by SHA-256 first, then let open requests finish,"
+text v_c2 "stop it gently (SIGTERM, never SIGKILL) and start my engine on the same weights on port 18100."
+text v_c3 "aienos restore puts yours back as it was: same command, environment and folder."
+text v_cq "yes to connect, Enter to choose a model yourself"
+text v_zero "No model server is running here (vLLM, llama.cpp, Ollama, SGLang, TGI, NIM, aien-serve-http)."
+text w_dir "/restore"
+text w_cmdf "/restore/cmdline"
+text w_envf "/restore/environ"
+text w_info "/restore/info"
+text w_sh "/restore/restore.sh"
+text w_log "/restore/server.log"
+text w_done "/restore.done."
+text w_bsh "/bin/sh"
+text w_eq "="
+text w_sh1 "#!/bin/sh\n# Written by aienos before it stopped this server; aienos restore runs it.\n# It starts the server again with its recorded folder, argv and environment.\ncd "
+text w_sh2 " || exit 1\n"
+text w_sh3 "exec >>"
+text w_sh4 " 2>&1\n"
+text w_sh5 "exec /usr/bin/env -i"
+text w_qq "'\\''"
+text w_kp "pid "
+text w_kq "port "
+text w_kk "kind "
+text w_old "A server aienos stopped earlier is not restored yet. Run aienos restore first. I stopped nothing."
+text w_norec "I could not record how your server was started, so I left it running. I stopped nothing."
+text w_lock "Another process holds the GB10 lock, so I left your server running. I stopped nothing."
+text w_s1 "Recorded how your "
+text w_s1b " was started: ~/.local/share/aienos/restore"
+text w_s2 "Letting open requests finish on port "
+text w_s2b ", then SIGTERM to pid "
+text w_nost1 "Your server did not stop within 60 s of SIGTERM. I sent nothing stronger: it is still running."
+text w_nost2 "I removed my record of it; nothing else changed."
+text w_mem "The GB10's memory is still in use after your server stopped, so I am putting it back."
+text w_back "I am putting your server back now."
+text w_bk1 "Your "
+text w_bk2 " is back on port "
+text w_bk3 "It did not answer on port "
+text w_bk4 " within 300 s. Its output: ~/.local/share/aienos/restore/server.log"
+text w_none "Nothing to restore: aienos has not stopped any server."
+text w_estop "The engine did not stop, so I did not start your server again."
+text w_rfail "I could not run ~/.local/share/aienos/restore/restore.sh."
+text w_r1 "Started your server again from ~/.local/share/aienos/restore/restore.sh, pid "
+text w_r2 "It answers on port "
+text w_r3 ". The record moved to ~/.local/share/aienos/restore.done."
+text w_down "Your server was down for "
+text w_down2 " s, from SIGTERM until my engine answered. aienos restore puts it back."
+
+note ---------- reading /proc ----------
+
+fn pproc p ulong t view uchar * to void
+pclr
+x = penv v_proc
+pstr v_procd
+if gt p 0
+pbyte 47
+pnum p
+end
+pstr t
+end
+
+fn avadd s ulong e ulong to void
+k = get avxn 0
+if lt k 128
+put avx mul k 2 s
+put avx add mul k 2 1 sub e s
+put avxn 0 add k 1
+end
+end
+
+note Split the NUL-separated argv in rb into avx (offset, length) pairs.
+fn avload to void
+put avxn 0 0
+s = ulong 0
+n = get rbn 0
+for i ulong n
+if eq get rb i 0
+avadd s i
+s = add i 1
+end
+end
+if lt s n
+avadd s n
+end
+end
+
+fn avo j ulong to ulong
+ret get avx mul j 2
+end
+
+fn avl j ulong to ulong
+ret get avx add mul j 2 1
+end
+
+fn aveq j ulong t view uchar * to bool
+if ne avl j len t
+ret false
+end
+ret rbat avo j t
+end
+
+fn avpre j ulong t view uchar * to bool
+if lt avl j len t
+ret false
+end
+ret rbat avo j t
+end
+
+fn avhas j ulong t view uchar * to bool
+o = avo j
+ret rbin o add o avl j t
+end
+
+note Is the last path component of argument j equal to t?
+fn avbase j ulong t view uchar * to bool
+o = avo j
+n = avl j
+s = o
+for i ulong n
+if eq get rb add o i 47
+s = add add o i 1
+end
+end
+if ne sub add o n s len t
+ret false
+end
+ret rbat s t
+end
+
+fn avfind t view uchar * to ulong
+n = get avxn 0
+for j ulong n
+if aveq j t
+ret j
+end
+end
+ret n
+end
+
+note The kind of server in avx: 1 vLLM, 2 llama.cpp, 3 Ollama, 4 SGLang, 5 TGI, 6 NIM, 7
+note aien-serve-http, 0 none of them (Ollama's per-model runners are not the server).
+fn dkind to ulong
+n = get avxn 0
+for j ulong 2
+if lt j n
+if and avbase j b_vllm lt avfind a_serve n
+ret 1
+end
+if avbase j b_llama
+ret 2
+end
+if and avbase j b_oll lt avfind a_serve n
+ret 3
+end
+if or avbase j b_tgl avbase j b_tgs
+ret 5
+end
+if avbase j v_k7
+ret 7
+end
+if avhas j b_nim
+ret 6
+end
+end
+end
+m = add avfind a_m 1
+if lt m n
+if avpre m m_vllm
+ret 1
+end
+if avpre m m_sgl
+ret 4
+end
+if avpre m m_tgi
+ret 5
+end
+end
+ret 0
+end
+
+fn dport k ulong to ulong
+n = get avxn 0
+for j ulong n
+if and aveq j a_port lt add j 1 n
+ret rbnum avo add j 1
+end
+if avpre j a_porte
+ret rbnum add avo j len a_porte
+end
+end
+if or eq k 1 eq k 6
+ret 8000
+end
+if eq k 2
+ret 8080
+end
+if eq k 3
+ret 11434
+end
+if eq k 4
+ret 30000
+end
+if eq k 5
+ret 3000
+end
+ret 0
+end
+
+note The argument index holding the weights (--model, --model-path, --model-dir, --model-id, -m for
+note llama.cpp, vLLM's positional model after serve), or the argument count.
+fn dwts k ulong to ulong
+n = get avxn 0
+for j ulong n
+if lt add j 1 n
+a = or aveq j a_model aveq j a_mp
+b = or aveq j a_md aveq j a_mid
+if or a b
+ret add j 1
+end
+if and eq k 2 aveq j a_m
+ret add j 1
+end
+end
+end
+if eq k 1
+s = add avfind a_serve 1
+if lt s n
+if ne get rb avo s 45
+ret s
+end
+end
+end
+ret n
+end
+
+note Copy rb[o .. o+n) into srvs; srv[f] and srv[f+1] get its place (length 0 when it does not fit).
+fn svput f ulong o ulong n ulong to void
+s = get srvn 1
+if gt add s n len srvs
+ret
+end
+for i ulong n
+put srvs add s i get rb add o i
+end
+put srv f s
+put srv add f 1 n
+put srvn 1 add s n
+end
+
+fn suid to ulong
+a = or ulong get sb 24 shl ulong get sb 25 8
+ret or or a shl ulong get sb 26 16 shl ulong get sb 27 24
+end
+
+note 1 when a cgroup line (rb) ends in .service, 2 for docker/containerd/kubepods/libpod, else 0.
+fn dcg to ulong
+o = ulong 0
+while lt o get rbn 0 bound 4097
+e = rbfind o t_nl
+a = or rbin o e a_dock rbin o e a_ctrd
+b = or rbin o e a_kube rbin o e a_pod
+if or a b
+ret 2
+end
+if ge sub e o len a_svc
+if rbat sub e len a_svc a_svc
+ret 1
+end
+end
+o = add e 1
+end
+ret 0
+end
+
+note The port after the last ':' of OLLAMA_HOST in the environment in rb, or 0.
+fn denvp to ulong
+c = rbfind 0 a_oh
+n = get rbn 0
+if ge c n
+ret 0
+end
+s = c
+i = c
+while and lt i n ne get rb i 0 bound 4096
+if eq get rb i 58
+s = add i 1
+end
+i = add i 1
+end
+if eq s c
+ret 0
+end
+ret rbnum s
+end
+
+note GET path on 127.0.0.1:p, the whole reply (up to 64 KiB) in rb. Returns the HTTP status or < 0.
+fn hbody p ulong t view uchar * to long
+fd = tcp p
+if lt fd 0
+ret fd
+end
+put qbn 0 0
+qstr h_get1
+qstr t
+qline h_get2
+qline h_host
+qcrlf
+r = sendq int fd
+if ne r 0
+c = fclose int fd
+ret r
+end
+put rbn 0 0
+while lt get rbn 0 65536 bound 4096
+k = waitio int fd 1 3000000000
+if le k 0
+break
+end
+k = recv int fd rb get rbn 0 sub 65536 get rbn 0 0
+if le k 0
+break
+end
+put rbn 0 add get rbn 0 ulong k
+end
+c = fclose int fd
+if lt get rbn 0 12
+ret -71
+end
+ret long rbnum 9
+end
+
+note The first "id" in the /v1/models reply in rb, into srv[b+6 .. b+7].
+fn did b ulong to void
+n = get rbn 0
+c = rbfind 0 v_id
+if ge c n
+ret
+end
+i = add c len v_id
+while and lt i n or eq get rb i 32 eq get rb i 58 bound 64
+i = add i 1
+end
+if ne get rb i 34
+ret
+end
+i = add i 1
+s = i
+while and lt i n ne get rb i 34 bound 1024
+i = add i 1
+end
+svput add b 6 s sub i s
+end
+
+note Does srvs[o .. o+n) contain rgy[s .. e), ignoring case?
+fn svhas o ulong n ulong s ulong e ulong to bool
+m = sub e s
+if or eq m 0 lt n m
+ret false
+end
+for i ulong add sub n m 1
+if svat add o i s m
+ret true
+end
+end
+ret false
+end
+
+fn svat a ulong s ulong m ulong to bool
+for j ulong m
+if ne lc get srvs add a j lc get rgy add s j
+ret false
+end
+end
+ret true
+end
+
+note The registry block + 1 whose repo NAME appears in srvs[o .. o+n), or 0.
+fn svm o ulong n ulong to ulong
+c = rcnt
+for k ulong c
+b = rblk k
+s = rbase b
+if svhas o n s rgnl s
+ret add b 1
+end
+end
+ret 0
+end
+
+note What else is known about server b: owner, cgroup, Ollama's port, folder, model id, registry match.
+fn dmore b ulong k ulong to void
+p = get srv b
+pproc p v_sl
+r = pstat
+if or ne r 0 ne suid ulong getuid
+put srv add b 8 3
+end
+pproc p v_env
+r = slurp
+if lt r 0
+put srv add b 8 3
+end
+if and eq k 3 ge r 0
+v = denvp
+if gt v 0
+put srv add b 2 v
+end
+end
+pproc p v_cg
+r = slurp
+if gt r 0
+g = dcg
+if and gt g 0 eq get srv add b 8 0
+put srv add b 8 g
+end
+end
+pproc p v_cwd
+r = readlnk pb 0 get pbn 0 rb 0 4096
+if gt r 0
+svput add b 9 0 ulong r
+end
+q = get srv add b 2
+if and gt q 0 ne k 7
+c = hbody q v_mod
+if eq c 200
+did b
+end
+end
+if or eq k 7 or eq k 2 eq k 3
+ret
+end
+m = svm get srv add b 6 get srv add b 7
+if eq m 0
+m = svm get srv add b 4 get srv add b 5
+end
+put srv add b 3 m
+end
+
+fn dproc p ulong me ulong to void
+n = get srvn 0
+if ge n 8
+ret
+end
+if or eq p ulong getpid eq p me
+ret
+end
+pproc p v_cmd
+r = slurp
+if le r 0
+ret
+end
+avload
+k = dkind
+if eq k 0
+ret
+end
+b = mul n 12
+for i ulong 12
+put srv add b i 0
+end
+put srv b p
+put srv add b 1 k
+put srv add b 2 dport k
+w = dwts k
+if lt w get avxn 0
+svput add b 4 avo w avl w
+end
+put srvn 0 add n 1
+dmore b k
+end
+
+fn pidnm d view uchar 8192 o ulong to ulong
+x = ulong 0
+k = ulong 0
+while ne get d add add o 19 k 0 bound 32
+c = get d add add o 19 k
+if or lt c 48 gt c 57
+ret 0
+end
+x = add mul x 10 ulong sub c 48
+k = add k 1
+end
+ret x
+end
+
+note Scan the /proc root for model servers into srv (srvn 0 servers).
+fn dscan to void
+d = new uchar 8192 0
+put srvn 0 0
+put srvn 1 0
+me = epid
+pclr
+x = penv v_proc
+pstr v_procd
+fd = fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+ret
+end
+while true bound 100000
+k = getdnts int fd d 0 8192
+if le k 0
+break
+end
+o = ulong 0
+while lt o ulong k bound 8192
+rl = or ulong get d add o 16 shl ulong get d add o 17 8
+if eq rl 0
+break
+end
+p = pidnm d o
+if gt p 0
+dproc p me
+end
+o = add o rl
+end
+end
+c = fclose int fd
+end
+
+note ---------- showing them ----------
+
+fn plkind k ulong to void
+if eq k 1
+pl v_k1
+end
+if eq k 2
+pl v_k2
+end
+if eq k 3
+pl v_k3
+end
+if eq k 4
+pl v_k4
+end
+if eq k 5
+pl v_k5
+end
+if eq k 6
+pl v_k6
+end
+if eq k 7
+pl v_k7
+end
+end
+
+fn plsv o ulong n ulong to void
+for i ulong n
+if lt i 90
+pc get srvs add o i
+end
+end
+end
+
+fn plsrv i ulong to void
+b = mul i 12
+pc 6
+pl k_sp2
+plkind get srv add b 1
+pc 2
+pl v_pid
+plnum get srv b
+q = get srv add b 2
+if gt q 0
+pl v_port
+plnum q
+end
+pln
+if gt get srv add b 7 0
+pl k_ind
+pl v_serv
+plsv get srv add b 6 get srv add b 7
+pln
+end
+if gt get srv add b 5 0
+pl k_ind
+pl v_from
+plsv get srv add b 4 get srv add b 5
+pln
+end
+pl k_ind
+plwhy b
+pln
+end
+
+fn plwhy b ulong to void
+w = get srv add b 8
+m = get srv add b 3
+pc 5
+if eq w 1
+pl v_r1
+pc 2
+ret
+end
+if eq w 2
+pl v_r2
+pc 2
+ret
+end
+if eq w 3
+pl v_r3
+pc 2
+ret
+end
+if eq get srv add b 1 7
+pl v_r7
+pc 2
+ret
+end
+if eq m 0
+pl v_uns
+pc 2
+ret
+end
+pc 3
+pl v_can
+plval sub m 1 g_title
+pc 2
+end
+
+note The first server that may be connected (supported, not managed, ours to stop) + 1, or 0.
+fn dcand to ulong
+for i ulong get srvn 0
+b = mul i 12
+if and gt get srv add b 3 0 eq get srv add b 8 0
+ret add i 1
+end
+end
+ret 0
+end
+
+note The connected server's weights folder, absolute, into swpd.
+fn swset b ulong to void
+o = get srv add b 4
+n = get srv add b 5
+put swpdn 0 0
+if eq n 0
+ret
+end
+pclr
+if ne get srvs o 47
+c = get srv add b 9
+for i ulong get srv add b 10
+pbyte get srvs add c i
+end
+pbyte 47
+end
+for i ulong n
+pbyte get srvs add o i
+end
+for i ulong get pbn 0
+put swpd i get pb i
+end
+put swpdn 0 get pbn 0
+end
+
+note Step 1: the servers already running, and the question. Leaves the model's manifest open.
+fn stfind to bool
+enter 1
+if not rsure
+ret false
+end
+dscan
+n = get srvn 0
+if eq n 0
+ret stpick
+end
+pclear
+pl v_h1
+pln
+pln
+for i ulong n
+plsrv i
+end
+pln
+c = dcand
+if eq c 0
+pl v_none
+prompt t_next
+show
+r = ask
+if lt r 0
+ret false
+end
+ret stpick
+end
+pl v_c1
+pln
+pl v_c2
+pln
+pl v_c3
+prompt v_cq
+show
+r = ask
+if lt r 0
+ret false
+end
+if not ibis t_yes
+ret stpick
+end
+b = mul sub c 1 12
+put swp 0 c
+put rsel 1 sub get srv add b 3 1
+swset b
+ret mopen
+end
+
+note ---------- the record ----------
+
+fn prec t view uchar * to void
+pbase
+pstr t
+end
+
+fn rhave to bool
+prec w_info
+ret pexist
+end
+
+fn sbyte c uchar to void
+n = get scbn 0
+if lt n len scb
+put scb n c
+put scbn 0 add n 1
+end
+end
+
+fn sstr t view uchar * to void
+for i ulong len t
+sbyte get t i
+end
+end
+
+note Append rb[o .. o+n) single-quoted for /bin/sh.
+fn sqrb o ulong n ulong to void
+sbyte 39
+for i ulong n
+c = get rb add o i
+if eq c 39
+sstr w_qq
+else
+sbyte c
+end
+end
+sbyte 39
+end
+
+fn sqcm o ulong n ulong to void
+sbyte 39
+for i ulong n
+c = get rcm add o i
+if eq c 39
+sstr w_qq
+else
+sbyte c
+end
+end
+sbyte 39
+end
+
+note Append ' ARG' for every NUL-separated entry of rcm.
+fn scargs to void
+s = ulong 0
+n = get rcmn 0
+for i ulong n
+if eq get rcm i 0
+sbyte 32
+sqcm s sub i s
+s = add i 1
+end
+end
+if lt s n
+sbyte 32
+sqcm s sub n s
+end
+end
+
+note Append ' K=V' for every NUL-separated entry with '=' in rb (the environment).
+fn scenv to void
+s = ulong 0
+n = get rbn 0
+for i ulong n
+if eq get rb i 0
+if rbin s i w_eq
+sbyte 32
+sqrb s sub i s
+end
+s = add i 1
+end
+end
+end
+
+note Its stdout, when that is a regular file outside /dev: exec >>'FILE' 2>&1.
+fn scout p ulong to void
+pproc p v_fd1
+r = readlnk pb 0 get pbn 0 rb 0 4096
+if le r 0
+ret
+end
+put rbn 0 ulong r
+if or ne get rb 0 47 rbat 0 a_dev
+ret
+end
+pclr
+prb 0 ulong r
+if ne pstat 0
+ret
+end
+if ne stype 8
+ret
+end
+sstr w_sh3
+sqrb 0 ulong r
+sstr w_sh4
+end
+
+fn rbput to ulong
+n = get pbn 0
+for i ulong n
+put rb i get pb i
+end
+put rbn 0 n
+ret n
+end
+
+note Record server b (pid p) in ~/.local/share/aienos/restore: cmdline, environ (0600), info and
+note restore.sh (0700). False when the process changed or anything could not be read or written.
+fn swrec b ulong to bool
+p = get srv b
+prec w_dir
+r = makedir pb 0 get pbn 0 448
+if ne r 0
+ret false
+end
+pproc p v_cmd
+r = slurp
+if le r 0
+ret false
+end
+avload
+if ne dkind get srv add b 1
+ret false
+end
+for i ulong get rbn 0
+put rcm i get rb i
+end
+put rcmn 0 get rbn 0
+prec w_cmdf
+r = spillm get rbn 0 1
+put scbn 0 0
+sstr w_sh1
+pproc p v_cwd
+r = readlnk pb 0 get pbn 0 rb 0 4096
+if le r 0
+ret false
+end
+sqrb 0 ulong r
+sstr w_sh2
+scout p
+pproc p v_env
+r = slurp
+if lt r 0
+ret false
+end
+prec w_envf
+x = spillm get rbn 0 1
+sstr w_sh5
+scenv
+scargs
+sbyte 10
+for i ulong get scbn 0
+put rb i get scb i
+end
+prec w_sh
+x = spillm get scbn 0 2
+pclr
+pstr w_kp
+pnum p
+pbyte 10
+pstr w_kq
+pnum get srv add b 2
+pbyte 10
+pstr w_kk
+pnum get srv add b 1
+pbyte 10
+n = rbput
+prec w_info
+x = spillm n 1
+ret eq x 0
+end
+
+note Remove the record (the server was not stopped).
+fn swdel to void
+prec w_dir
+put rbn 0 0
+x = spillm 0 0
+prec w_cmdf
+x = unlink pb 0 get pbn 0
+prec w_envf
+x = unlink pb 0 get pbn 0
+prec w_info
+x = unlink pb 0 get pbn 0
+prec w_sh
+x = unlink pb 0 get pbn 0
+prec w_log
+x = unlink pb 0 get pbn 0
+prec w_dir
+x = rmdir pb 0 get pbn 0
+end
+
+note After a restore: restore -> restore.done.PID.
+fn swdone p ulong to void
+pkclr
+prec w_dir
+pkpath
+pbase
+pstr w_done
+pnum p
+pkpath
+x = renames pk 0 get pkn 0 0
+end
+
+fn rinfo to bool
+prec w_info
+n = slurp
+if le n 0
+ret false
+end
+put swp 3 rbnum add rbfind 0 w_kp len w_kp
+put swp 4 rbnum add rbfind 0 w_kq len w_kq
+put swp 5 rbnum add rbfind 0 w_kk len w_kk
+ret gt get swp 4 0
+end
+
+note ---------- stopping and starting their server ----------
+
+fn tcpln o ulong e ulong q ulong to bool
+c = rbfind o a_cs
+if ge c e
+ret false
+end
+k = add c 2
+while and lt k e ne get rb k 58 bound 64
+k = add k 1
+end
+if ne hex4 add k 1 q
+ret false
+end
+s = add k 6
+while and lt s e ne get rb s 32 bound 64
+s = add s 1
+end
+s = add s 1
+ret and eq get rb s 48 eq get rb add s 1 49
+end
+
+note ESTABLISHED connections on local port q in one /proc/net table.
+fn tcpf q ulong t view uchar * to ulong
+pproc 0 t
+r = slurp
+if le r 0
+ret 0
+end
+c = ulong 0
+o = add rbfind 0 t_nl 1
+while lt o get rbn 0 bound 100000
+e = rbfind o t_nl
+if tcpln o e q
+c = add c 1
+end
+o = add e 1
+end
+ret c
+end
+
+fn tcpest q ulong to ulong
+ret add tcpf q v_tcp tcpf q v_tcp6
+end
+
+note Wait up to 30 s for open connections on port q to finish.
+fn swdrain q ulong to ulong
+for i ulong 300
+if eq tcpest q 0
+ret 0
+end
+frame
+s = sleepns 100000000
+end
+ret tcpest q
+end
+
+fn zomb p ulong to bool
+pproc p v_stat
+r = slurp
+if le r 0
+ret true
+end
+c = rbfind 0 a_rp
+ret eq get rb add c 2 90
+end
+
+note Wait up to 60 s for pid p to be gone after SIGTERM.
+fn swgone p ulong to bool
+for i ulong 600
+r = killpid int p 0
+if lt r 0
+ret true
+end
+if zomb p
+ret true
+end
+frame
+s = sleepns 100000000
+end
+ret false
+end
+
+note Run restore.sh in its own session, output to restore/server.log. Returns its pid or < 0.
+fn rrun to long
+prec w_sh
+if not pexist
+ret -2
+end
+pkclr
+pclr
+pstr w_bsh
+pkpath
+prec w_sh
+pkpath
+prec w_log
+lfd = fopen pb 0 get pbn 0 525377 384
+if lt lfd 0
+ret lfd
+end
+nfd = fopen e_null 0 len e_null 524288 0
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+s = setsid
+d = dupfd int nfd 0 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int lfd
+c = fclose int nfd
+ret pid
+end
+
+note Wait up to limit s for port q to accept a connection while pid runs.
+fn rwait q ulong pid long limit ulong to bool
+st = ulong monons
+while lt sub ulong monons st mul limit 1000000000 bound 999999
+fd = tcp q
+if ge fd 0
+c = fclose int fd
+ret true
+end
+x = waitpid int pid ws 0 4 1
+if eq x pid
+ret false
+end
+frame
+s = sleepns 100000000
+end
+ret false
+end
+
+note Put the recorded server back (used when the swap fails), on the panel.
+fn swbk to void
+x = rinfo
+q = get swp 4
+pln
+pl w_back
+show
+p = rrun
+ok = false
+if gt p 0
+ok = rwait q p 300
+end
+pclear
+if ok
+pc 3
+pl w_bk1
+plkind get swp 5
+pl w_bk2
+plnum q
+pc 2
+swdone ulong p
+else
+pc 4
+pl w_bk3
+plnum q
+pl w_bk4
+pc 2
+end
+prompt t_close
+show
+r = ask
+end
+
+fn swfail t view uchar * to bool
+pclear
+pc 4
+pl t
+pc 2
+prompt t_close
+show
+r = ask
+ret false
+end
+
+note The consented swap. Returns true with the engine answering on PORT.
+fn swdo to bool
+b = mul sub get swp 0 1 12
+p = get srv b
+q = get srv add b 2
+if gt epid 0
+x = estop
+end
+if portbusy
+ret swfail n_port
+end
+if eq get dk 6 1
+ret swfail w_lock
+end
+if rhave
+ret swfail w_old
+end
+if not swrec b
+swdel
+ret swfail w_norec
+end
+pclear
+pl w_s1
+plkind get srv add b 1
+pl w_s1b
+pln
+pl w_s2
+plnum q
+pl w_s2b
+plnum p
+prompt t_wait
+show
+dr = swdrain q
+t0 = ulong monons
+put swp 1 t0
+r = killpid int p 15
+if not swgone p
+swdel
+pclear
+pc 4
+pl w_nost1
+pc 2
+pln
+pl w_nost2
+prompt t_close
+show
+r = ask
+ret false
+end
+ckmem
+if eq get dk 3 1
+pclear
+pl w_mem
+swbk
+ret false
+end
+pclear
+pl f_load1
+pltitle
+pl f_dot
+pln
+pl f_load2
+plgb mbytes
+pl f_load3
+prompt t_wait
+put ui 6 0
+show
+e = estart
+if lt e 0
+pclear
+pl f_fail1
+swbk
+ret false
+end
+if not ewait 2400
+pclear
+pl f_fail1
+swbk
+ret false
+end
+put swp 2 sub ulong monons t0
+ret true
+end
+
+fn pldown to void
+d = get swp 2
+if eq d 0
+ret
+end
+pl w_down
+plnum div d 1000000000
+pc 46
+plnum div rem d 1000000000 100000000
+pl w_down2
+pln
+end
+
+note ---------- commands ----------
+
+note aienos restore: stop the engine, start the recorded server again, wait for its port.
+fn crest to int
+if not rhave
+emit w_none
+putb 10
+x = flush
+ret 0
+end
+h = rinfo
+q = get swp 4
+if not estop
+emit w_estop
+putb 10
+x = flush
+ret 1
+end
+p = rrun
+if lt p 0
+emit w_rfail
+putb 10
+x = flush
+ret 1
+end
+emit w_r1
+num ulong p
+putb 10
+x = flush
+if rwait q p 300
+emit w_r2
+num q
+emit w_r3
+num ulong p
+putb 10
+x = flush
+swdone ulong p
+ret 0
+end
+emit w_bk3
+num q
+emit w_bk4
+putb 10
+x = flush
+ret 1
+end
+
+note aienos detect: list the servers found, read-only.
+fn cdetect to int
+x = rsure
+dscan
+pclear
+if eq get srvn 0 0
+pl v_zero
+pln
+end
+for i ulong get srvn 0
+plsrv i
+end
+ret cprint
+end
+
+note aienos models: the registry with each model's status.
+fn cmodels to int
+if not rsure
+ret 1
+end
+pclear
+for k ulong rcnt
+plpick k
+end
+ret cprint
+end

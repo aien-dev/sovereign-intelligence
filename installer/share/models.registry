@@ -1,0 +1,27 @@
+model qwen3.6-35b-a3b-fp8
+title Qwen3.6 35B-A3B FP8 (37.5 GB)
+repo Qwen/Qwen3.6-35B-A3B-FP8
+manifest model.manifest
+engine bin/aien-serve-http
+args --engine omega --max-context 49152 --max-tokens-cap 16384 --thinking off --batch-slots 8
+memkb 62780416
+status default. NOT QUALIFIED: this engine build serves the Spark's 35B on a GB10 (EXERCISED); the G1-G10 x3 gates and this installer's GB10 first token are NOT_RUN until the qualification window.
+end
+model qwen3.8-27b-fp8
+title Qwen3.8 27B FP8 (30.9 GB)
+repo Qwen/Qwen3.8-27B-FP8
+manifest model-27b.manifest
+engine bin/aien-serve-http-27b
+args --engine omega --max-context 131072 --max-tokens-cap 16384 --thinking off
+memkb 50684928
+status experimental. NOT QUALIFIED: Core cf239078 (alpha/20261025.1) passed SC-GB10-SERVE-CHAT once (1 token); the G1-G10 x3 gates and this binary's GPU run from this installer are NOT_RUN until the qualification window.
+end
+model qwen3-30b-a3b-instruct-2507-fp8
+title Qwen3 30B-A3B Instruct 2507 FP8 (31.2 GB)
+repo Qwen/Qwen3-30B-A3B-Instruct-2507-FP8
+manifest model-30b.manifest
+engine bin/aien-serve-http
+args --engine omega --max-context 32768 --max-tokens-cap 16384 --thinking off
+memkb 42726400
+status fallback, not shipped yet. NOT QUALIFIED: Core's Omega engine ran this checkpoint on a GB10 at 36-39 tok/s (EXERCISED, Core adr0004-step0-baseline-20261015). This engine build gives it tools in the Qwen3.6 prompt format, not its own; it waits for an engine rebuilt with aien-sovereign-core-mv#778 (Hermes tools), then the G1-G10 x3 gates in a qualification window. Until then those gates are NOT_RUN.
+end

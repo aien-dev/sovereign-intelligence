@@ -1,0 +1,119 @@
+
+ Sovereign Intelligence alpha   step 1 of 9  welcome
+Welcome. I am Drake, and this is Sovereign Intelligence, the AienOS alpha.
+
+This installer is written in Omega, my own language. It sets up a local model on
+your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS.
+NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused.
+
+Next: your model, doctor, plan, your yes, install, model files, first chat. Nothing changes before your yes.
+Type about for versions and evidence, source for my .om source, q to quit.
+Press Enter to choose your model: 
+ Sovereign Intelligence alpha   step 2 of 9  your model
+Which model should I set up? Type its number, or its Hugging Face name (org/model).
+
+  1  Tiny test model (2 MB)   0.0 GB in 2 files   <- selected
+       test entry, served by the fake engine.
+  2  tiny-random-gpt2 (0.5 MB, from huggingface.co)   0.0 GB in 7 files
+       test entry, downloaded from huggingface.co at a pinned revision.
+
+Enter keeps the selected one. A model that is not listed is not supported yet: I never download it.
+
+number or name: 
+ Sovereign Intelligence alpha   step 3 of 9  doctor
+  ok   CPU      arm64 (aarch64), Linux
+  ok   GPU      NVIDIA GB10 found (PCI 10de:2e12), device nodes present
+  ok   Driver   kernel driver 580.173.02 (the version this alpha was built and tested against)
+  ok   Memory   130 GB memory, 122 GB free for a model
+  ok   Disk     465.1 GB free in your home
+ info  AienOS   installed: alpha-20261026.3, model not downloaded yet
+  ok   GPU lock the GB10 lock (/tmp/aien-gb10.lock) is not held right now
+ info  NVIDIA   no NVIDIA user-space libraries found; AienOS does not need them
+
+Press Enter to continue: 
+ Sovereign Intelligence alpha   step 4 of 9  plan
+Here is exactly what changes, all inside your home folder:
+
+~/.local/share/aienos/releases/alpha-20261026.3   this release, already unpacked and checked
+~/.local/share/aienos/models/tiny-random-gpt2-71034c5d
+   the model: 0.0 GB in 7 files.
+~/.local/share/aienos/engine.log   the engine's log, when it runs
+~/.local/bin/aienos, the menu entry and the desktop icon (already there)
+
+Not touched: NVIDIA's driver, the CUDA toolkit, libcuda, cuBLAS, /usr, /etc. No sudo.
+Undo everything at any time:  aienos uninstall
+Press Enter for the last question: 
+ Sovereign Intelligence alpha   step 5 of 9  your yes
+Type yes to begin. Anything else stops here, and nothing changes.
+yes or no: 
+ Sovereign Intelligence alpha   step 6 of 9  install
+Checking every file of this release with SHA-256.
+The hash runs in Omega (the sha256.om unit shipped beside me).
+
+Meanwhile the user-space stack falls into the hole: libcuda, cuBLAS, nvcc.
+That is the picture only. On disk those stay installed; AienOS just never loads them.
+
+ Sovereign Intelligence alpha   step 6 of 9  install
+27 files match SHA256SUMS.
+Created ~/.local/share/aienos/models/tiny-random-gpt2-71034c5d for the model.
+
+Meanwhile the user-space stack falls into the hole: libcuda, cuBLAS, nvcc.
+That is the picture only. On disk those stay installed; AienOS just never loads them.
+Press Enter to continue: 
+ Sovereign Intelligence alpha   step 7 of 9  model files
+No local copy found (Hugging Face cache, HF_HOME, HF_HUB_CACHE, ~/models).
+Type a folder that holds the weights, or press Enter to download them from Hugging Face.
+Enter, a folder, or download: 
+ Sovereign Intelligence alpha   step 7 of 9  model files
+Hugging Face token (optional). These weights are public, so Enter skips this.
+A token you paste is stored only on this machine: ~/.local/share/aienos/keys/hf.header (0600).
+It is sent only to huggingface.co, as a header curl reads from that file, never on a command line.
+What you type is not shown.
+token, or Enter to skip: 
+ Sovereign Intelligence alpha   step 7 of 9  model files
+Hugging Face token (optional). These weights are public, so Enter skips this.
+A token you paste is stored only on this machine: ~/.local/share/aienos/keys/hf.header (0600).
+It is sent only to huggingface.co, as a header curl reads from that file, never on a command line.
+What you type is not shown.
+
+Hugging Face refused that token (HTTP 401). Nothing was stored. Paste another, or press Enter.
+token, or Enter to skip: 
+ Sovereign Intelligence alpha   step 7 of 9  model files
+Downloading tiny-random-gpt2-71034c5d
+from Hugging Face: 0.0 GB in 7 files.
+Every file is checked against its SHA-256 before it is used.
+
+A cut connection resumes where it stopped. q is not read here; Ctrl+C stops.
+0% 0 / 7 files
+
+ Sovereign Intelligence alpha   step 7 of 9  model files
+Every model file is downloaded and matches its SHA-256.
+
+Press Enter to continue: 
+ Sovereign Intelligence alpha   step 8 of 9  first chat
+Starting the engine and loading tiny-random-gpt2 (0.5 MB, from huggingface.co).
+The first load reads about 0.0 GB, so it can take a few minutes.
+
+ Sovereign Intelligence alpha   step 8 of 9  first chat
+you    Say hello in one short sentence, and tell me what you are.
+model  
+Hello from the fake engine, café "ok"
+ Sovereign Intelligence alpha   step 8 of 9  first chat
+first token after 0 ms   decode 19.9 stream events/s (2 content events; the server sent no token count)
+CUDA libraries in the engine's memory map (/proc/174/maps): 0
+The engine keeps running on 127.0.0.1:18100. Stop it with:  aienos stop
+
+ Sovereign Intelligence alpha   step 9 of 9  done
+Your local model is ready.
+
+  aienos chat        talk to it in this terminal
+  aienos doctor      check this machine again
+  aienos stop        stop the engine
+  aienos source      where my .om source lives
+  aienos uninstall   remove everything AienOS put on this machine
+
+first token after 0 ms   decode 19.9 stream events/s (2 content events; the server sent no token count)
+
+OpenAI-style API:    http://127.0.0.1:18100/v1/chat/completions
+Press Enter to close: [0m
+Your local model is ready.
