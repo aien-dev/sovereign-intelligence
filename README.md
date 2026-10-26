@@ -53,7 +53,7 @@ Every layer above the silicon is source you can read, build and change. The bott
 | 8 | **Cortex memory** | Apache-2.0: [cortex-rs](https://github.com/aien-dev/cortex-rs) today, rewritten in Omega in [cortex](https://github.com/aien-dev/cortex) | What is remembered, where it is stored, when it is forgotten. |
 | 7 | **The engine: Sovereign Core** | Apache-2.0: [aien-sovereign-core-mv](https://github.com/aien-dev/aien-sovereign-core-mv) | Scheduling, KV cache, serving and the test judge. |
 | 6 | **Math engine** | My own engine, written in Omega. Source not yet published. | Nothing yet; it will be yours when it is published. |
-| 5 | **Omega language and compiler** | Apache-2.0: [omega-mv](https://github.com/aien-dev/omega-mv), [omega-bridge](https://github.com/aien-dev/omega-bridge) | The language itself: omc, irwasm, irspirv (in review). |
+| 5 | **Omega language and compiler** | Apache-2.0: [omega-mv](https://github.com/aien-dev/omega-mv), [omega-bridge](https://github.com/aien-dev/omega-bridge) | The language itself: omc, irwasm, irspirv (merged, CPU-exercised; not run on GPU / DPC++). |
 | 4 | **CUDA++ runtime** | Apache-2.0: [CUDApp](https://github.com/aien-dev/CUDApp) | Instruction encoder, runtime and kernels, with no NVIDIA user-space software. |
 | 3 | **Aienux kernel and AienOS** | Apache-2.0: [aienux](https://github.com/aien-dev/aienux), [AienOS-nv](https://github.com/aien-dev/AienOS-nv) | The kernel and the OS. SI alpha still runs on the Spark's own Linux. |
 | 2 | **GPU kernel driver** | Today NVIDIA's open kernel module 580.173.02 (Dual MIT/GPL). Mine, aien-gpu, is being written in [CUDApp](https://github.com/aien-dev/CUDApp/blob/main/omega/slices/kmod.osc) (Dual MIT/GPL-2.0). | NVIDIA's module source is open; aien-gpu will replace it. |
@@ -108,7 +108,7 @@ The language everything moves into: omc, irwasm, irspirv, and libraries written 
 | :--- | :--- | :---: | :--- | :--- |
 | [omega-bridge](https://github.com/aien-dev/omega-bridge) | Emits checked C and Python from a bounded .om subset, so other languages can call Omega | `EXERCISED` | Apache-2.0 WITH LLVM-exception | 2026-10-26 |
 | [omega-harness](https://github.com/aien-dev/omega-harness) | Skills that teach agents to write Omega and label evidence honestly | `IMPLEMENTED` | Apache-2.0 | 2026-10-26 |
-| [omega-mv](https://github.com/aien-dev/omega-mv) | Omega: the seeded .om compiler (omc), its backends, GB10 kernels, specs and gates | `EXERCISED` | Apache-2.0 | 2026-10-26 |
+| [omega-mv](https://github.com/aien-dev/omega-mv) | Omega: seeded .om compiler, backends, GB10 kernels, specs and gates. [irspirv](https://github.com/aien-dev/omega-mv/blob/3a10bd29fb7debdcf2c8f5cb58680cc74cb5b1f3/docs/SPIRV.md): CPU-exercised ([receipt](https://github.com/aien-dev/omega-mv/blob/3a10bd29fb7debdcf2c8f5cb58680cc74cb5b1f3/evidence/IRSPIRV/20261026-4ad014ed3/receipt.json)); not run on GPU / DPC++. | `EXERCISED` | Apache-2.0 | 2026-10-26 |
 | [omnet](https://github.com/aien-dev/omnet) | Security-critical network and crypto code rewritten in Omega | `EXERCISED` | Apache-2.0 | 2026-10-26 |
 
 ### The engine: Sovereign Core
