@@ -1,0 +1,4 @@
+Goal: refuse photo uploads larger than 10 MB with a clear message
+Acceptance: a 12 MB upload exits 1 and prints "too large"; a 2 MB upload exits 0
+Negative control: set the limit to 20 MB and confirm the 12 MB test now fails
+Out of scope: do not change the login page or settings.txt

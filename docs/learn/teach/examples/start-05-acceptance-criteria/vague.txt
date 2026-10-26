@@ -1,0 +1,4 @@
+Goal: make uploads better
+Acceptance: it works and looks good
+Negative control: none needed
+Out of scope: nothing

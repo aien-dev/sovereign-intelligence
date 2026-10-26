@@ -1,0 +1,6 @@
+note the same start, written loosely: the count begins as a bare 0
+note is that 0 a byte, an int or a 64-bit number? omc refuses to guess
+fn main to int
+c = 0
+ret int c
+end

@@ -1,0 +1,2 @@
+Goal: refuse photo uploads larger than 10 MB with a clear message
+Acceptance: a 12 MB upload exits 1 and prints "too large"

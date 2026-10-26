@@ -1,0 +1,40 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile claims.om rc=0 (expected 0)
+
+columns: commit named, command given, output given (1 yes, 0 no), gate (P pass, F fail, N not run, - none), claimed word, what
+
+--- input honest.txt
+0 0 0 - PROPOSED add a photo cache
+1 0 0 - IMPLEMENTED resize photos on upload
+1 1 1 - EXERCISED reject uploads over 10 MB
+1 1 1 P QUALIFIED login page on the release gate
+--- output
+add a photo cache: claimed PROPOSED, evidence supports PROPOSED: OK
+resize photos on upload: claimed IMPLEMENTED, evidence supports IMPLEMENTED: OK
+reject uploads over 10 MB: claimed EXERCISED, evidence supports EXERCISED: OK
+login page on the release gate: claimed QUALIFIED, evidence supports QUALIFIED: OK
+HONEST: every claim is backed by the evidence attached
+run rc=0 (expected 0)
+
+--- input report.txt
+1 0 0 - IMPLEMENTED resize photos on upload
+0 0 0 - EXERCISED add a photo cache
+1 1 0 F EXERCISED reject uploads over 10 MB
+1 1 1 N QUALIFIED login page on the release gate
+--- output
+resize photos on upload: claimed IMPLEMENTED, evidence supports IMPLEMENTED: OK
+add a photo cache: claimed EXERCISED, evidence supports PROPOSED: OVERCLAIM
+reject uploads over 10 MB: claimed EXERCISED, evidence supports IMPLEMENTED: OVERCLAIM
+  gate FAIL: a failed gate qualifies nothing
+login page on the release gate: claimed QUALIFIED, evidence supports EXERCISED: OVERCLAIM
+  gate NOT_RUN: NOT_RUN is not PASS
+OVERCLAIMS=3
+run rc=1 (expected 1)
+
+--- input malformed.txt
+1 1 1 P DONE everything works
+--- output
+REFUSE malformed line 1
+run rc=3 (expected 3)
+
+ALL EXIT STATUSES AS EXPECTED

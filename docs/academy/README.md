@@ -4,6 +4,8 @@ Agent Academy is free, permanently. Donations welcome.
 
 I build almost everything with coding agents, and I learned the hard way what goes wrong: an agent says the tests passed when it never ran them, obeys an instruction hidden in a README, counts a skipped check as a pass, or "fixes" a red gate by weakening it. Agent Academy is what I wish I had on day one: the rules that stopped those failures, packaged so your agent can use them, and an exam that shows whether it actually does.
 
+If you build by talking to an agent and have never written the code yourself, this is for you. You are already programming: you design what you want, you direct the work, you decide when it is right. "Programming and engineering are way different than coding. Nobody needs to know how to write the letters." The skills here are the next level of what you already do: asking for evidence, checking results, and steering your agent when it drifts. New to all of it? Start with [You already program: from vibe coding to engineering](../learn/teach/pages/start.md).
+
 ## 1. Give your agent the rules
 
 [skills/AGENTS.md](skills/AGENTS.md) is one file of working rules. Copy it into your repository as `AGENTS.md` or `CLAUDE.md`, or paste it into your agent's custom instructions. It works with any agent that reads a project instructions file.
