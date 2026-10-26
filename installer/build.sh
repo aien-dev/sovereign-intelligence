@@ -94,7 +94,7 @@ install -m 755 "$engine" "$stage/bin/aien-serve-http"
 install -m 755 "$engine27" "$stage/bin/aien-serve-http-27b"
 for f in $ORDER; do install -m 644 "wizard/$f" "$stage/share/aienos/wizard/$f"; done
 install -m 644 "$work/aienos.om" "$stage/share/aienos/aienos.om"
-install -m 644 share/models.registry share/model.manifest share/model-27b.manifest \
+install -m 644 share/models.registry share/model.manifest share/model-27b.manifest share/model-30b.manifest \
     share/aienos.desktop.in share/aienos.svg "$stage/share/aienos/"
 install -m 755 build.sh "$stage/share/aienos/build.sh"
 install -m 644 ../LICENSE ../NOTICE ../KEYS HOST-DEPENDENCIES.md "$stage/"
