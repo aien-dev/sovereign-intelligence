@@ -1,0 +1,14 @@
+A /fake
+A /fake/bin-darwin
+A /fake/gb10
+A /fake/nogpu
+C /home
+C /home/tester
+A /home/tester/.local
+A /home/tester/.local/bin
+A /home/tester/.local/share
+A /home/tester/.local/share/icons
+A /home/tester/.local/share/icons/hicolor
+A /home/tester/.local/share/icons/hicolor/scalable
+A /home/tester/.local/share/icons/hicolor/scalable/apps
+A /home/tester/.local/share/applications

@@ -6,18 +6,21 @@
 #
 # OMEGA_SRC  a clone of aien-dev/omega-mv at OMEGA_REV: its seed/out/omc compiles the wizard
 #            and its om/sha256/sha256-om2.om is the source wizard/sha256.om is derived from.
-# ENGINE     aien-serve-http built from aien-dev/aien-sovereign-core-mv at CORE_REV
-#            (scripts/pins.sh --gpu, then cargo build --release -p aien-serve-http).
+# ENGINE     aien-serve-http built from aien-dev/aien-sovereign-core-mv at CORE_REV (branch
+#            ship/motor-l387) linking omega ship/motor-l387 libomega_gpu.a sha256 110295ef: the
+#            live 35B server's build. Its bytes are pinned as ENGINE_SHA256 (this build has no
+#            --version; its usage line from --help goes into VERSION).
 # OUT        output folder: OUT/stage (the bundle tree) and OUT/dist (the release assets).
 #
 # Exit: 2 missing input, 3 wrong pin, 4 derived source differs, 5 nondeterministic compile,
 #       6 compile refused, 7 engine identity or linkage wrong. Signing is tools/sign.sh.
 set -eu
 cd "$(dirname "$0")"
-TAG=alpha-20261026.1
+TAG=alpha-20261026.2
 OMEGA_REV=3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9
 OMC_PIN=befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
-CORE_REV=cf239078d05a47d84353c1508a08663273f00c3e
+CORE_REV=59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3
+ENGINE_SHA256=19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb
 ORDER="sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om"
 out=${1:?usage: build.sh OUT}
 src=${OMEGA_SRC:?set OMEGA_SRC to an omega-mv clone at $OMEGA_REV}
@@ -54,12 +57,13 @@ for n in 1 2; do
 done
 cmp -s "$work/aienos.1" "$work/aienos.2" || fail 5 "two compiles of the wizard differ"
 
-# The engine: Core's identity line and no CUDA library in its NEEDED list.
+# The engine: the pinned bytes, Core's commit embedded in them, and no CUDA library in NEEDED.
 [ -x "$engine" ] || fail 2 "$engine is not executable"
-"$engine" --version > "$work/engine.version" 2>&1 || true
-grep -q "sovereign-core commit: $CORE_REV (dirty 0)" "$work/engine.version" \
-    || fail 7 "$engine is not a clean build of Core $CORE_REV"
-grep -q "release-grade native identity: yes" "$work/engine.version" || fail 7 "$engine is not release-grade"
+have=$(sha256sum "$engine" | cut -d' ' -f1)
+[ "$have" = "$ENGINE_SHA256" ] || fail 7 "$engine sha256 $have, want $ENGINE_SHA256"
+grep -aq "$CORE_REV" "$engine" || fail 7 "$engine does not embed Core commit $CORE_REV"
+"$engine" --help > "$work/engine.usage" 2>&1 || true
+grep -q -- "--batch-slots N" "$work/engine.usage" || fail 7 "$engine has no --batch-slots"
 readelf -d "$engine" | awk '/NEEDED/ { print $NF }' | tr -d '[]' > "$work/engine.needed"
 if grep -Eiq 'cuda|cublas|nvidia|nvrtc' "$work/engine.needed"; then
     fail 7 "$engine links a CUDA library: $(tr '\n' ' ' < "$work/engine.needed")"
@@ -83,9 +87,10 @@ install -m 644 bundle/README.txt "$stage/README.txt"
         "$(sha256sum "$work/aienos.1" | cut -d' ' -f1)" "$(sha256sum "$work/aienos.om" | cut -d' ' -f1)"
     printf 'compiler: aien-dev/omega-mv %s seed/out/omc sha256 %s\n' "$OMEGA_REV" "$OMC_PIN"
     printf 'engine: bin/aien-serve-http sha256 %s\n' "$(sha256sum "$engine" | cut -d' ' -f1)"
-    printf 'engine source: aien-dev/aien-sovereign-core-mv %s (tag alpha/20261025.1)\n' "$CORE_REV"
+    printf 'engine source: aien-dev/aien-sovereign-core-mv %s (branch ship/motor-l387)\n' "$CORE_REV"
+    printf 'engine GPU library: omega ship/motor-l387 6de999da libomega_gpu.a sha256 110295ef23dc7561eea371636347c005835f37b82c22f92401aa8a887a3ca990\n'
     printf 'engine NEEDED: %s\n' "$(tr '\n' ' ' < "$work/engine.needed")"
-    sed 's/^/engine --version: /' "$work/engine.version"
+    sed 's/^/engine --help: /' "$work/engine.usage"
 } > "$stage/VERSION"
 (cd "$stage" && find . -type f ! -name SHA256SUMS | sed 's|^\./||' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS)
 

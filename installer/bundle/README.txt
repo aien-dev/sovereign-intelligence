@@ -1,7 +1,7 @@
-Sovereign Intelligence alpha-20261026.1 (AienOS) for Linux arm64 with an NVIDIA GB10 (DGX Spark)
+Sovereign Intelligence alpha-20261026.2 (AienOS) for Linux arm64 with an NVIDIA GB10 (DGX Spark)
 
 bin/aienos              the wizard and the aienos command, written in Omega
-bin/aien-serve-http     the engine (Core alpha/20261025.1, cf239078), engine omega
+bin/aien-serve-http     the engine (Core ship/motor-l387, 59b05a71: the live 35B server's build), engine omega
 share/aienos/wizard/    the Omega source of bin/aienos, file by file
 share/aienos/aienos.om  the same source as one unit, in build order
 share/aienos/build.sh   how bin/aienos and this bundle are built
