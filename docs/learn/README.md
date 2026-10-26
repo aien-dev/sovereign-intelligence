@@ -23,7 +23,7 @@ One lesson alone: `SRC=../learn-src sh docs/learn/teach/examples/omega-03-loops/
 ## Layout
 
 - `teach/pages/`: the lesson pages, one track page plus one page per lesson.
-- `teach/cards/`: one JSON card per lesson (summary, key steps, example with its output, links, evidence level). Allen, my assistant on aienos.com, teaches from these.
+- `teach/cards/`: one JSON card per lesson (summary, key steps, example with its output, links, evidence level). Aien, my assistant on aienos.com, teaches from these.
 - `teach/qa/`: canonical questions and answers, one JSON object per line.
 - `teach/examples/`: every example's source, its `run.sh` and its recorded `output.txt`.
 - `teach/index.json`: every card's id, title, keywords and evidence level.

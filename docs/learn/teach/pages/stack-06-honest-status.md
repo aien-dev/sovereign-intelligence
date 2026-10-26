@@ -36,7 +36,7 @@ The after text is longer and less exciting, and it is the one I can defend line 
 
 Two rules about the past. Never relabel an old receipt: a run that was EXERCISED on a host stays EXERCISED even after a later run on hardware; the new run gets its own receipt. And never edit history to make a new claim look consistent. When an old statement turns out to be wrong, I name the false claim, point at the evidence that replaces it, and add the correction next to the old record as a new file (my receipt shelves use a `<receipt>.correction.json` beside the receipt). The old bytes stay as they were.
 
-You can catch the worst offenders mechanically. `overclaim.om` reads a status text and flags two kinds of words. Words like `done`, `fully` and `production-ready` are always flagged. Ladder and verdict words are flagged unless the same line carries a receipt reference or a negation (`receipt`, `not`, `NOT_RUN`, `Nothing`). It prints the line number and the word. It is deliberately crude: it cannot tell whether the receipt you mention says what you claim. It only stops the most common slips before a person or Allen reads the text.
+You can catch the worst offenders mechanically. `overclaim.om` reads a status text and flags two kinds of words. Words like `done`, `fully` and `production-ready` are always flagged. Ladder and verdict words are flagged unless the same line carries a receipt reference or a negation (`receipt`, `not`, `NOT_RUN`, `Nothing`). It prints the line number and the word. It is deliberately crude: it cannot tell whether the receipt you mention says what you claim. It only stops the most common slips before a person or Aien reads the text.
 
 ## Example
 

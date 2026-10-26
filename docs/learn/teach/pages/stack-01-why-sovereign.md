@@ -8,7 +8,7 @@ Understand what I mean by a sovereign stack, where Sovereign Intelligence (SI) s
 
 ## Explanation
 
-I build my own AI on hardware I own, and I want every layer of it open to read, rebuild and change. The stack runs from the GB10 silicon at the bottom, through the kernel, the GPU driver, the CUDA++ runtime, the Omega language and compiler, the Sovereign Core engine, memory and Allen, up to the apps you touch. The full walk is in [docs/STACK.md](https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/docs/STACK.md), ten layers, each with its license and its evidence level.
+I build my own AI on hardware I own, and I want every layer of it open to read, rebuild and change. The stack runs from the GB10 silicon at the bottom, through the kernel, the GPU driver, the CUDA++ runtime, the Omega language and compiler, the Sovereign Core engine, memory and Aien, up to the apps you touch. The full walk is in [docs/STACK.md](https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/docs/STACK.md), ten layers, each with its license and its evidence level.
 
 The package you download is called Sovereign Intelligence (SI), built on AienOS. Three repositories carry the names, and they are not the same thing:
 
