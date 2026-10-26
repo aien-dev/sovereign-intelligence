@@ -30,7 +30,7 @@ On an NVIDIA DGX Spark (Linux arm64, GB10, kernel driver 580.173.02):
 curl -fsSL https://aienos.com/install.sh | sh
 ```
 
-It checks the machine first (anything else gets a friendly note and nothing changes), downloads release alpha-20261026.1 by exact tag, verifies the Ed25519 signature of SHA256SUMS (alpha key ff949504…f54a, see KEYS) and every SHA-256 before unpacking, installs into ~/.local/share/aienos (no sudo), and opens the Omega wizard. Remove everything with `aienos uninstall`.
+It checks the machine first (anything else gets a friendly note and nothing changes), downloads release alpha-20261026.1 by exact tag, verifies the Ed25519 signature of SHA256SUMS (alpha key ff949504…f54a, see [KEYS](KEYS)) and every SHA-256 before unpacking, installs into ~/.local/share/aienos (no sudo), and opens the Omega wizard. Remove everything with `aienos uninstall`.
 
 Check a release by hand:
 
@@ -210,6 +210,7 @@ The specs, decisions and protocols the layers agree on.
 
 ## More
 
+- [What I am building](docs/WHAT-I-AM-BUILDING.md): every repository, what it really does, and how far it has got
 - [About the engineer](https://www.aienos.com/engineer/)
 - [Naming](NAMING.md): how to write Sovereign Intelligence (SI) and AienOS
 - [NOTICE](NOTICE) and [LICENSE](LICENSE): Apache-2.0 WITH LLVM-exception
