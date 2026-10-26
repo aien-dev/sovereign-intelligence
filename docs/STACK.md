@@ -21,20 +21,21 @@ Around it are tools built on the same stack:
 [aienos.com](https://github.com/aien-dev/aienos.com) (the site),
 [aien-translate](https://github.com/aien-dev/aien-translate) (translation on my own model, no API key),
 [readings-window](https://github.com/aien-dev/readings-window) (read-only GPU and CPU readings),
-[omega-projects](https://github.com/aien-dev/omega-projects) (projects built with Allen).
+[omega-projects](https://github.com/aien-dev/omega-projects) (projects built with Aien).
 
 - **Yours:** Apache-2.0 WITH LLVM-exception for the installer and site; AGPL-3.0 for several tools.
 - **Evidence:** installer EXERCISED on host (33/33 under a read-only root, 6/6 in a container).
   A first token through the installer on a GPU is NOT_RUN.
 
-## 9. Allen
+## 9. Aien
 
-One persistent identity across my machines: the iMac, the Pi, the Spark and the MacBook. Allen
-is the guide you talk to; he speaks through the engine and remembers through Cortex.
+One persistent identity across my machines: the iMac, the Pi, the Spark and the MacBook. Aien
+is the guide you talk to; he speaks through the engine and remembers through Cortex. He used to
+be called Allen, and his repository keeps that name.
 
 - **Source:** [allen](https://github.com/aien-dev/allen), AGPL-3.0.
 - **Evidence:** PROPOSED. The programme, acceptance contract and data contracts are written; there
-  is no code on `main` yet, and the Allen experience is not in the first release.
+  is no code on `main` yet, and the Aien experience is not in the first release.
 
 ## 8. Cortex memory
 
@@ -62,7 +63,7 @@ Omega's GPU kernels below it.
 
 ## 6. Math engine
 
-My own math engine, written entirely in Omega, for Allen's science answers. The rule for Allen
+My own math engine, written entirely in Omega, for Aien's science answers. The rule for Aien
 is that he shows a result only when the engine succeeds and prints one; otherwise he says it is
 not supported yet. The model never fills in numbers.
 

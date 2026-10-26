@@ -32,7 +32,7 @@ layers:
     title: "Cortex memory"
     blurb: "Long-term memory that stays on your machine."
   - key: allen
-    title: "Allen"
+    title: "Aien"
     blurb: "One persistent identity across my machines."
   - key: apps
     title: "Apps, tools and the front door"
@@ -210,12 +210,12 @@ repos:
   - name: allen
     layer: allen
     evidence: PROPOSED
-    purpose: "Allen: plans for one persistent identity across the iMac, Pi, Spark and MacBook"
+    purpose: "Aien (formerly Allen): plans for one persistent identity across the iMac, Pi, Spark and MacBook"
     license: AGPL-3.0-or-later
   - name: omega-projects
     layer: allen
     evidence: IMPLEMENTED
-    purpose: "Projects built with Allen; I review each before it goes live"
+    purpose: "Projects built with Aien; I review each before it goes live"
     license: Apache-2.0 WITH LLVM-exception
   - name: agent-archive
     layer: apps

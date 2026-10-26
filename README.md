@@ -38,7 +38,7 @@ Check a release by hand:
 openssl pkeyutl -verify -pubin -inkey release.pub.pem -rawin -in SHA256SUMS -sigfile SHA256SUMS.sig && sha256sum -c SHA256SUMS
 ```
 
-**Evidence:** installer EXERCISED (host 33/33 under read-only root, container 6/6); engine commit cf239078 passed SC-GB10-SERVE-CHAT once; this binary on a GPU and a first token via the installer: NOT_RUN; the Allen experience is not in this release yet.
+**Evidence:** installer EXERCISED (host 33/33 under read-only root, container 6/6); engine commit cf239078 passed SC-GB10-SERVE-CHAT once; this binary on a GPU and a first token via the installer: NOT_RUN; the Aien experience is not in this release yet.
 
 <br>
 
@@ -49,7 +49,7 @@ Every layer above the silicon is source you can read, build and change. The bott
 | | Layer | Yours: license and source | What you can change |
 | :---: | :--- | :--- | :--- |
 | 10 | **Apps and tools** | Apache-2.0 WITH LLVM-exception or AGPL-3.0, per repository: [installer](https://github.com/aien-dev/sovereign-intelligence), [aienos.com](https://github.com/aien-dev/aienos.com), [aien-translate](https://github.com/aien-dev/aien-translate) | Anything. The installer is Omega you can read before you run it. |
-| 9 | **Allen** | AGPL-3.0: [allen](https://github.com/aien-dev/allen) | His identity, memory and voice contracts. |
+| 9 | **Aien** | AGPL-3.0: [allen](https://github.com/aien-dev/allen) | His identity, memory and voice contracts. |
 | 8 | **Cortex memory** | Apache-2.0: [cortex-rs](https://github.com/aien-dev/cortex-rs) today, rewritten in Omega in [cortex](https://github.com/aien-dev/cortex) | What is remembered, where it is stored, when it is forgotten. |
 | 7 | **The engine: Sovereign Core** | Apache-2.0: [aien-sovereign-core-mv](https://github.com/aien-dev/aien-sovereign-core-mv) | Scheduling, KV cache, serving and the test judge. |
 | 6 | **Math engine** | My own engine, written in Omega. Source not yet published. | Nothing yet; it will be yours when it is published. |
@@ -133,14 +133,14 @@ Long-term memory that stays on your machine.
 | :--- | :--- | :---: | :--- | :--- |
 | [cortex](https://github.com/aien-dev/cortex) | Cortex memory server being rewritten in Omega (work in progress, branch wip/omega-cortex); parity with cortex-rs not yet run; live Cortex is still cortex-rs | `IMPLEMENTED` | Apache-2.0 | 2026-10-26 |
 
-### Allen
+### Aien
 
 One persistent identity across my machines.
 
 | Repository | What it is | Evidence | License | Last push |
 | :--- | :--- | :---: | :--- | :--- |
-| [allen](https://github.com/aien-dev/allen) | Allen: plans for one persistent identity across the iMac, Pi, Spark and MacBook | `PROPOSED` | AGPL-3.0-or-later | 2026-10-26 |
-| [omega-projects](https://github.com/aien-dev/omega-projects) | Projects built with Allen; I review each before it goes live | `IMPLEMENTED` | Apache-2.0 WITH LLVM-exception | 2026-10-26 |
+| [allen](https://github.com/aien-dev/allen) | Aien (formerly Allen): plans for one persistent identity across the iMac, Pi, Spark and MacBook | `PROPOSED` | AGPL-3.0-or-later | 2026-10-26 |
+| [omega-projects](https://github.com/aien-dev/omega-projects) | Projects built with Aien; I review each before it goes live | `IMPLEMENTED` | Apache-2.0 WITH LLVM-exception | 2026-10-26 |
 
 ### Apps, tools and the front door
 
