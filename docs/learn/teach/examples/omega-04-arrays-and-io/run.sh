@@ -45,7 +45,7 @@ echo "== 1. three short lines on stdin"
 compile wc 0
 printf 'one\ntwo\nthree\n' | runin wc 0
 echo "== 2. 5000 lines of 'abc' through a pipe: many partial reads, one total"
-yes abc | head -n 5000 | runin wc 0
+awk 'BEGIN { for (i = 0; i < 5000; i++) print "abc" }' | runin wc 0
 echo "== 3. stdin closed: read returns -9 (EBADF), the program exits 9"
 runin wc 9 <&-
 echo "== 4. negative control: a loop that treats k <= 0 as end of input hides the error"
