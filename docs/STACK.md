@@ -39,11 +39,14 @@ is the guide you talk to; he speaks through the engine and remembers through Cor
 ## 8. Cortex memory
 
 Long-term memory on your own disk: lessons, decisions and facts, searched by keyword and meaning.
-It lives inside Sovereign Core. The first version,
-[cortex-rs](https://github.com/aien-dev/cortex-rs), is archived.
+The Cortex running today is [cortex-rs](https://github.com/aien-dev/cortex-rs) (Rust, archived
+repository). Its replacement is being rewritten in Omega in
+[cortex](https://github.com/aien-dev/cortex).
 
-- **Source:** [aien-sovereign-core-mv](https://github.com/aien-dev/aien-sovereign-core-mv), Apache-2.0.
-- **Evidence:** IMPLEMENTED. Its speed claims have no stored measurement.
+- **Source:** [cortex](https://github.com/aien-dev/cortex) and [cortex-rs](https://github.com/aien-dev/cortex-rs), Apache-2.0.
+- **Evidence:** IMPLEMENTED. In the Omega rewrite, the importer and the JSON number handling are
+  EXERCISED on host against independent references; the server has not answered a real request
+  yet, and parity with cortex-rs has not been run.
 
 ## 7. The engine: Sovereign Core
 

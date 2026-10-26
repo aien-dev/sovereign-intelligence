@@ -183,10 +183,14 @@ repos:
     evidence: IMPLEMENTED
     purpose: "Process supervisor with health polls and restart backoff"
     license: Apache-2.0 WITH LLVM-exception
+  - name: cortex
+    layer: memory
+    evidence: IMPLEMENTED
+    purpose: "Cortex memory server being rewritten in Omega (work in progress, branch wip/omega-cortex); parity with cortex-rs not yet run; live Cortex is still cortex-rs"
   - name: cortex-rs
     layer: memory
     evidence: IMPLEMENTED
-    purpose: "The first Cortex memory server, SQLite FTS5 plus vectors; Cortex now lives in Core"
+    purpose: "The first Cortex memory server, SQLite FTS5 plus vectors; still the live Cortex"
     license: Apache-2.0 WITH LLVM-exception
   - name: crumb-spec-mv
     layer: memory
