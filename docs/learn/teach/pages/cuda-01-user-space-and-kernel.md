@@ -23,7 +23,7 @@ CUDA++:  your code -> my encoder -------> my runtime -----> nvidia.ko -> GPU
 
 What CUDA++ still depends on, and I say this plainly:
 
-- **NVIDIA's open kernel module**, version 580.173.02. CUDA++ is built against its headers and speaks only that interface. The module boots the GPU, builds page tables and schedules channels. AIEN's own GB10 driver (work item L332) is being built to replace it; the roadmap marks it BUILDING, not done.
+- **NVIDIA's open kernel module**, version 580.173.02. CUDA++ is built against its headers and speaks only that interface. The module boots the GPU, builds page tables and schedules channels. Aien's own GB10 driver (work item L332) is being built to replace it; the roadmap marks it BUILDING, not done.
 - **The GSP firmware.** It stays NVIDIA's. The chip checks its signature and boots nothing else. CUDA++ never ships it; NVIDIA's module loads it from the system's firmware folder.
 
 There is one more honest detail. The library never links `libcuda`, but one interop tool does: `tools/interop/cubin_probe.c` exists to test whether NVIDIA's own driver accepts a cubin that CUDA++ exported. It is a separate Makefile target, not part of `libomega_gpu.a`. The example below finds it with the same grep that proves the rest of the tree is clean.
