@@ -1,5 +1,5 @@
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-note engine.om: start, watch and stop the engine (aien-serve-http from Core, engine omega) on
+note engine.om: start, watch and stop the engine (aien-serve-http, Core ship/motor-l387, engine omega) on
 note 127.0.0.1, check from /proc that it loaded no CUDA library, the first-chat screen, the done
 note screen, the uninstaller and the rollback.
 
@@ -10,11 +10,13 @@ text e_omega "omega"
 text e_mdir "--model-dir"
 text e_port "--port"
 text e_ctx "--max-context"
-text e_ctxv "131072"
+text e_ctxv "49152"
 text e_cap "--max-tokens-cap"
 text e_capv "16384"
 text e_thk "--thinking"
 text e_off "off"
+text e_slot "--batch-slots"
+text e_slotv "8"
 text e_log "/engine.log"
 text e_pid "/engine.pid"
 text e_null "/dev/null"
@@ -30,8 +32,8 @@ text f_skip1 "I am not starting the engine now: "
 text f_mem "another model is using this GB10's memory."
 text f_lock "another process holds the GB10 lock."
 text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
-text f_load1 "Starting the engine from Core cf239078 and loading the model onto the GB10."
-text f_load2 "The first load reads about 31 GB, so it can take a few minutes."
+text f_load1 "Starting the engine (Core ship/motor-l387 59b05a71) and loading the 35B onto the GB10."
+text f_load2 "The first load reads about 37.5 GB, so it can take a few minutes."
 text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
 text f_q "Say hello in one short sentence, and tell me what you are."
 text f_you "you    "
@@ -66,7 +68,7 @@ text r_pre "releases/"
 text r_none "There is no other release to roll back to."
 text r_ok "current now points to "
 
-note The packed argument list of the receipted serve command (Core tools/serve-27b.sh), on PORT.
+note The packed argument list of the live 35B server's command (same flags), on PORT.
 fn eargs to void
 pkclr
 pclr
@@ -86,6 +88,8 @@ pkstr e_cap
 pkstr e_capv
 pkstr e_thk
 pkstr e_off
+pkstr e_slot
+pkstr e_slotv
 end
 
 note Start the engine in its own session, output appended to engine.log, pid in engine.pid.

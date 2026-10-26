@@ -18,7 +18,7 @@ This distribution contains:
   AIEN Contributors"), with aien-dev/omega-mv's libomega_gpu.a linked in.
 
 The model is not part of this distribution. The wizard downloads
-Qwen/Qwen3.8-27B-FP8 from Hugging Face under its own license (Apache-2.0,
+Qwen/Qwen3.6-35B-A3B-FP8 from Hugging Face under its own license (Apache-2.0,
 see the LICENSE file in the model folder).
 
 NVIDIA, CUDA, cuBLAS and GB10 are trademarks of NVIDIA Corporation.

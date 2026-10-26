@@ -24,14 +24,14 @@ Where that stands today (details in `notes/alpha-20261026.1.md` and `evidence/al
 | Installer, Omega wizard and uninstaller | EXERCISED on a fake GB10 tree and in a stock Ubuntu 24.04 arm64 container. |
 | Signed release (Ed25519 over SHA256SUMS) | EXERCISED: sign, verify and a tamper control. It is an alpha key; I will rotate to a ceremony key before beta. |
 | Engine links no CUDA library (`readelf` NEEDED shows only libc, libm, libgcc_s and the loader) | EXERCISED on the shipped binary. |
-| Engine commit `cf239078` serving a chat on a GB10 | EXERCISED once (one token, signed receipt in aien-receipts). The shipped binary itself: GPU NOT_RUN. |
+| Engine build `19173f9e` (Core `ship/motor-l387` 59b05a71) serving the 35B on a GB10 | EXERCISED: it is the live server's build (Core evidence/l387-motor-ship). |
 | No CUDA library mapped while the model runs (`/proc/<pid>/maps`) | IMPLEMENTED; exercised only against a fake engine. |
 | Real install, model download and first token on a GB10 | NOT_RUN. |
 | 3x physical qualification of the GPU path | NOT_RUN. |
 
 What that release does not do yet:
 
-- It ships the engine from Core's receipted tag `alpha/20261025.1` and the Qwen3.8-27B FP8 model (about 30.9 GB). The Qwen3.6-35B I serve myself runs on an engine branch (`ship/motor-l387`) that is not merged, so testers do not get that engine or that model. No speed figure is claimed for the 27B on this engine.
+- It offers one model, Qwen3.6-35B-A3B FP8 (about 37.5 GB), since alpha-20261026.2, with the exact engine build my Spark serves it with: Core branch `ship/motor-l387`, commit 59b05a71, a development build, not a Core release tag. The 27B is to come; it is not offered.
 - It only supports the DGX Spark. Every other machine gets a friendly "not supported yet" line and nothing is written.
 - The local Allen experience (web app, gateway, local Cortex, Omega sandbox, science tools) is not in it. It follows as an update.
 - The GPU path is the statically linked Omega GPU library from omega-mv. No separate CUDA++ runtime ships yet.
