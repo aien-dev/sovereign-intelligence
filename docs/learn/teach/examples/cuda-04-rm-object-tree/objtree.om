@@ -1,0 +1,255 @@
+note A model of the resource-manager (RM) object tree CUDApp's nvrm.c builds.
+note Input on stdin, decimal triples:  3 child parent  = an allowed (child class, parent class) pair,
+note 1 class parent# = allocate (parent# 0 only for the root client), 2 obj# 0 = free a subtree,
+note 4 0 0 = print the live tree, 0 0 0 = end (prints the tree once more).
+note Exit 0 every step accepted, 3 bad input, 6 a step refused (the model stops there).
+om2
+global ob uchar 4096
+global on ulong 1
+global inb uchar 4096
+global inn ulong 1
+global inp ulong 1
+text hx "0123456789abcdef"
+fn putc c uchar to void
+put ob get on 0 c
+put on 0 add get on 0 1
+end
+fn puts s view uchar * to void
+for i ulong len s
+putc get s i
+end
+end
+fn putdec v ulong to void
+d = new uchar 20 0
+n = ulong 0
+x = v
+while true bound 21
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt n 0 bound 21
+n = sub n 1
+putc get d n
+end
+end
+fn puthex v ulong w ulong to void
+putc 48
+putc 120
+for i ulong w
+s = mul sub sub w 1 i 4
+putc get hx and shr v s 0xf
+end
+end
+fn flush to void
+w = write 1 ob 0 get on 0
+put on 0 0
+end
+note Read all of stdin; every pass adds at least one byte to a 4096-byte buffer.
+fn slurp to bool
+while lt get inn 0 4096 bound 4097
+k = read 0 inb get inn 0 sub 4096 get inn 0
+if lt k 0
+ret false
+end
+if eq k 0
+ret true
+end
+put inn 0 add get inn 0 ulong k
+end
+ret false
+end
+note Next decimal number in the input; returns 2^64-1 when none is left.
+fn nextnum to ulong
+v = ulong 0
+seen = false
+while lt get inp 0 get inn 0 bound 4097
+c = get inb get inp 0
+put inp 0 add get inp 0 1
+if and ge c 48 le c 57
+v = add mul v 10 ulong sub c 48
+seen = true
+else
+if seen
+ret v
+end
+end
+end
+if seen
+ret v
+end
+ret 18446744073709551615
+end
+global ocls ulong 64
+global opar ulong 64
+global olive uchar 64
+global ocnt ulong 1
+global rch ulong 32
+global rpa ulong 32
+global rcnt ulong 1
+text sal "alloc #"
+text scl " class "
+text sun " under #"
+text sok ": ok\n"
+text snp ": REFUSED, parent is not a live object\n"
+text snr ": REFUSED, this class may not be a child of that class\n"
+text sfu ": REFUSED, too many objects\n"
+text sfr "free #"
+text sfr2 ": REFUSED, not a live object\n"
+text sfr3 ": freed "
+text sfr4 " object(s), the whole subtree\n"
+text stree "live tree:\n"
+text sind "  "
+text shash "#"
+text sempty "  (empty)\n"
+fn allowed c ulong p ulong to bool
+for k ulong get rcnt 0
+if and eq get rch k c eq get rpa k p
+ret true
+end
+end
+ret false
+end
+fn alloc c ulong p ulong to bool
+n = add get ocnt 0 1
+puts sal
+putdec n
+puts scl
+puthex c 8
+puts sun
+putdec p
+if ge n 64
+puts sfu
+ret false
+end
+if eq p 0
+note Only the very first object may be parentless, and it must be the root client.
+if or ne n 1 not allowed c 0
+puts snr
+ret false
+end
+else
+if gt p get ocnt 0
+puts snp
+ret false
+end
+if eq get olive p 0
+puts snp
+ret false
+end
+if not allowed c get ocls p
+puts snr
+ret false
+end
+end
+put ocls n c
+put opar n p
+put olive n 1
+put ocnt 0 n
+puts sok
+ret true
+end
+note Children always have larger numbers than their parent, so one ascending pass frees a subtree.
+fn free1 i ulong to bool
+puts sfr
+putdec i
+if or eq i 0 gt i get ocnt 0
+puts sfr2
+ret false
+end
+if eq get olive i 0
+puts sfr2
+ret false
+end
+put olive i 0
+n = ulong 1
+for k ulong get ocnt 0
+j = add k 1
+if and gt j i eq get olive j 1
+if eq get olive get opar j 0
+put olive j 0
+n = add n 1
+end
+end
+end
+puts sfr3
+putdec n
+puts sfr4
+ret true
+end
+fn show i ulong d ulong to void
+for k ulong d
+puts sind
+end
+puts shash
+putdec i
+putc 32
+puthex get ocls i 8
+putc 10
+for k ulong get ocnt 0
+j = add k 1
+if and eq get opar j i eq get olive j 1
+show j add d 1
+end
+end
+end
+fn tree to void
+puts stree
+any = false
+for k ulong get ocnt 0
+j = add k 1
+if and eq get olive j 1 eq get opar j 0
+show j 1
+any = true
+end
+end
+if not any
+puts sempty
+end
+end
+fn main to int
+if not slurp
+ret 3
+end
+while true bound 200
+op = nextnum
+a = nextnum
+b = nextnum
+if eq op 0
+tree
+flush
+ret 0
+end
+if eq op 3
+if ge get rcnt 0 32
+ret 3
+end
+put rch get rcnt 0 a
+put rpa get rcnt 0 b
+put rcnt 0 add get rcnt 0 1
+else
+ok = true
+if eq op 1
+ok = alloc a b
+else
+if eq op 2
+ok = free1 a
+else
+if eq op 4
+tree
+else
+ret 3
+end
+end
+end
+if not ok
+flush
+ret 6
+end
+end
+end
+ret 3
+end

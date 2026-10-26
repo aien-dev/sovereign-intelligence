@@ -1,0 +1,6 @@
+found 1
+fixed 1
+found 2
+fixed 2
+found 3
+blocked 3 hardware window not authorized

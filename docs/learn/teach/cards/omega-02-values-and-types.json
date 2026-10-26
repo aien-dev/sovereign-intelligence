@@ -1,0 +1,64 @@
+{
+  "id": "omega-02-values-and-types",
+  "track": "omega",
+  "lesson": 2,
+  "title": "Values and types: prefix words and no implicit conversions",
+  "keywords": [
+    "types",
+    "prefix",
+    "add",
+    "conversion",
+    "error 7",
+    "error 11",
+    "trap 5",
+    "uint",
+    "ulong"
+  ],
+  "summary": "In Omega every operation is a prefix word with a fixed number of inputs, so add mul a a 4 needs no brackets. Drake made types strict: no implicit conversions (error 7), a bare number needs a place that types it (error 11), and a conversion that does not fit traps 5 instead of truncating. I'll show you each one with a real refusal and its fix.",
+  "goal": "Write typed Omega values and recognise errors 7 and 11 and trap 5.",
+  "key_steps": [
+    "Write operations as prefix words: add mul a a 4",
+    "Give new numbers a type: x = uint 5",
+    "Convert explicitly where types differ: add ulong x 1",
+    "Mask before narrowing: uchar and big 255",
+    "Read error 7 as mixed types and error 11 as an untyped number"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/omega-02-values-and-types/values.om",
+      "examples/omega-02-values-and-types/narrow.om",
+      "examples/omega-02-values-and-types/mixed.om",
+      "examples/omega-02-values-and-types/bare.om",
+      "examples/omega-02-values-and-types/fixed.om",
+      "examples/omega-02-values-and-types/run.sh",
+      "examples/omega-02-values-and-types/output.txt"
+    ],
+    "code": "note values.om: prefix words, typed numbers, unsigned wrap, a checked conversion\nfn main to int\na = uint 7\nb = add mul a a 4\nnote b = (7 * 7) + 4, a uint because a is a uint\nc = uchar 255\nd = add c 1\nnote uchar arithmetic wraps modulo 256, so d is 0\nif ne d 0\nret 1\nend\nbig = uint 300\nlow = uchar and big 255\nnote mask first, then convert: the value fits, so the conversion does not trap\nif ne low 44\nret 2\nend\nret int b\nend\n",
+    "command": "sh examples/omega-02-values-and-types/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. values: exit status is the computed value b = 53\ncompile values.om rc=0\nrun values rc=53\n== 2. trap 5: a conversion whose value does not fit (exit 100 + 5)\ncompile narrow.om rc=0\nrun narrow rc=105\n== 3. error 7: no implicit conversion between uint and long\ncompile mixed.om rc=7\nomc: line 4: error 7\n== 4. error 11: a bare number with no type\ncompile bare.om rc=11\nomc: line 3: error 11\n== 5. the fix: say every type; 8 + 5 = 13\ncompile fixed.om rc=0\nrun fixed rc=13\nRESULT PASS\n"
+  },
+  "common_mistake": "Expecting implicit widening or narrowing. add x long 1 with x a uint is error 7; x = 5 for a new name is error 11; uchar of 300 traps 5 (exit 105). Fix: write the conversion yourself (add ulong x 1), type the number (uint 5), and mask before narrowing (uchar and big 255).",
+  "links": [
+    {
+      "title": "OMEGESE section 3: values",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L73"
+    },
+    {
+      "title": "OMEGESE section 9.3: numbers",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L429"
+    },
+    {
+      "title": "t_conv.om fixture",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/rung4/tests/t_conv.om"
+    },
+    {
+      "title": "gate15.sh refusal table",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omc/gate15.sh"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "Compiled and run on Linux AArch64 with omc befb8199...8a1d; statuses 53, 105, 7, 11 and 13 recorded and reproduced byte for byte. Float rules are described in OMEGESE 9.9 but not exercised here.",
+  "page": "pages/omega-02-values-and-types.md",
+  "steer_refs": []
+}

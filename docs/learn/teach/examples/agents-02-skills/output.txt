@@ -1,0 +1,33 @@
+omega-harness at 9ab649cd97c7a09d769f97569d62bde847af3ef4
+
+== real skills
+PASS aien-repositories: name ok, description 236 bytes, body 119 lines
+  rc=0 (expected 0)
+PASS crumb-protocol: name ok, description 282 bytes, body 155 lines
+  rc=0 (expected 0)
+PASS omega-communication: name ok, description 229 bytes, body 62 lines
+  rc=0 (expected 0)
+PASS omega-encoding: name ok, description 229 bytes, body 448 lines
+  rc=0 (expected 0)
+PASS omega-harness: name ok, description 296 bytes, body 151 lines
+  rc=0 (expected 0)
+PASS wolfram-math: name ok, description 235 bytes, body 72 lines
+  rc=0 (expected 0)
+
+== negative controls
+FAIL wrong-name: name 'right-name' differs from directory 'wrong-name'
+  rc=1 (expected 1)
+FAIL no-when: description never says when to use it
+  rc=1 (expected 1)
+FAIL no-frontmatter: line 1 is not ---
+  rc=1 (expected 1)
+
+== install: symlink follows a pull, a copy goes stale
+upstream fixes the skill (pin v2)
+git pull rc=0
+symlinked install reads: Pin v2
+copied install reads:    Pin v1
+PASS demo-skill: name ok, description 31 bytes, body 0 lines
+  rc=0 (expected 0)
+
+ALL EXIT STATUSES AS EXPECTED

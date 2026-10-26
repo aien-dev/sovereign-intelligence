@@ -1,0 +1,62 @@
+{
+  "id": "agents-08-evidence-handoff",
+  "track": "agents",
+  "lesson": 8,
+  "title": "The evidence-first handoff: what a receiving agent needs",
+  "keywords": [
+    "handoff",
+    "brief",
+    "delegate",
+    "report",
+    "evidence",
+    "commit",
+    "contract",
+    "subagent"
+  ],
+  "summary": "Drake briefs agents with a self-contained need, never a chat dump: goal, non-goals, authority and limits, the exact source commit (a branch name moves), the contract and acceptance command, and the evidence the receiver must send back. Reports lead with outcome, revision, change, evidence and limits. I can run a checker that holds a handoff missing any part or lacking an exact commit.",
+  "goal": "Brief another agent so it can start correctly without your conversation, and get back evidence you can rerun.",
+  "key_steps": [
+    "State goal and non-goals",
+    "State authority: what it may and may not touch",
+    "Give the exact repository and commit, not a branch",
+    "Write the contract and acceptance command",
+    "List the evidence to send back, including the negative control",
+    "Ask the receiver to explain the task before it starts"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/agents-08-evidence-handoff/handoff.om",
+      "examples/agents-08-evidence-handoff/good.txt",
+      "examples/agents-08-evidence-handoff/chat-dump.txt",
+      "examples/agents-08-evidence-handoff/branch-only.txt",
+      "examples/agents-08-evidence-handoff/run.sh"
+    ],
+    "code": "note handoff: hold a handoff until it carries goal, non-goals, authority, an exact source commit,\nnote the contract and the evidence the receiver must send back\nnote exit 0 send, 1 hold, 2 read error\nconst NF ulong 6\nconst KSRC ulong 3\nconst MOK ulong 6\nconst MMISS ulong 7\nconst MPASS ulong 8\nconst MFAIL ulong 9\nconst MNOPIN ulong 10\ntext KW \"Goal:\\nNon-goals:\\nAuthority:\\nSource:\\nContract:\\nEvidence back:\\n ok\\n MISSING\\nSEND handoff\\nHOLD handoff: the receiver would have to guess\\nSource: no exact commit (a branch name moves under you)\\n\"\nnote helpers: read all of stdin into inb, walk lines, compare a line prefix with the n-th\nnote entry of the newline separated table KW, and write table entries, input bytes and numbers\nglobal inb uchar 65536\nglobal num uchar 24\nfn rdall to long\nt = ulong 0\nwhile lt t len inb bound 65536\nk = read 0 inb t sub len inb t\nif lt k 0\nret k\nend\nif eq k 0\nret long t\nend\nt = add t ulong k\nend\nret neg long 27\nend\nfn eol s ulong n ulong to ulong\ni = s\nwhile lt i n bound 65536\nif eq get inb i 10\nret i\nend\ni = add i 1\nend\nret n\nend\nfn kstart k ulong to ulong\np = ulong 0\nc = ulong 0\nwhile lt c k bound 4096\nif eq get KW p 10\nc = add c 1\nend\np = add p 1\nend\nret p\nend\nfn klen k ulong to ulong\ns = kstart k\ni = s\nwhile ne get KW i 10 bound 4096\ni = add i 1\nend\nret sub i s\nend\nfn pmat at ulong e ulong k ulong to bool\no = kstart k\nm = klen k\nif gt m sub e at\nret false\nend\nfor j ulong m\nif ne get inb add at j get KW add o j\nret false\nend\nend\nret true\nend\nfn emitk o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 4096\nw = write 1 KW add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emiti o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 65536\nw = write 1 inb add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emitn o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 24\nw = write 1 num add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn say k ulong to void\nemitk kstart k add klen k 1\nend\nfn word k ulong to void\nemitk kstart k klen k\nend\nfn emitu v ulong to void\np = ulong 24\nx = v\nwhile true bound 21\np = sub p 1\nput num p uchar add rem x 10 48\nx = div x 10\nif eq x 0\nbreak\nend\nend\nemitn p sub 24 p\nend\nfn filled at ulong e ulong to bool\ni = at\nwhile lt i e bound 65536\nif ne get inb i 32\nret true\nend\ni = add i 1\nend\nret false\nend\nfn has k ulong n ulong to bool\ns = ulong 0\nwhile lt s n bound 65536\ne = eol s n\nif pmat s e k\nif filled add s klen k e\nret true\nend\nend\ns = add e 1\nend\nret false\nend\nfn ishex c uchar to bool\nif ge c 48\nif le c 57\nret true\nend\nend\nif ge c 97\nif le c 102\nret true\nend\nend\nret false\nend\nfn pinned at ulong e ulong to bool\nrun = ulong 0\ni = at\nwhile lt i e bound 65536\nif ishex get inb i\nrun = add run 1\nif ge run 7\nret true\nend\nelse\nrun = ulong 0\nend\ni = add i 1\nend\nret false\nend\nfn srcpin n ulong to bool\ns = ulong 0\nwhile lt s n bound 65536\ne = eol s n\nif pmat s e KSRC\nif pinned add s klen KSRC e\nret true\nend\nend\ns = add e 1\nend\nret false\nend\nfn main to int\nr = rdall\nif lt r 0\nret 2\nend\nn = ulong r\nmiss = ulong 0\nfor k ulong NF\nword k\nif has k n\nsay MOK\nelse\nsay MMISS\nmiss = add miss 1\nend\nend\nif has KSRC n\nif not srcpin n\nsay MNOPIN\nmiss = add miss 1\nend\nend\nif eq miss 0\nsay MPASS\nret 0\nend\nsay MFAIL\nret 1\nend\n",
+    "command": "sh examples/agents-08-evidence-handoff/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)\ncompile handoff.om rc=0\n\n--- input good.txt\nGoal: make the line counter refuse input over 64 KiB with exit 2\nNon-goals: no change to the output format, no new host words\nAuthority: edit tools/count.om and its test only; no push, no merge, no GPU\nSource: aien-dev/omega-mv at 19f014f2178ca9cd3473728fe00a475a2398c409, omc sha256 befb8199\nContract: exit 0 with the count on stdout; exit 2 and empty stdout above 65535 bytes\nEvidence back: commit, compile rc, run rc for 65535 and 65536 bytes, and the negative control\n--- output\nGoal: ok\nNon-goals: ok\nAuthority: ok\nSource: ok\nContract: ok\nEvidence back: ok\nSEND handoff\nrun rc=0 (expected 0)\n\n--- input chat-dump.txt\nGoal: fix the counter thing we talked about earlier\nSource: aien-dev/omega-mv at 19f014f2178ca9cd3473728fe00a475a2398c409\nContract: see the conversation above\n--- output\nGoal: ok\nNon-goals: MISSING\nAuthority: MISSING\nSource: ok\nContract: ok\nEvidence back: MISSING\nHOLD handoff: the receiver would have to guess\nrun rc=1 (expected 1)\n\n--- input branch-only.txt\nGoal: make the line counter refuse input over 64 KiB with exit 2\nNon-goals: no change to the output format, no new host words\nAuthority: edit tools/count.om and its test only; no push, no merge, no GPU\nSource: aien-dev/omega-mv, main branch\nContract: exit 0 with the count on stdout; exit 2 and empty stdout above 65535 bytes\nEvidence back: commit, compile rc, run rc for 65535 and 65536 bytes, and the negative control\n--- output\nGoal: ok\nNon-goals: ok\nAuthority: ok\nSource: ok\nContract: ok\nEvidence back: ok\nSource: no exact commit (a branch name moves under you)\nHOLD handoff: the receiver would have to guess\nrun rc=1 (expected 1)\n\nALL EXIT STATUSES AS EXPECTED\n"
+  },
+  "common_mistake": "Briefing by reference ('continue from above', 'same as before') or asking for a summary back. Fix: write all six parts with the exact commit and ask for commands, statuses and output.",
+  "links": [
+    {
+      "title": "omega-communication skill",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-communication/SKILL.md"
+    },
+    {
+      "title": "AIEN agent rules (public edition)",
+      "url": "https://www.aienos.com/agents/RULES.md"
+    },
+    {
+      "title": "omega-mv AGENTS.md (an instruction file a receiver reads first)",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/AGENTS.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "The example ran on a Linux AArch64 host (no GPU) and its output is recorded byte for byte with a negative control. Rests on the recorded run of handoff.om: a complete handoff is sent, a chat dump and a branch-only source are held with exit 1. NOT done: the checker checks structure only; it marked 'see the conversation above' as present, and judging content stays with a reviewer.",
+  "page": "pages/agents-08-evidence-handoff.md",
+  "steer_refs": [
+    "s11",
+    "s06",
+    "p05"
+  ]
+}

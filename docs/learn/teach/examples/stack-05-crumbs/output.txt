@@ -1,0 +1,51 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+compile lib.om+crumbchk.om rc=0
+== omega-mv seed/wasm/.crumb
+key extensions (optional)
+key layer (optional)
+key name (required)
+key purpose (required)
+key schema_version (required)
+extensions.generated present: written by crumb compile, never by hand
+verdict RFC-0001 shape: required keys present, no unknown keys
+run rc=0
+== omega-mv evidence/physics0/learner/.crumb
+key schema_version (required)
+key name (required)
+key layer (optional)
+key purpose (required)
+verdict RFC-0001 shape: required keys present, no unknown keys
+run rc=0
+== aien-sovereign-core-mv .crumb (root)
+key above (optional)
+key below (optional)
+key description (legacy)
+key dir_name (legacy)
+key dir_path (legacy)
+key extensions (optional)
+key history (legacy)
+key purpose (required)
+key version (legacy)
+key whispers (legacy)
+extensions.generated present: written by crumb compile, never by hand
+verdict LEGACY shape: left as it is; a new crumb never copies it
+run rc=3
+== negative control: seed/wasm/.crumb with purpose renamed to status
+key extensions (optional)
+key layer (optional)
+key name (required)
+key status (UNKNOWN)
+key schema_version (required)
+extensions.generated present: written by crumb compile, never by hand
+verdict INVALID: unknown top-level key
+run rc=5
+== negative control: learner .crumb with its purpose line removed
+key schema_version (required)
+key name (required)
+key layer (optional)
+verdict INVALID: a required key is missing
+run rc=4
+== a generated field you can recompute: children_root of a directory with no child crumbs
+"children_root":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+sha256 of zero bytes: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+every verdict as expected: yes

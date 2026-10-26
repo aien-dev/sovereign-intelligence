@@ -1,0 +1,29 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile weigh.om rc=0
+
+--- input reviews.txt
+YY loop bound off by one in the parser
+YN race in the lock release path
+YU read result not checked for a negative count
+UU helper name could be clearer
+NN suspected leak in the cache
+UN unused import
+--- output
+loop bound off by one in the parser: ACT (both reviewers agree, with evidence)
+race in the lock release path: CHECK (they disagree: run the cheapest check that separates them)
+read result not checked for a negative count: VERIFY (one evidenced finding: open the cited artifact yourself)
+helper name could be clearer: DROP (no evidenced finding)
+suspected leak in the cache: DROP (no evidenced finding)
+unused import: DROP (no evidenced finding)
+act=1 check=1 verify=1 drop=3
+run rc=0 (expected 0)
+
+--- input malformed.txt
+YY real finding
+Y? reviewer gave no verdict letter
+--- output
+real finding: ACT (both reviewers agree, with evidence)
+REFUSE malformed line 2
+run rc=3 (expected 3)
+
+ALL EXIT STATUSES AS EXPECTED

@@ -1,0 +1,3 @@
+Status: CUDA++ runtime EXERCISED on host (33 host test targets); the 3x GB10 hardware qualification is NOT_RUN.
+Installer EXERCISED in a stock arm64 container: 6/6 PASS, receipt in evidence/alpha-20261026.1/container/.
+Engine commit cf239078 passed SC-GB10-SERVE-CHAT once (one token, signed receipt); the shipped binary on a GPU: NOT_RUN.

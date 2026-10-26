@@ -1,0 +1,9 @@
+note inblock.om: error 9. new is allowed only in a function's outermost block
+fn main to int
+s = ulong 0
+for i ulong 4
+a = new uchar 4 0
+s = add s len a
+end
+ret int s
+end

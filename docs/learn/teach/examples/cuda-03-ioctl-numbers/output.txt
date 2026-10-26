@@ -1,0 +1,35 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== oracle 1: the header lines (CUDApp third_party, NVIDIA 580.173.02, MIT)
+29:#define NV_IOCTL_MAGIC      'F'
+30:#define NV_IOCTL_BASE       200
+31:#define NV_ESC_CARD_INFO             (NV_IOCTL_BASE + 0)
+32:#define NV_ESC_REGISTER_FD           (NV_IOCTL_BASE + 1)
+29:#define NV_ESC_RM_FREE                              0x29
+30:#define NV_ESC_RM_CONTROL                           0x2A
+31:#define NV_ESC_RM_ALLOC                             0x2B
+input to ioctl.om (decimal): 70 200 41 42 43 
+== compute: ioctl.om
+compile rc=0
+nv_pci_info_t size=12 align=4
+nv_ioctl_card_info_t size=72 (packed sum would be 65)
+NV_ESC_RM_ALLOC    NVOS21_PARAMETERS      nr=43 size=32 request=3223340587 (0xc020462b) devctl-rule=accept
+NV_ESC_RM_CONTROL  NVOS54_PARAMETERS      nr=42 size=32 request=3223340586 (0xc020462a) devctl-rule=accept
+NV_ESC_RM_FREE     NVOS00_PARAMETERS      nr=41 size=16 request=3222292009 (0xc0104629) devctl-rule=accept
+NV_ESC_CARD_INFO   nv_ioctl_card_info[64] nr=200 size=4608 request=3523233480 (0xd20046c8) devctl-rule=accept
+NV_ESC_REGISTER_FD nv_ioctl_register_fd   nr=201 size=4 request=3221505737 (0xc00446c9) devctl-rule=accept
+MISTAKE CARD_INFO  packed, no padding     nr=200 size=4160 request=3493873352 (0xd04046c8) devctl-rule=accept
+run rc=0
+== oracle 2: does CUDApp native/nvrm/context.om use the same literal?
+3223340587 used 1 time(s): NV_ESC_RM_ALLOC    NVOS21_PARAMETERS
+3223340586 used 1 time(s): NV_ESC_RM_CONTROL  NVOS54_PARAMETERS
+3222292009 used 1 time(s): NV_ESC_RM_FREE     NVOS00_PARAMETERS
+3523233480 used 1 time(s): NV_ESC_CARD_INFO   nv_ioctl_card_info[64]
+3221505737 used 2 time(s): NV_ESC_REGISTER_FD nv_ioctl_register_fd
+3493873352 used 0 time(s): MISTAKE CARD_INFO  packed, no padding
+== oracle 3: the pinned omc's devctl rule, compiled (never opens a GPU device)
+RM_ALLOC read/write, 32-byte span: compile rc=0
+RM_ALLOC read/write, 32-byte span: run on /dev/null rc=25
+negative: same fields, write-only direction (1075856939): compile rc=9
+omc: line 3: error 9
+negative: RM_ALLOC with a 16-byte span: compile rc=0
+negative: RM_ALLOC with a 16-byte span: run on /dev/null rc=103

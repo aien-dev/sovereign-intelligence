@@ -1,0 +1,6 @@
+expect 5
+PASS parse_empty
+PASS parse_long
+PASS trap_bounds
+NOT_RUN trap_div0
+SKIP io_short_read

@@ -1,0 +1,6 @@
+note unbound.om: negative control. write gives a long; it cannot stand alone as a statement
+text msg "hello\n"
+fn main to int
+write 1 msg 0 len msg
+ret 0
+end

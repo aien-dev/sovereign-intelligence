@@ -1,0 +1,28 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. the guide row in docs/one_layer/OMEGESE.md
+OMEGESE.md rows for random: 1
+== 2. the keyword: compute its packed spelling in Omega, then find it in omc.om
+compile kwpack.om rc=0
+120325193752946
+run kwpack rc=0
+767:if eq w 120325193752946
+768-ret 135
+== 3. the lowering: fn hrand issues Linux syscall 278 (getrandom on arm64)
+1:fn hrand dst ulong x ulong to void
+10:hsys 278
+== 4. the host gate fixture, compiled and run as the gate does
+compile seed/host/tests/random.om rc=0
+run random rc=0
+== 5. negative control: the fixture with a wrong expected count must fail
+compile mutant rc=0
+run mutant rc=1
+== 6. the refusals the word promises
+compile intotext.om rc=20
+omc: line 4: error 20
+compile badflags.om rc=7
+omc: line 4: error 7
+compile asname.om rc=16
+omc: line 3: error 16
+compile overrun.om rc=0
+run overrun rc=103
+RESULT PASS

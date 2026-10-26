@@ -1,0 +1,114 @@
+note elfinfo: read a 64-bit little-endian ELF file on stdin and say whether it needs a loader
+note PT_INTERP (3) names a dynamic loader and PT_DYNAMIC (2) lists shared libraries; a file with neither
+note runs on the kernel alone. exit 0 static, 1 needs a loader or libraries, 3 not an ELF64 LE file, 4 too big
+text telf "elf64 little-endian\n"
+text ttype "type "
+text tmach "machine "
+text tph "program headers "
+text tload "PT_LOAD "
+text tdyn "PT_DYNAMIC "
+text tint "PT_INTERP "
+text vstat "verdict STATIC: no loader, no shared libraries, only kernel system calls below it\n"
+text vdyn "verdict DYNAMIC: needs a loader and shared libraries before its first instruction\n"
+text vnot "verdict NOT_ELF64\n"
+text vbig "verdict REFUSED input too big\n"
+text nl "\n"
+global ph ulong 4
+fn rd16 o ulong to ulong
+ret or ulong get inb o shl ulong get inb add o 1 8
+end
+fn rd32 o ulong to ulong
+ret or rd16 o shl rd16 add o 2 16
+end
+fn rd64 o ulong to ulong
+ret or rd32 o shl rd32 add o 4 32
+end
+fn kv t view uchar * v ulong to void
+ot t
+on v
+ot nl
+end
+fn isel n ulong to bool
+note magic 127 E L F, class 2 (64-bit), data 1 (little-endian)
+if lt n 64
+ret false
+end
+if ne get inb 0 127
+ret false
+end
+if ne get inb 1 69
+ret false
+end
+if ne get inb 2 76
+ret false
+end
+if ne get inb 3 70
+ret false
+end
+if ne get inb 4 2
+ret false
+end
+if ne get inb 5 1
+ret false
+end
+ret true
+end
+fn scan n ulong to bool
+note count segment types; false when the header table is not inside the file
+off = rd64 32
+esz = rd16 54
+cnt = rd16 56
+if gt off n
+ret false
+end
+if gt mul esz cnt sub n off
+ret false
+end
+if lt esz 4
+ret false
+end
+for i ulong cnt
+t = rd32 add off mul i esz
+if lt t 4
+put ph t add get ph t 1
+end
+end
+ret true
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 4
+end
+if eq get st 2 1
+ot vbig
+f = flush
+ret 4
+end
+n = ulong r
+ok = isel n
+if ok
+ok = scan n
+end
+if not ok
+ot vnot
+f = flush
+ret 3
+end
+ot telf
+kv ttype rd16 16
+kv tmach rd16 18
+kv tph rd16 56
+kv tload get ph 1
+kv tdyn get ph 2
+kv tint get ph 3
+v = int 0
+if gt add get ph 2 get ph 3 0
+v = 1
+ot vdyn
+else
+ot vstat
+end
+f = flush
+ret v
+end

@@ -1,0 +1,5 @@
+note bare.om: negative control. a bare number with nothing to give it a type
+fn main to int
+x = 5
+ret 0
+end

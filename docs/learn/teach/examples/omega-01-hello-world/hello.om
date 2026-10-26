@@ -1,0 +1,9 @@
+note hello.om: the smallest useful Omega program
+text msg "hello from seeded Omega\n"
+fn main to int
+w = write 1 msg 0 len msg
+if ne w long len msg
+ret 1
+end
+ret 0
+end

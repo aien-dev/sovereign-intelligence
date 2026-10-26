@@ -1,0 +1,39 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile consult.om rc=0
+
+--- input cases.txt
+0 0 0 0 0 0 rename a local variable in my own lane
+1 0 0 0 0 0 first fix for a failing test did not work
+2 0 0 0 0 0 flaky test still fails after two different fixes
+0 1 0 0 0 0 crash with no known cause
+0 0 1 0 0 0 delete an old branch with unmerged work
+0 0 0 1 0 0 benchmark moved more than its noise
+0 0 1 0 0 1 change a wire format: two designs both look right
+0 0 0 0 1 0 about to tell the owner a gate is safe
+--- output
+rename a local variable in my own lane: WORK alone (no trigger: routine work)
+first fix for a failing test did not work: WORK alone (no trigger: routine work)
+flaky test still fails after two different fixes: CONSULT one consultant
+  why: two different fixes failed
+crash with no known cause: CONSULT one consultant
+  why: root cause unknown
+delete an old branch with unmerged work: CONSULT one consultant
+  why: hard to reverse
+benchmark moved more than its noise: CONSULT one consultant
+  why: results contradict or surprise
+change a wire format: two designs both look right: CONSULT two independent consultants, same facts (real fork)
+  why: hard to reverse
+about to tell the owner a gate is safe: CONSULT one consultant
+  why: unsure it is done or safe
+consult=6 work=2
+run rc=0 (expected 0)
+
+--- input malformed.txt
+0 0 0 0 0 0 routine edit
+0 0 maybe 0 0 change the gate
+--- output
+routine edit: WORK alone (no trigger: routine work)
+REFUSE malformed line 2
+run rc=3 (expected 3)
+
+ALL EXIT STATUSES AS EXPECTED

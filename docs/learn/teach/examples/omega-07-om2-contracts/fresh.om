@@ -1,0 +1,10 @@
+note fresh.om: negative control. element 1 of fresh scratch is read before any write (error 27, init)
+om2 diag
+fn first s edit uint 4 fresh to uint
+put s 0 1
+ret get s 1
+end
+fn main to int
+s = new uint 4 0
+ret int first s
+end

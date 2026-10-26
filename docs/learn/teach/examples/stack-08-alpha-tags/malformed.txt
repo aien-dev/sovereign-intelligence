@@ -1,0 +1,3 @@
+scope full
+check SC-FMT host OK
+check SC-GB10-SERVE-CHAT gb10 PASS

@@ -1,0 +1,23 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+compile lib.om+overclaim.om rc=0
+== before.txt
+line 1: always an overclaim: done
+line 1: always an overclaim: fully
+line 2: always an overclaim: production-ready
+line 2: ladder word with no receipt or negation on the line: QUALIFIED
+line 3: ladder word with no receipt or negation on the line: verified
+line 3: ladder word with no receipt or negation on the line: PASS
+line 3: always an overclaim: blazing
+flags 7
+verdict OVERCLAIM
+run rc=1
+== after.txt
+flags 0
+verdict CLEAN
+run rc=0
+== negative control: after.txt with the receipt pointer cut from line 2
+line 2: ladder word with no receipt or negation on the line: PASS
+flags 1
+verdict OVERCLAIM
+run rc=1
+every verdict as expected: yes

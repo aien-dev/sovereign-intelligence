@@ -1,0 +1,30 @@
+note header.om: an OM-2 unit. The compiler, not a comment, owns the byte layout
+om2
+layout hdr 8
+field magic uint at 0 big
+field size ushort at 4 little
+field kind uchar at 6 little
+field flags uchar at 7 little
+end
+fn mkhdr c edit hdr to void
+put c magic 0x4f4d4547
+put c size 512
+put c kind 2
+put c flags 0
+end
+fn main to int
+c = new uchar 8 0
+mkhdr c
+note big-endian magic: the first four bytes spell OMEG
+w = write 1 c 0 4
+nl = new uchar 1 10
+w = write 1 nl 0 1
+note size 512 little-endian is the bytes 0 then 2
+if ne get c 4 0
+ret 1
+end
+if ne get c 5 2
+ret 2
+end
+ret 0
+end

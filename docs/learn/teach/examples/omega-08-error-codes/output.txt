@@ -1,0 +1,31 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. error 12: the 16-register pool runs out
+compile blend.om rc=12
+omc: line 14: error 12
+== 2. the fix: split the work into helpers
+compile split.om rc=0
+106
+123
+run split rc=0
+== 2b. negative control: a wrong split (xor d f made and d f in mixes) fails the reference check
+compile badsplit rc=0
+run badsplit rc=3
+== 3. error 9: new inside a loop
+compile inblock.om rc=9
+omc: line 5: error 9
+== 4. the fix: hoist the array to the outermost block
+compile hoisted.om rc=0
+run hoisted rc=16
+== 5. error 13: a 9-character variable name
+compile longname.om rc=13
+omc: line 3: error 13
+== 6. error 16: an array parameter without its length
+compile nolength.om rc=16
+omc: line 2: error 16
+== 7. the fix: state the length
+compile withlen.om rc=0
+run withlen rc=20
+== 8. the whole table: seed/omc/gate15.sh, one minimal refusal per code, in a disposable copy
+PASS gate15 21 refusal cases (codes 3..23; 1 and 2 are compiler I/O) plus a valid control
+gate15 rc=0
+RESULT PASS

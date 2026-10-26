@@ -1,0 +1,36 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+SHA256SUMS.sig sha256 matches PROVENANCE.txt: yes
+compile lib.om+pemkey.om rc=0
+== 1. keys/release.pub.pem against keys/release.pub
+DER bytes 44
+Ed25519 SubjectPublicKeyInfo prefix: ok
+key from PEM  ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a
+key from hex  ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a
+the two forms agree: yes
+run rc=0
+== 1. negative control: one base64 character of the PEM changed (/5S -> /6S)
+DER bytes 44
+Ed25519 SubjectPublicKeyInfo prefix: ok
+key from PEM  ffa49504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a
+key from hex  ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a
+the two forms agree: no
+run rc=1
+== 2. Ed25519 signature over evidence/alpha-20261026.1/SHA256SUMS.tested
+signature VALID (ed25519)
+node rc=0
+== 2. negative control: one hex digit of the bundle hash changed (3c53 -> 3c54)
+signature INVALID (ed25519)
+node rc=1
+sha256 of the signed SHA256SUMS: d442d2ac1b434fff31cb1104c3c71d0e7df2b845a4c672e91a14cb10f3cd3c84
+the container receipt tested against: d442d2ac1b434fff31cb1104c3c71d0e7df2b845a4c672e91a14cb10f3cd3c84
+== 3. repo files against the signed list
+install.sh: OK
+release.pub: OK
+release.pub.pem: OK
+sha256sum rc=0
+aienos-alpha-20261026.1-linux-arm64.tar.gz: NOT_RUN (a release asset, not in the repository)
+aienos.om: NOT_RUN (a release asset, not in the repository)
+== 4. what install.sh pins
+TAG=alpha-20261026.1
+RELEASE_PUB_HEX equals keys/release.pub: yes
+every verdict as expected: yes

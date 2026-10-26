@@ -1,0 +1,9 @@
+note main.om: the native driver. Units compose by concatenation: fns.om, putnum.om, main.om
+fn main to int
+w = putnum ulong gcd 1071 462
+w = putnum ulong lcm 21 6
+w = putnum ulong tri 10
+w = putnum ulong addi 2 3
+x = addi 2147483647 1
+ret 0
+end

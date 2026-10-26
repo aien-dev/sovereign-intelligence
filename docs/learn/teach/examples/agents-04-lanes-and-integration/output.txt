@@ -1,0 +1,39 @@
+worktree lane-a rc=0
+worktree lane-b rc=0
+worktree lane-c rc=0
+worktree lane-d rc=0
+
+== lanes work in parallel, each in its own tree
+lane-a commit rc=0
+lane-b commit rc=0
+lane-b leaves an uncommitted file: ?? wip.txt
+
+== integration owner merges committed branches only
+merge lane-a rc=0
+merge lane-b rc=0
+main now has: docs.txt parser.txt shared.txt 
+lane-b uncommitted file on main: absent
+lane-b dirty tree untouched: ?? wip.txt
+
+== two lanes edit the same line of a shared file
+lane-c commit rc=0
+lane-d commit rc=0
+merge lane-c rc=0
+merge lane-d rc=1
+conflicted files: shared.txt
+owner aborts the merge rc=0, main is clean: []
+CONFLICT: lane-d must rebase onto main in its own worktree and re-decide shared.txt
+
+== lane d resolves in its own tree, owner merges again
+lane-d rebase rc=1 (conflict expected)
+lane-d rebase --continue rc=0
+merge lane-d rc=0
+final shared.txt:
+owner: integration
+version: 3 (lane d, after lane c)
+main history:
+  merge lane-d
+  merge lane-c
+  merge lane-b
+  merge lane-a
+  base

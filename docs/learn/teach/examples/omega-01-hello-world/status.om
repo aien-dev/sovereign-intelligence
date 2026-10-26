@@ -1,0 +1,4 @@
+note status.om: the exit status is main's value modulo 256
+fn main to int
+ret 300
+end

@@ -1,0 +1,64 @@
+{
+  "id": "omega-04-arrays-and-io",
+  "track": "omega",
+  "lesson": 4,
+  "title": "Arrays, globals and host I/O: counts and negative errno",
+  "keywords": [
+    "array",
+    "global",
+    "new",
+    "read",
+    "write",
+    "stdin",
+    "errno",
+    "partial read",
+    "trap 3",
+    "error 19"
+  ],
+  "summary": "Drake's Omega has no heap: arrays are globals, stack arrays from new, or read-only text, and every index and I/O slice is checked. read and write return a count, 0 at end, or minus the Linux errno. I'll show you his partial-read loop that keeps those apart, and how a loop written as while gt k 0 turns a closed stdin into a silent success.",
+  "goal": "Read stdin with a correct partial-read loop and keep counts, end of input and negative errno distinct.",
+  "key_steps": [
+    "Declare the buffer as a global and name it inside functions, never pass it",
+    "Loop on read until it returns 0, adding each partial count",
+    "Turn a negative result (minus errno) into a distinct exit status",
+    "Cap the input and write the bound proof in a note",
+    "Expect trap 3 for a bad slice and error 19 for a global argument"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/omega-04-arrays-and-io/wc.om",
+      "examples/omega-04-arrays-and-io/naive.om",
+      "examples/omega-04-arrays-and-io/slice.om",
+      "examples/omega-04-arrays-and-io/global.om",
+      "examples/omega-04-arrays-and-io/run.sh",
+      "examples/omega-04-arrays-and-io/output.txt"
+    ],
+    "code": "note wc.om: count bytes and lines on stdin with a partial-read loop\nnote proof of the bound: every pass but the last reads at least one byte, and more than CAP\nnote bytes stops the program, so at most CAP passes read data and one more sees end of input\nconst CAP ulong 999998\nglobal buf uchar 4096\ntext lb \"bytes \"\ntext ll \"lines \"\nfn putnum v ulong to long\nnote write v in decimal and a newline. A ulong has at most 20 digits, so bound 20 is proved\nd = new uchar 21 0\no = new uchar 21 0\nn = ulong 0\nx = v\nwhile true bound 20\nput d n uchar add rem x 10 48\nn = add n 1\nx = div x 10\nif eq x 0\nbreak\nend\nend\nfor i ulong n\nput o i get d sub sub n i 1\nend\nput o n 10\nw = write 1 o 0 add n 1\nret w\nend\nfn main to int\ntotal = ulong 0\nlines = ulong 0\ndone = false\nwhile not done bound 999999\nk = read 0 buf 0 len buf\nif lt k 0\nnote a negative result is minus the Linux errno: report it, never treat it as end of input\nret int neg k\nend\nif eq k 0\ndone = true\nelse\nn = ulong k\nfor i ulong n\nif eq get buf i 10\nlines = add lines 1\nend\nend\ntotal = add total n\nif gt total CAP\nret 3\nend\nend\nend\nw = write 1 lb 0 len lb\nw = putnum total\nw = write 1 ll 0 len ll\nw = putnum lines\nret 0\nend\n",
+    "command": "sh examples/omega-04-arrays-and-io/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. three short lines on stdin\ncompile wc.om rc=0\nbytes 14\nlines 3\nrun wc rc=0\n== 2. 5000 lines of 'abc' through a pipe: many partial reads, one total\nbytes 20000\nlines 5000\nrun wc rc=0\n== 3. stdin closed: read returns -9 (EBADF), the program exits 9\nrun wc rc=9\n== 4. negative control: a loop that treats k <= 0 as end of input hides the error\ncompile naive.om rc=0\nbytes 0\nrun naive rc=0\n== 5. trap 3: the slice is checked before the kernel call (exit 103)\ncompile slice.om rc=0\nrun slice rc=103\n== 6. error 19: a global passed as an argument\ncompile global.om rc=19\nomc: line 7: error 19\nRESULT PASS\n"
+  },
+  "common_mistake": "Writing while gt k 0, which ends on an error exactly as it ends at end of input. With stdin closed the naive loop printed bytes 0 and exited 0. Handle k < 0 (minus errno) and k == 0 (end) separately, and keep adding partial counts.",
+  "links": [
+    {
+      "title": "OMEGESE section 9.4: arrays",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L449"
+    },
+    {
+      "title": "OMEGESE section 9.5: read and write",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L476"
+    },
+    {
+      "title": "OMEGESE section 10: host words",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L757"
+    },
+    {
+      "title": "host gate fixtures",
+      "url": "https://github.com/aien-dev/omega-mv/tree/19f014f2178ca9cd3473728fe00a475a2398c409/seed/host/tests"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "Compiled and run on Linux AArch64 with omc befb8199...8a1d with three inputs (short, piped 5000 lines, closed stdin) and three negative controls; reproduced byte for byte. Partial-read counts depend on the kernel pipe; only totals are printed.",
+  "page": "pages/omega-04-arrays-and-io.md",
+  "steer_refs": []
+}

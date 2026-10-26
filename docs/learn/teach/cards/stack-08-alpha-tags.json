@@ -1,0 +1,76 @@
+{
+  "id": "stack-08-alpha-tags",
+  "track": "stack",
+  "lesson": 8,
+  "title": "Alpha tags versus merge gates",
+  "keywords": [
+    "Alpha",
+    "alpha tag",
+    "merge gate",
+    "NO_GPU_RECEIPT",
+    "NOT_FULL_SCOPE",
+    "verify-bundle",
+    "full scope",
+    "gb10",
+    "SC-GB10-SERVE-CHAT",
+    "GitHub",
+    "thin gate"
+  ],
+  "summary": "In Sovereign Core, merging and Alpha tagging are separate. GitHub has no GB10, so its thin gate checks a signed bundle for the changed scope. An Alpha is a main commit judged in full scope, and verify-bundle --require-full rejects it with NOT_FULL_SCOPE or NO_GPU_RECEIPT unless a required gb10 check ran on the Spark's GPU. The first Alpha was 34 host checks, which is why the rule exists. I can show you a teaching model of those rules in Omega.",
+  "goal": "Tell the merge gate from the Alpha gate, and see why all-green host checks are not an Alpha without a GPU receipt.",
+  "key_steps": [
+    "Merging: the changed-scope bundle must PASS; usually host-only",
+    "Alpha: the main commit is judged in full scope, every gate",
+    "Require a gb10 check that actually ran: PASS or FAIL counts, a self NOT_RUN does not",
+    "Never reuse a GPU result across commits",
+    "Remember an Alpha is still not hardware QUALIFIED"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/stack-08-alpha-tags/alphachk.om",
+      "examples/stack-08-alpha-tags/lib.om",
+      "examples/stack-08-alpha-tags/run.sh",
+      "examples/stack-08-alpha-tags/with-gb10.txt",
+      "examples/stack-08-alpha-tags/host-only.txt",
+      "examples/stack-08-alpha-tags/changed-scope.txt",
+      "examples/stack-08-alpha-tags/gb10-notrun.txt",
+      "examples/stack-08-alpha-tags/gb10-fail.txt",
+      "examples/stack-08-alpha-tags/malformed.txt"
+    ],
+    "code": "note alphachk: a teaching model of the Alpha rule in aien-test verify-bundle --require-full (not that tool)\nnote input lines: \"scope full|changed\" and \"check NAME BACKEND VERDICT\", BACKEND host|gb10, VERDICT PASS|FAIL|NOT_RUN\nnote rules, in order: malformed input REFUSED; scope not full REJECTED NOT_FULL_SCOPE; any FAIL is FAIL (a gb10\nnote FAIL is still a receipt); no gb10 check that ran REJECTED NO_GPU_RECEIPT; any NOT_RUN is NOT_RUN; else ALPHA\nnote exit 0 ALPHA, 1 FAIL, 2 NOT_RUN, 3 REJECTED, 4 REFUSED\ntext words \"scope check full changed host gb10 PASS FAIL NOT_RUN \"\ntext tby \"checks by backend: host=\"\ntext tgpu \" gb10=\"\ntext tran \"gb10 checks that ran (PASS or FAIL): \"\ntext vok \"verdict ALPHA: full-scope PASS that carries a gb10 receipt\\n\"\ntext vfail \"verdict FAIL\\n\"\ntext vnrun \"verdict NOT_RUN\\n\"\ntext vscope \"verdict REJECTED NOT_FULL_SCOPE: plan scope is not full\\n\"\ntext vgpu \"verdict REJECTED NO_GPU_RECEIPT: no required gb10 check ran on the GPU\\n\"\ntext vref \"verdict REFUSED malformed line\\n\"\ntext nl \"\\n\"\nnote g: 0 scope (1 full, 2 changed), 1 host, 2 gb10, 3 gb10 ran, 4 fails, 5 not run, 6 malformed\nglobal g ulong 7\nfn bump i ulong to void\nput g i add get g i 1\nend\nfn tok a ulong b ulong to long\nnote the word a .. b-1 as an index into words\nret lookup words a b\nend\nfn check a ulong b ulong to void\nnote a is just after \"check \"; skip NAME, then read BACKEND and VERDICT\ne = wordend a b\nif ge e b\nbump 6\nelse\np = add e 1\ne = wordend p b\nbe = tok p e\nif ge e b\nbump 6\nelse\nv = tok add e 1 b\nif eq be 4\nbump 1\nelse\nif eq be 5\nbump 2\nelse\nbump 6\nend\nend\nif eq v 7\nbump 4\nend\nif eq v 8\nbump 5\nend\nif lt v 6\nbump 6\nend\nif eq be 5\nif or eq v 6 eq v 7\nbump 3\nend\nend\nend\nend\nend\nfn oneline a ulong b ulong to void\nif lt a b\ne = wordend a b\nw = tok a e\nif ge e b\nbump 6\nelse\nif eq w 0\ns = tok add e 1 b\nif eq s 2\nput g 0 1\nelse\nif eq s 3\nput g 0 2\nelse\nbump 6\nend\nend\nelse\nif eq w 1\ncheck add e 1 b\nelse\nbump 6\nend\nend\nend\nend\nend\nfn verdict to int\nif gt get g 6 0\not vref\nret 4\nend\nif ne get g 0 1\not vscope\nret 3\nend\nif gt get g 4 0\not vfail\nret 1\nend\nif eq get g 3 0\not vgpu\nret 3\nend\nif gt get g 5 0\not vnrun\nret 2\nend\not vok\nret 0\nend\nfn main to int\nr = rdall\nif lt r 0\nret 4\nend\nif eq get st 2 1\nret 4\nend\nn = ulong r\na = ulong 0\nfor i ulong n\nif eq get inb i 10\noneline a i\na = add i 1\nend\nend\noneline a n\not tby\non get g 1\not tgpu\non get g 2\not nl\not tran\non get g 3\not nl\nv = verdict\nf = flush\nret v\nend\n",
+    "command": "sh examples/stack-08-alpha-tags/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\ncompile lib.om+alphachk.om rc=0\n== with-gb10.txt\nchecks by backend: host=4 gb10=1\ngb10 checks that ran (PASS or FAIL): 1\nverdict ALPHA: full-scope PASS that carries a gb10 receipt\nrun rc=0\n== host-only.txt\nchecks by backend: host=4 gb10=0\ngb10 checks that ran (PASS or FAIL): 0\nverdict REJECTED NO_GPU_RECEIPT: no required gb10 check ran on the GPU\nrun rc=3\n== changed-scope.txt\nchecks by backend: host=4 gb10=1\ngb10 checks that ran (PASS or FAIL): 1\nverdict REJECTED NOT_FULL_SCOPE: plan scope is not full\nrun rc=3\n== gb10-notrun.txt\nchecks by backend: host=4 gb10=1\ngb10 checks that ran (PASS or FAIL): 0\nverdict REJECTED NO_GPU_RECEIPT: no required gb10 check ran on the GPU\nrun rc=3\n== gb10-fail.txt\nchecks by backend: host=4 gb10=1\ngb10 checks that ran (PASS or FAIL): 1\nverdict FAIL\nrun rc=1\n== malformed.txt\nchecks by backend: host=1 gb10=1\ngb10 checks that ran (PASS or FAIL): 1\nverdict REFUSED malformed line\nrun rc=4\n== what the real verifier prints for a host-only full-scope bundle (quoted from its docs at the pin)\nREJECTED NO_GPU_RECEIPT: an Alpha needs a required check on backend gb10 that ran on the Spark's GPU, and this full-scope bundle has none (checks by backend: host=34; gb10 checks: none)\nevery verdict as expected: yes\n"
+  },
+  "common_mistake": "Treating 'all checks green' as release-ready without asking which scope and which backend. A green changed-scope PR is mergeable, not an Alpha; an Alpha is one GPU run, not hardware qualification.",
+  "links": [
+    {
+      "title": "Full scope: Alpha qualification, in Core's verifier docs",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/f30eb963918d71dd2998b1cb936c251429417de1/tools/aien-test/docs/LOCAL_VERIFICATION.md#L449"
+    },
+    {
+      "title": "The verify-bundle rejection codes in the source",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/f30eb963918d71dd2998b1cb936c251429417de1/tools/aien-test/src/bundle.rs#L36"
+    },
+    {
+      "title": "The GPU receipt gate, SC-GB10-SERVE-CHAT",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/f30eb963918d71dd2998b1cb936c251429417de1/tests/gates/sc-gb10-serve-chat.gate"
+    },
+    {
+      "title": "How the pipeline picks and tags an Alpha",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/f30eb963918d71dd2998b1cb936c251429417de1/tools/aien-local-ci/pipeline.sh#L335"
+    },
+    {
+      "title": "The aien-alpha command",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/f30eb963918d71dd2998b1cb936c251429417de1/tools/aien-local-ci/README.md#L212"
+    },
+    {
+      "title": "What the SI alpha release ships from Core's receipted tag",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/notes/alpha-20261026.1.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "alphachk.om, a model of the documented rules, ran on six summaries on a Linux arm64 host. Core's real verifier (Rust, signed bundles) was not run for this lesson; the rule text is quoted from its docs at the pinned commit.",
+  "page": "pages/stack-08-alpha-tags.md",
+  "steer_refs": []
+}

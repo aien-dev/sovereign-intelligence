@@ -1,0 +1,234 @@
+note Build the M16 semaphore-release pushbuffer and its 8-byte GPFIFO entry, then decode
+note both back into fields and check the round trip. Input on stdin, decimal, one per line:
+note   compute class, marker VA, payload, pushbuffer VA, mutant flag (1 = forget the >> 2).
+note Exit 0 round trip exact, 3 bad input, 5 a decoded field differs from what was meant.
+om2
+global ob uchar 4096
+global on ulong 1
+global inb uchar 4096
+global inn ulong 1
+global inp ulong 1
+text hx "0123456789abcdef"
+fn putc c uchar to void
+put ob get on 0 c
+put on 0 add get on 0 1
+end
+fn puts s view uchar * to void
+for i ulong len s
+putc get s i
+end
+end
+fn putdec v ulong to void
+d = new uchar 20 0
+n = ulong 0
+x = v
+while true bound 21
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt n 0 bound 21
+n = sub n 1
+putc get d n
+end
+end
+fn puthex v ulong w ulong to void
+putc 48
+putc 120
+for i ulong w
+s = mul sub sub w 1 i 4
+putc get hx and shr v s 0xf
+end
+end
+fn flush to void
+w = write 1 ob 0 get on 0
+put on 0 0
+end
+note Read all of stdin; every pass adds at least one byte to a 4096-byte buffer.
+fn slurp to bool
+while lt get inn 0 4096 bound 4097
+k = read 0 inb get inn 0 sub 4096 get inn 0
+if lt k 0
+ret false
+end
+if eq k 0
+ret true
+end
+put inn 0 add get inn 0 ulong k
+end
+ret false
+end
+note Next decimal number in the input; returns 2^64-1 when none is left.
+fn nextnum to ulong
+v = ulong 0
+seen = false
+while lt get inp 0 get inn 0 bound 4097
+c = get inb get inp 0
+put inp 0 add get inp 0 1
+if and ge c 48 le c 57
+v = add mul v 10 ulong sub c 48
+seen = true
+else
+if seen
+ret v
+end
+end
+end
+if seen
+ret v
+end
+ret 18446744073709551615
+end
+global pb uint 8
+global want ulong 8
+global mut ulong 1
+note Method header as CUDApp nvrm/nvrm.h nvrm_mthd writes it: 2 in bits 28..31 (incrementing),
+note count from bit 16, subchannel in bits 13..15, method offset in dwords in the low bits.
+fn mth subc uint m uint cnt uint to uint
+a = shr m 2
+if eq get mut 0 1
+a = m
+end
+ret or or or uint 536870912 shl cnt 16 shl subc 13 a
+end
+note GPFIFO entry as nvrm.c nvrm_gp_entry writes it: VA (dword aligned), length from bit 42, bit 41.
+fn gpent va ulong nw ulong to ulong
+ret or or and va not ulong 3 shl and nw 0x1fffff 42 shl ulong 1 41
+end
+text shdr "  header: bits28-31="
+text scnt " count="
+text ssub " subch="
+text smt " method="
+text sdat "  data for method "
+text spb "pb["
+text seq "] = "
+text sgp "gpfifo entry = "
+text sget "  ENTRY0 GET (31:2) va>>2 = "
+text sghi "  ENTRY1 GET_HI (7:0) = "
+text slev "  ENTRY1 LEVEL (9:9) = "
+text slen "  ENTRY1 LENGTH (30:10) dwords = "
+text ssyn "  ENTRY1 SYNC (31:31) = "
+text sva "  va rebuilt from GET_HI:GET = "
+text sok "round trip: exact\n"
+text sbad "round trip: MISMATCH at pb["
+text sbad2 "round trip: MISMATCH in the gpfifo entry\n"
+fn nl to void
+putc 10
+end
+note Decode the pushbuffer; return the index of the first mismatch or 8 when exact.
+fn decode to ulong
+bad = ulong 8
+i = ulong 0
+while lt i 8 bound 9
+w = ulong get pb i
+puts spb
+putdec i
+puts seq
+puthex w 8
+nl
+puts shdr
+putdec shr w 28
+puts scnt
+cnt = and shr w 16 0xfff
+putdec cnt
+puts ssub
+putdec and shr w 13 7
+puts smt
+m = mul and w 0x1fff 4
+puthex m 8
+nl
+if and ne m get want i eq bad 8
+bad = i
+end
+i = add i 1
+for j ulong cnt
+if lt i 8
+puts spb
+putdec i
+puts seq
+puthex ulong get pb i 8
+nl
+puts sdat
+puthex add m mul j 4 8
+nl
+i = add i 1
+end
+end
+end
+ret bad
+end
+fn gpcheck e ulong va ulong nw ulong to bool
+puts sgp
+puthex e 16
+nl
+lo = and e 0xffffffff
+hi = shr e 32
+puts sget
+puthex shr lo 2 8
+nl
+puts sghi
+putdec and hi 0xff
+nl
+puts slev
+putdec and shr hi 9 1
+nl
+puts slen
+putdec and shr hi 10 0x1fffff
+nl
+puts ssyn
+putdec shr hi 31
+nl
+back = or shl and hi 0xff 32 and lo 0xfffffffc
+puts sva
+puthex back 10
+nl
+ret and eq back va eq and shr hi 10 0x1fffff nw
+end
+fn main to int
+if not slurp
+ret 3
+end
+cls = nextnum
+mva = nextnum
+pay = nextnum
+pva = nextnum
+put mut 0 nextnum
+if or gt cls 0xffffffff gt pay 0xffffffff
+ret 3
+end
+note Bind the compute class to subchannel 1 (method 0 is SET_OBJECT).
+put pb 0 mth 1 0 1
+put pb 1 uint cls
+put want 0 0
+note Semaphore release on subchannel 0: five incrementing methods from SEM_ADDR_LO.
+put pb 2 mth 0 0x5c 5
+put pb 3 uint and mva 0xffffffff
+put pb 4 uint shr mva 32
+put pb 5 uint pay
+put pb 6 0
+note SEM_EXECUTE: OPERATION 2:0 = RELEASE (1), RELEASE_WFI 20:20 = 1.
+put pb 7 or 1 shl uint 1 20
+put want 2 0x5c
+bad = decode
+e = gpent pva 8
+ok = gpcheck e pva 8
+if lt bad 8
+puts sbad
+putdec bad
+putc 93
+nl
+flush
+ret 5
+end
+if not ok
+puts sbad2
+flush
+ret 5
+end
+puts sok
+flush
+ret 0
+end

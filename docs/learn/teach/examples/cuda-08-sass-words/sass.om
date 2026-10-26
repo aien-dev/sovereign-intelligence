@@ -1,0 +1,190 @@
+note Decode GB10 (sm_121) machine words: 16 bytes per instruction, four little-endian 32-bit
+note words. Field positions from omega-mv seed/sm121/sm121.tbl (word 0: opcode in bits 0..11,
+note predicate 12..15, destination 16..23, first source 24..31) and CUDApp's control-word note
+note (word 3: stall 9..12, yield 13, write barrier 14..16, read barrier 17..19, wait mask 20..25).
+note Input: exactly 512 bytes (32 instructions) on stdin. Exit 0 decoded, 3 wrong input length.
+om2
+global ob uchar 4096
+global on ulong 1
+global inb uchar 4096
+global inn ulong 1
+global inp ulong 1
+text hx "0123456789abcdef"
+fn putc c uchar to void
+put ob get on 0 c
+put on 0 add get on 0 1
+end
+fn puts s view uchar * to void
+for i ulong len s
+putc get s i
+end
+end
+fn putdec v ulong to void
+d = new uchar 20 0
+n = ulong 0
+x = v
+while true bound 21
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt n 0 bound 21
+n = sub n 1
+putc get d n
+end
+end
+fn puthex v ulong w ulong to void
+putc 48
+putc 120
+for i ulong w
+s = mul sub sub w 1 i 4
+putc get hx and shr v s 0xf
+end
+end
+fn flush to void
+w = write 1 ob 0 get on 0
+put on 0 0
+end
+note Read all of stdin; every pass adds at least one byte to a 4096-byte buffer.
+fn slurp to bool
+while lt get inn 0 4096 bound 4097
+k = read 0 inb get inn 0 sub 4096 get inn 0
+if lt k 0
+ret false
+end
+if eq k 0
+ret true
+end
+put inn 0 add get inn 0 ulong k
+end
+ret false
+end
+note Next decimal number in the input; returns 2^64-1 when none is left.
+fn nextnum to ulong
+v = ulong 0
+seen = false
+while lt get inp 0 get inn 0 bound 4097
+c = get inb get inp 0
+put inp 0 add get inp 0 1
+if and ge c 48 le c 57
+v = add mul v 10 ulong sub c 48
+seen = true
+else
+if seen
+ret v
+end
+end
+end
+if seen
+ret v
+end
+ret 18446744073709551615
+end
+fn word i ulong k ulong to ulong
+b = add mul i 16 mul k 4
+lo = or ulong get inb b shl ulong get inb add b 1 8
+hi = or shl ulong get inb add b 2 16 shl ulong get inb add b 3 24
+ret or lo hi
+end
+text sop " op=0x"
+text spr " pred="
+text srd " rd="
+text sra " ra="
+text sst " | stall="
+text syl " yield="
+text swb " sets="
+text srb " rsets="
+text swt " waits="
+text snone "-"
+text ssb "SB"
+text sia "IADD3 decoded: IADD3 "
+text spt ", PT, PT, "
+text scm ", "
+fn hex3 v ulong to void
+for i ulong 3
+putc get hx and shr v mul sub 2 i 4 0xf
+end
+end
+fn bar v ulong to void
+if eq v 7
+puts snone
+else
+puts ssb
+putdec v
+end
+end
+fn reg v ulong to void
+if eq v 255
+putc 82
+putc 90
+else
+putc 82
+putdec v
+end
+end
+fn line i ulong to void
+w0 = word i 0
+w3 = word i 3
+if lt i 10
+putc 32
+end
+putdec i
+puts sop
+hex3 and w0 0xfff
+puts spr
+putdec and shr w0 12 0xf
+puts srd
+putdec and shr w0 16 0xff
+puts sra
+putdec shr w0 24
+puts sst
+putdec and shr w3 9 0xf
+puts syl
+putdec and shr w3 13 1
+puts swb
+bar and shr w3 14 7
+puts srb
+bar and shr w3 17 7
+puts swt
+m = and shr w3 20 0x3f
+if eq m 0
+puts snone
+end
+for b ulong 6
+if eq and shr m b 1 1
+puts ssb
+putdec b
+putc 32
+end
+end
+putc 10
+end
+fn main to int
+if not slurp
+ret 3
+end
+if ne get inn 0 512
+ret 3
+end
+for i ulong 32
+line i
+end
+for i ulong 32
+if eq and word i 0 0xfff 0x210
+puts sia
+reg and shr word i 0 16 0xff
+puts spt
+reg shr word i 0 24
+puts scm
+reg and word i 1 0xff
+puts scm
+reg and word i 2 0xff
+putc 10
+end
+end
+flush
+ret 0
+end

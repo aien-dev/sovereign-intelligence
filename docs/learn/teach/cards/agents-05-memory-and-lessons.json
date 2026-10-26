@@ -1,0 +1,58 @@
+{
+  "id": "agents-05-memory-and-lessons",
+  "track": "agents",
+  "lesson": 5,
+  "title": "Memory and lessons: keep what was verified, retract what was wrong",
+  "keywords": [
+    "memory",
+    "lesson",
+    "Symptom",
+    "Root cause",
+    "Fix",
+    "Verified",
+    "retract",
+    "cortex"
+  ],
+  "summary": "Drake's agents keep long-term memory as distilled lessons, not files: Symptom, Root cause, Fix and Verified, with the source commit. A lesson without a Verified line is a guess, so it is refused. Wrong lessons are retracted by id, not contradicted, and memory is navigation, never proof: the current source wins. I can run his rule as an Omega validator that refuses an entry missing Verified.",
+  "goal": "Store only verified, distilled lessons so the next agent starts smarter, not more confidently wrong.",
+  "key_steps": [
+    "Write one lesson per entry: Symptom, Root cause, Fix, Verified",
+    "Put the command, statuses and negative control in Verified",
+    "Name the source commit so staleness is visible",
+    "Retract a wrong lesson by id instead of adding a contradiction",
+    "Treat recalled memory as a pointer and verify against current source",
+    "Keep lessons somewhere that survives a reboot"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/agents-05-memory-and-lessons/lesson.om",
+      "examples/agents-05-memory-and-lessons/good.txt",
+      "examples/agents-05-memory-and-lessons/no-verified.txt",
+      "examples/agents-05-memory-and-lessons/empty-verified.txt",
+      "examples/agents-05-memory-and-lessons/run.sh"
+    ],
+    "code": "note lesson: refuse a memory entry unless Symptom, Root cause, Fix and Verified each have text\nnote exit 0 accepted, 1 refused, 2 read error\nconst NF ulong 4\nconst MOK ulong 4\nconst MMISS ulong 5\nconst MPASS ulong 6\nconst MFAIL ulong 7\ntext KW \"Symptom:\\nRoot cause:\\nFix:\\nVerified:\\n ok\\n MISSING\\nACCEPT lesson\\nREFUSE lesson: every field needs text, and an unverified lesson is a guess\\n\"\nnote helpers: read all of stdin into inb, walk lines, compare a line prefix with the n-th\nnote entry of the newline separated table KW, and write table entries, input bytes and numbers\nglobal inb uchar 65536\nglobal num uchar 24\nfn rdall to long\nt = ulong 0\nwhile lt t len inb bound 65536\nk = read 0 inb t sub len inb t\nif lt k 0\nret k\nend\nif eq k 0\nret long t\nend\nt = add t ulong k\nend\nret neg long 27\nend\nfn eol s ulong n ulong to ulong\ni = s\nwhile lt i n bound 65536\nif eq get inb i 10\nret i\nend\ni = add i 1\nend\nret n\nend\nfn kstart k ulong to ulong\np = ulong 0\nc = ulong 0\nwhile lt c k bound 4096\nif eq get KW p 10\nc = add c 1\nend\np = add p 1\nend\nret p\nend\nfn klen k ulong to ulong\ns = kstart k\ni = s\nwhile ne get KW i 10 bound 4096\ni = add i 1\nend\nret sub i s\nend\nfn pmat at ulong e ulong k ulong to bool\no = kstart k\nm = klen k\nif gt m sub e at\nret false\nend\nfor j ulong m\nif ne get inb add at j get KW add o j\nret false\nend\nend\nret true\nend\nfn emitk o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 4096\nw = write 1 KW add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emiti o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 65536\nw = write 1 inb add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emitn o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 24\nw = write 1 num add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn say k ulong to void\nemitk kstart k add klen k 1\nend\nfn word k ulong to void\nemitk kstart k klen k\nend\nfn emitu v ulong to void\np = ulong 24\nx = v\nwhile true bound 21\np = sub p 1\nput num p uchar add rem x 10 48\nx = div x 10\nif eq x 0\nbreak\nend\nend\nemitn p sub 24 p\nend\nfn filled at ulong e ulong to bool\ni = at\nwhile lt i e bound 65536\nif ne get inb i 32\nret true\nend\ni = add i 1\nend\nret false\nend\nfn has k ulong n ulong to bool\ns = ulong 0\nwhile lt s n bound 65536\ne = eol s n\nif pmat s e k\nif filled add s klen k e\nret true\nend\nend\ns = add e 1\nend\nret false\nend\nfn main to int\nr = rdall\nif lt r 0\nret 2\nend\nn = ulong r\nmiss = ulong 0\nfor k ulong NF\nword k\nif has k n\nsay MOK\nelse\nsay MMISS\nmiss = add miss 1\nend\nend\nif eq miss 0\nsay MPASS\nret 0\nend\nsay MFAIL\nret 1\nend\n",
+    "command": "sh examples/agents-05-memory-and-lessons/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)\ncompile lesson.om rc=0\n\n--- input good.txt\nSymptom: the seeded compiler exits 12 on a long function\nRoot cause: more live names than the 16-register pool\nFix: split the function into two helpers\nVerified: recompiled with the pinned omc, compile rc=0, run rc=0\n--- output\nSymptom: ok\nRoot cause: ok\nFix: ok\nVerified: ok\nACCEPT lesson\nrun rc=0 (expected 0)\n\n--- input no-verified.txt\nSymptom: the seeded compiler exits 12 on a long function\nRoot cause: probably the register pool\nFix: split the function\n--- output\nSymptom: ok\nRoot cause: ok\nFix: ok\nVerified: MISSING\nREFUSE lesson: every field needs text, and an unverified lesson is a guess\nrun rc=1 (expected 1)\n\n--- input empty-verified.txt\nSymptom: the seeded compiler exits 12 on a long function\nRoot cause: probably the register pool\nFix: split the function\nVerified:\n--- output\nSymptom: ok\nRoot cause: ok\nFix: ok\nVerified: MISSING\nREFUSE lesson: every field needs text, and an unverified lesson is a guess\nrun rc=1 (expected 1)\n\nALL EXIT STATUSES AS EXPECTED\n"
+  },
+  "common_mistake": "Treating 'saved ten entries to memory' as learning, or trusting a recalled lesson over the current code. Fix: check the content of each lesson, require Verified, and verify recalled lessons against the source before acting.",
+  "links": [
+    {
+      "title": "omega-harness workflow skill",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-harness/SKILL.md"
+    },
+    {
+      "title": "omega-communication skill",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-communication/SKILL.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "The example ran on a Linux AArch64 host (no GPU) and its output is recorded byte for byte with a negative control. Rests on the recorded run of lesson.om: one complete entry accepted, two entries without a usable Verified line refused with exit 1. NOT done: the memory service itself is not exercised here.",
+  "page": "pages/agents-05-memory-and-lessons.md",
+  "steer_refs": [
+    "s03",
+    "p14",
+    "p15"
+  ]
+}

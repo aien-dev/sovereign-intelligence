@@ -1,0 +1,49 @@
+note loops.om: while with a bound, for with a count, break, and a do-while shape
+fn gcd a uint b uint to uint
+note Euclid: b falls every pass; 64 passes is far more than 32-bit inputs need
+while ne b 0 bound 64
+t = rem a b
+a = b
+b = t
+end
+ret a
+end
+fn putnum v ulong to long
+note write v in decimal and a newline. A ulong has at most 20 digits, so bound 20 is proved
+d = new uchar 21 0
+o = new uchar 21 0
+n = ulong 0
+x = v
+while true bound 20
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong n
+put o i get d sub sub n i 1
+end
+put o n 10
+w = write 1 o 0 add n 1
+ret w
+end
+fn main to int
+g = gcd 1071 462
+w = putnum ulong g
+s = ulong 0
+for i ulong 10
+s = add s i
+end
+w = putnum s
+f = ulong 0
+for i ulong 100
+if gt mul i i 3000
+f = i
+break
+end
+end
+w = putnum f
+ret 0
+end

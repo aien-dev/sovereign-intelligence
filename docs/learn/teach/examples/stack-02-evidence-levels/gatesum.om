@@ -1,0 +1,115 @@
+note gatesum: fail-closed summary of a gate log read on stdin, one verdict word at the start of each line
+note PASS only when there is at least one line and every line is PASS; anything else wins over PASS
+note exit 0 PASS, 1 FAIL, 2 NOT_RUN, 3 BLOCKED, 4 REFUSED (unknown word or input too big), 5 MISSING_IMPLEMENTATION
+text words "PASS FAIL NOT_RUN BLOCKED_HARDWARE BLOCKED_OPERATOR MISSING_IMPLEMENTATION "
+text tlines "lines "
+text tpass "PASS "
+text tfail "FAIL "
+text tnrun "NOT_RUN "
+text tblk "BLOCKED_* "
+text tmiss "MISSING_IMPLEMENTATION "
+text tunk "unknown "
+text tverd "verdict "
+text vpass "PASS"
+text vfail "FAIL"
+text vnrun "NOT_RUN"
+text vblk "BLOCKED"
+text vref "REFUSED"
+text vmiss "MISSING_IMPLEMENTATION"
+text nl "\n"
+note cnt: 0 PASS, 1 FAIL, 2 NOT_RUN, 3 BLOCKED_HARDWARE, 4 BLOCKED_OPERATOR, 5 MISSING, 6 unknown, 7 lines
+global cnt ulong 8
+fn tally a ulong b ulong to void
+note a .. b-1 is one line without its newline; empty lines are not counted
+if lt a b
+e = wordend a b
+k = lookup words a e
+if lt k 0
+k = 6
+end
+i = ulong k
+put cnt i add get cnt i 1
+put cnt 7 add get cnt 7 1
+end
+end
+fn kv t view uchar * v ulong to void
+ot t
+on v
+ot nl
+end
+fn verdict to int
+if gt get cnt 1 0
+ret 1
+end
+if gt get cnt 6 0
+ret 4
+end
+if gt get cnt 5 0
+ret 5
+end
+if gt add get cnt 3 get cnt 4 0
+ret 3
+end
+if gt get cnt 2 0
+ret 2
+end
+if eq get cnt 0 0
+note no PASS line at all: an empty log is NOT_RUN, never a vacuous PASS
+ret 2
+end
+ret 0
+end
+fn vname v int to void
+ot tverd
+if eq v 0
+ot vpass
+end
+if eq v 1
+ot vfail
+end
+if eq v 2
+ot vnrun
+end
+if eq v 3
+ot vblk
+end
+if eq v 4
+ot vref
+end
+if eq v 5
+ot vmiss
+end
+ot nl
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 4
+end
+n = ulong r
+a = ulong 0
+for i ulong n
+if eq get inb i 10
+tally a i
+a = add i 1
+end
+end
+tally a n
+if eq get st 2 1
+put cnt 6 add get cnt 6 1
+end
+kv tlines get cnt 7
+kv tpass get cnt 0
+kv tfail get cnt 1
+kv tnrun get cnt 2
+kv tblk add get cnt 3 get cnt 4
+kv tmiss get cnt 5
+kv tunk get cnt 6
+v = verdict
+vname v
+f = flush
+if ne f 0
+ret 4
+end
+ret v
+end

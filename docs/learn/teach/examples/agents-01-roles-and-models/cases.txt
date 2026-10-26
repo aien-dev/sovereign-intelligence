@@ -1,0 +1,8 @@
+0 0 0 0 0 0 rename a local variable in my own lane
+1 0 0 0 0 0 first fix for a failing test did not work
+2 0 0 0 0 0 flaky test still fails after two different fixes
+0 1 0 0 0 0 crash with no known cause
+0 0 1 0 0 0 delete an old branch with unmerged work
+0 0 0 1 0 0 benchmark moved more than its noise
+0 0 1 0 0 1 change a wire format: two designs both look right
+0 0 0 0 1 0 about to tell the owner a gate is safe

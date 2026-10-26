@@ -1,0 +1,35 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+compile lib.om+alphachk.om rc=0
+== with-gb10.txt
+checks by backend: host=4 gb10=1
+gb10 checks that ran (PASS or FAIL): 1
+verdict ALPHA: full-scope PASS that carries a gb10 receipt
+run rc=0
+== host-only.txt
+checks by backend: host=4 gb10=0
+gb10 checks that ran (PASS or FAIL): 0
+verdict REJECTED NO_GPU_RECEIPT: no required gb10 check ran on the GPU
+run rc=3
+== changed-scope.txt
+checks by backend: host=4 gb10=1
+gb10 checks that ran (PASS or FAIL): 1
+verdict REJECTED NOT_FULL_SCOPE: plan scope is not full
+run rc=3
+== gb10-notrun.txt
+checks by backend: host=4 gb10=1
+gb10 checks that ran (PASS or FAIL): 0
+verdict REJECTED NO_GPU_RECEIPT: no required gb10 check ran on the GPU
+run rc=3
+== gb10-fail.txt
+checks by backend: host=4 gb10=1
+gb10 checks that ran (PASS or FAIL): 1
+verdict FAIL
+run rc=1
+== malformed.txt
+checks by backend: host=1 gb10=1
+gb10 checks that ran (PASS or FAIL): 1
+verdict REFUSED malformed line
+run rc=4
+== what the real verifier prints for a host-only full-scope bundle (quoted from its docs at the pin)
+REJECTED NO_GPU_RECEIPT: an Alpha needs a required check on backend gb10 that ran on the Spark's GPU, and this full-scope bundle has none (checks by backend: host=34; gb10 checks: none)
+every verdict as expected: yes

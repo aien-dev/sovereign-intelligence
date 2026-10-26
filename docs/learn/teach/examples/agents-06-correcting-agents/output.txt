@@ -1,0 +1,39 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile fixfile.om rc=0
+
+--- input report-fixed.txt
+found 1
+fixed 1
+found 2
+fixed 2
+found 3
+blocked 3 hardware window not authorized
+--- output
+defect 1: FIXED
+defect 2: FIXED
+defect 3: BLOCKED by a named external gate
+REPORT OK: nothing left that the agent could fix
+run rc=0 (expected 0)
+
+--- input report-filed.txt
+found 1
+fixed 1
+found 2
+filed 2
+found 3
+blocked 3
+--- output
+defect 1: FIXED
+defect 2: UNFINISHED (found, not fixed, no external gate named)
+defect 3: UNFINISHED (found, not fixed, no external gate named)
+REPORT NOT DONE: unfinished defects=2
+run rc=1 (expected 1)
+
+--- input malformed.txt
+found 1
+wontfix 1
+--- output
+REFUSE malformed line 2
+run rc=3 (expected 3)
+
+ALL EXIT STATUSES AS EXPECTED

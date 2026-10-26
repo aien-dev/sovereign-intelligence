@@ -1,0 +1,8 @@
+note runaway.om: negative control. the loop needs 10 passes but promises at most 5
+fn main to int
+n = uint 0
+while lt n 10 bound 5
+n = add n 1
+end
+ret int n
+end

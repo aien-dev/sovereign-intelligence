@@ -1,0 +1,12 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. hello: compile, then run only if the compile returned 0
+compile hello.om rc=0
+hello from seeded Omega
+run rc=0
+== 2. the exit status is main's value modulo 256
+compile status.om rc=0
+run rc=44
+== 3. negative control: a result that is not bound to a name
+compile unbound.om rc=16
+omc: line 4: error 16
+RESULT PASS

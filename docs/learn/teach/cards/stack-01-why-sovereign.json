@@ -1,0 +1,70 @@
+{
+  "id": "stack-01-why-sovereign",
+  "track": "stack",
+  "lesson": 1,
+  "title": "Why sovereign: owning every layer",
+  "keywords": [
+    "sovereign",
+    "stack",
+    "Sovereign Intelligence",
+    "SI",
+    "AienOS",
+    "Aienux",
+    "layers",
+    "static ELF",
+    "PT_INTERP",
+    "dependencies",
+    "own the hardware"
+  ],
+  "summary": "Drake builds his own AI on hardware he owns, with every layer from the kernel up open to read, rebuild and change. Sovereign Intelligence (SI), built on AienOS, is the package; aienux is the kernel; AienOS-nv is the OS's home. He names his boundary plainly: the GB10 silicon and NVIDIA's signed firmware are not his, and SI alpha still runs on the Spark's Linux. I can show you how to check what a binary needs below it: an Omega program reads ELF headers and proves omc's output needs no loader and no libc.",
+  "goal": "Understand what a sovereign stack is, where SI sits in it, and check that an omc-built program depends on nothing but the kernel.",
+  "key_steps": [
+    "Read the ten-layer stack map in docs/STACK.md and note each layer's evidence level",
+    "Name the boundary you do not own (silicon, signed firmware, today's kernel driver)",
+    "Compile elfinfo.om with the pinned omc and run it on omc and on itself",
+    "Run it on /bin/sh as a negative control and see the loader it needs",
+    "Give every layer you still depend on its own evidence level"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/stack-01-why-sovereign/elfinfo.om",
+      "examples/stack-01-why-sovereign/lib.om",
+      "examples/stack-01-why-sovereign/run.sh"
+    ],
+    "code": "note elfinfo: read a 64-bit little-endian ELF file on stdin and say whether it needs a loader\nnote PT_INTERP (3) names a dynamic loader and PT_DYNAMIC (2) lists shared libraries; a file with neither\nnote runs on the kernel alone. exit 0 static, 1 needs a loader or libraries, 3 not an ELF64 LE file, 4 too big\ntext telf \"elf64 little-endian\\n\"\ntext ttype \"type \"\ntext tmach \"machine \"\ntext tph \"program headers \"\ntext tload \"PT_LOAD \"\ntext tdyn \"PT_DYNAMIC \"\ntext tint \"PT_INTERP \"\ntext vstat \"verdict STATIC: no loader, no shared libraries, only kernel system calls below it\\n\"\ntext vdyn \"verdict DYNAMIC: needs a loader and shared libraries before its first instruction\\n\"\ntext vnot \"verdict NOT_ELF64\\n\"\ntext vbig \"verdict REFUSED input too big\\n\"\ntext nl \"\\n\"\nglobal ph ulong 4\nfn rd16 o ulong to ulong\nret or ulong get inb o shl ulong get inb add o 1 8\nend\nfn rd32 o ulong to ulong\nret or rd16 o shl rd16 add o 2 16\nend\nfn rd64 o ulong to ulong\nret or rd32 o shl rd32 add o 4 32\nend\nfn kv t view uchar * v ulong to void\not t\non v\not nl\nend\nfn isel n ulong to bool\nnote magic 127 E L F, class 2 (64-bit), data 1 (little-endian)\nif lt n 64\nret false\nend\nif ne get inb 0 127\nret false\nend\nif ne get inb 1 69\nret false\nend\nif ne get inb 2 76\nret false\nend\nif ne get inb 3 70\nret false\nend\nif ne get inb 4 2\nret false\nend\nif ne get inb 5 1\nret false\nend\nret true\nend\nfn scan n ulong to bool\nnote count segment types; false when the header table is not inside the file\noff = rd64 32\nesz = rd16 54\ncnt = rd16 56\nif gt off n\nret false\nend\nif gt mul esz cnt sub n off\nret false\nend\nif lt esz 4\nret false\nend\nfor i ulong cnt\nt = rd32 add off mul i esz\nif lt t 4\nput ph t add get ph t 1\nend\nend\nret true\nend\nfn main to int\nr = rdall\nif lt r 0\nret 4\nend\nif eq get st 2 1\not vbig\nf = flush\nret 4\nend\nn = ulong r\nok = isel n\nif ok\nok = scan n\nend\nif not ok\not vnot\nf = flush\nret 3\nend\not telf\nkv ttype rd16 16\nkv tmach rd16 18\nkv tph rd16 56\nkv tload get ph 1\nkv tdyn get ph 2\nkv tint get ph 3\nv = int 0\nif gt add get ph 2 get ph 3 0\nv = 1\not vdyn\nelse\not vstat\nend\nf = flush\nret v\nend\n",
+    "command": "sh examples/stack-01-why-sovereign/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\ncompile lib.om+elfinfo.om rc=0\n== the pinned compiler, omc\nelf64 little-endian\ntype 2\nmachine 183\nprogram headers 2\nPT_LOAD 2\nPT_DYNAMIC 0\nPT_INTERP 0\nverdict STATIC: no loader, no shared libraries, only kernel system calls below it\nrun rc=0\n== elfinfo itself, as omc built it\nelf64 little-endian\ntype 2\nmachine 183\nprogram headers 2\nPT_LOAD 2\nPT_DYNAMIC 0\nPT_INTERP 0\nverdict STATIC: no loader, no shared libraries, only kernel system calls below it\nrun rc=0\n== negative control: the host's /bin/sh (verdict line only; its sizes differ between hosts)\nverdict DYNAMIC: needs a loader and shared libraries before its first instruction\nrun rc=1\n== negative control: elfinfo.om, a text file\nverdict NOT_ELF64\nrun rc=3\nevery verdict as expected: yes\n"
+  },
+  "common_mistake": "Calling something independent because one library was removed. Check what is really loaded (PT_INTERP, PT_DYNAMIC, /proc/PID/maps) and list the layers you still rely on. Also keep the names straight: SI is the package, AienOS the operating system, Aienux the kernel.",
+  "links": [
+    {
+      "title": "The SI README: the stack table and every repository",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/README.md"
+    },
+    {
+      "title": "The stack walked from the top down",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/docs/STACK.md"
+    },
+    {
+      "title": "What I am building: an audit of every repository",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/docs/WHAT-I-AM-BUILDING.md"
+    },
+    {
+      "title": "How to write the names",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/NAMING.md"
+    },
+    {
+      "title": "Omega's README: the seeded compiler",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/README.md"
+    },
+    {
+      "title": "OMEGESE, the language reference",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "The ELF check ran on a Linux arm64 host with the pinned omc, with two negative controls. It shows the binaries need no loader or shared library; it does not show anything about the kernel or GPU driver below them. Nothing in the stack is hardware QUALIFIED; Aienux has not booted on the Spark.",
+  "page": "pages/stack-01-why-sovereign.md",
+  "steer_refs": []
+}

@@ -1,0 +1,118 @@
+note Fail-closed verdict for one receipt's file list, from three counts on stdin (decimal):
+note files whose sha256 matched, files missing, files whose sha256 differs.
+note PASS needs at least one match and nothing missing or different. Zero files is NOT_RUN,
+note never a zero-case PASS. Exit 0 PASS, 10 INCOMPLETE, 11 FAIL, 12 NOT_RUN, 3 bad input.
+note An integrity PASS says the bytes are the ones recorded; it is not a chip qualification.
+om2
+global ob uchar 4096
+global on ulong 1
+global inb uchar 4096
+global inn ulong 1
+global inp ulong 1
+text hx "0123456789abcdef"
+fn putc c uchar to void
+put ob get on 0 c
+put on 0 add get on 0 1
+end
+fn puts s view uchar * to void
+for i ulong len s
+putc get s i
+end
+end
+fn putdec v ulong to void
+d = new uchar 20 0
+n = ulong 0
+x = v
+while true bound 21
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt n 0 bound 21
+n = sub n 1
+putc get d n
+end
+end
+fn puthex v ulong w ulong to void
+putc 48
+putc 120
+for i ulong w
+s = mul sub sub w 1 i 4
+putc get hx and shr v s 0xf
+end
+end
+fn flush to void
+w = write 1 ob 0 get on 0
+put on 0 0
+end
+note Read all of stdin; every pass adds at least one byte to a 4096-byte buffer.
+fn slurp to bool
+while lt get inn 0 4096 bound 4097
+k = read 0 inb get inn 0 sub 4096 get inn 0
+if lt k 0
+ret false
+end
+if eq k 0
+ret true
+end
+put inn 0 add get inn 0 ulong k
+end
+ret false
+end
+note Next decimal number in the input; returns 2^64-1 when none is left.
+fn nextnum to ulong
+v = ulong 0
+seen = false
+while lt get inp 0 get inn 0 bound 4097
+c = get inb get inp 0
+put inp 0 add get inp 0 1
+if and ge c 48 le c 57
+v = add mul v 10 ulong sub c 48
+seen = true
+else
+if seen
+ret v
+end
+end
+end
+if seen
+ret v
+end
+ret 18446744073709551615
+end
+text sok "verdict: PASS (integrity only: these are the recorded bytes)\n"
+text sinc "verdict: INCOMPLETE (a listed file is absent; the receipt cannot be re-checked in full)\n"
+text sfail "verdict: FAIL (a file differs from its recorded hash)\n"
+text snr "verdict: NOT_RUN (nothing was checked; zero files is not a pass)\n"
+fn main to int
+if not slurp
+ret 3
+end
+ok = nextnum
+miss = nextnum
+bad = nextnum
+if eq bad 18446744073709551615
+ret 3
+end
+if gt bad 0
+puts sfail
+flush
+ret 11
+end
+if gt miss 0
+puts sinc
+flush
+ret 10
+end
+if eq ok 0
+puts snr
+flush
+ret 12
+end
+puts sok
+flush
+ret 0
+end

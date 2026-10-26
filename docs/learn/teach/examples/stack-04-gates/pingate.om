@@ -1,0 +1,83 @@
+note pingate: an installer script on stdin must install one explicit release, never "latest"
+note PASS needs exactly one line TAG=value with value not empty and not latest, and no releases/latest URL
+note exit 0 PASS, 1 FAIL, 4 REFUSED (input too big or unreadable)
+text ttag "TAG="
+text tlatest "latest "
+text turl "releases/latest"
+text tlines "TAG lines "
+text tval "TAG value "
+text tnone "(none)"
+text turls "releases/latest URLs "
+text vpass "verdict PASS\n"
+text vfail "verdict FAIL\n"
+text nl "\n"
+note g: 0 TAG lines, 1 bad TAG values, 2 latest URLs, 3 start of the first TAG value, 4 its end
+global g ulong 5
+fn oneline a ulong b ulong to void
+if lt add a 4 b
+if sameb ttag 0 a 4
+c = get g 0
+if eq c 0
+put g 3 add a 4
+put g 4 b
+end
+put g 0 add c 1
+k = lookup tlatest add a 4 b
+if ge k 0
+put g 1 add get g 1 1
+end
+end
+end
+end
+fn urls n ulong to void
+for i ulong n
+if sameb turl 0 i len turl
+put g 2 add get g 2 1
+end
+end
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 4
+end
+if eq get st 2 1
+ret 4
+end
+n = ulong r
+a = ulong 0
+for i ulong n
+if eq get inb i 10
+oneline a i
+a = add i 1
+end
+end
+oneline a n
+urls n
+ot tlines
+on get g 0
+ot nl
+ot tval
+if gt get g 0 0
+oi get g 3 get g 4
+else
+ot tnone
+end
+ot nl
+ot turls
+on get g 2
+ot nl
+v = int 1
+if eq get g 0 1
+if eq add get g 1 get g 2 0
+v = 0
+end
+end
+if eq v 0
+ot vpass
+else
+ot vfail
+end
+f = flush
+ret v
+end

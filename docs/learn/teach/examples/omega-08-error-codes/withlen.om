@@ -1,0 +1,12 @@
+note withlen.om: the error 16 fix. a fixed length (OM-1); OM-2 also allows view uchar *
+fn sum a view uchar 4 to ulong
+s = ulong 0
+for i ulong 4
+s = add s ulong get a i
+end
+ret s
+end
+fn main to int
+a = new uchar 4 5
+ret int sum a
+end

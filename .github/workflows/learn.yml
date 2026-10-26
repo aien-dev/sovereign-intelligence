@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# The Learn check, on GitHub-hosted arm64 runners only. It clones every source repository at the
+# commit in docs/learn/teach/PINS, checks the pinned omc, then runs every lesson example and
+# requires its output to match the recorded output.txt byte for byte, and checks every card,
+# page and pinned link. No example opens a GPU device.
+name: learn
+on:
+  pull_request:
+    paths:
+      - "docs/learn/**"
+      - ".github/workflows/learn.yml"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "docs/learn/**"
+      - ".github/workflows/learn.yml"
+permissions:
+  contents: read
+jobs:
+  learn-check:
+    name: learn-check
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    env:
+      OMC_PIN: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Pinned sources
+        run: |
+          sh docs/learn/teach/check.sh clone "$RUNNER_TEMP/src"
+          echo "$OMC_PIN  $RUNNER_TEMP/src/omega-mv/seed/out/omc" | sha256sum -c -
+      - name: Every example, card and link
+        run: SRC="$RUNNER_TEMP/src" sh docs/learn/teach/check.sh

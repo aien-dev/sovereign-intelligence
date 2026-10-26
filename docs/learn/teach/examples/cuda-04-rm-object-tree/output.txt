@@ -1,0 +1,77 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== oracle 1: the order and parents CUDApp nvrm/nvrm.c allocates with
+304:    if (rm_alloc(rm, 0, NV01_ROOT_CLIENT, NULL, 0, &rm->root)) return -1;
+336:    if (rm_alloc(rm, rm->root, NV01_DEVICE_0, &dp, sizeof dp, &rm->device)) return -1;
+339:    if (rm_alloc(rm, rm->device, NV20_SUBDEVICE_0, &sp, sizeof sp, &rm->subdevice)) return -1;
+343:    if (rm_alloc(rm, rm->device, NV01_MEMORY_VIRTUAL, &vp, sizeof vp, &rm->virtmem)) return -1;
+362:    if (rm_alloc(rm, rm->subdevice, rm->usermode_class, NULL, 0, &rm->usermode)) return -1;
+381:    if (rm_alloc(rm, rm->device, FERMI_VASPACE_A, &vap, sizeof vap, &rm->vaspace)) return -1;
+587:    if (rm_alloc(rm, rm->device, NV01_MEMORY_SYSTEM, &mp, sizeof mp, &h)) {
+701:    if (rm_alloc(rm, rm->device, KEPLER_CHANNEL_GROUP_A, &cg, sizeof cg, &rm->chgroup)) return -1;
+706:    if (rm_alloc(rm, rm->chgroup, FERMI_CONTEXT_SHARE_A, &cs, sizeof cs, &rm->ctxshare)) return -1;
+712:    if (nvrm_alloc_gpu_uncached(rm, 0x10000, &rm->fifo)) return -1;
+713:    if (nvrm_alloc(rm, 0x100000, &rm->notifier)) return -1;
+726:    if (rm_alloc(rm, rm->chgroup, rm->gpfifo_class, &gp, sizeof gp, &rm->gpfifo)) return -1;
+735:        if (rm_alloc(rm, rm->gpfifo, rm->compute_class, NULL, 0, &rm->compute_obj) == 0) break;
+== oracle 2: class numbers from the headers
+NV01_ROOT_CLIENT = 0x00000041
+NV01_DEVICE_0 = 0x80
+NV20_SUBDEVICE_0 = 0x2080
+NV01_MEMORY_VIRTUAL = 0x70
+HOPPER_USERMODE_A = 0xc661
+FERMI_VASPACE_A = 0x000090f1
+NV01_MEMORY_SYSTEM = 0x0000003E
+KEPLER_CHANNEL_GROUP_A = 0x0000A06C
+FERMI_CONTEXT_SHARE_A = 0x00009067
+BLACKWELL_CHANNEL_GPFIFO_A = 0x0000C96F
+BLACKWELL_COMPUTE_B = 0xCEC0
+compile rc=0
+== run 1: open, channel, free the channel group, free the root client
+alloc #1 class 0x00000041 under #0: ok
+alloc #2 class 0x00000080 under #1: ok
+alloc #3 class 0x00002080 under #2: ok
+alloc #4 class 0x00000070 under #2: ok
+alloc #5 class 0x0000c661 under #3: ok
+alloc #6 class 0x000090f1 under #2: ok
+alloc #7 class 0x0000003e under #2: ok
+alloc #8 class 0x0000a06c under #2: ok
+alloc #9 class 0x00009067 under #8: ok
+alloc #10 class 0x0000003e under #2: ok
+alloc #11 class 0x0000003e under #2: ok
+alloc #12 class 0x0000c96f under #8: ok
+alloc #13 class 0x0000cec0 under #12: ok
+live tree:
+  #1 0x00000041
+    #2 0x00000080
+      #3 0x00002080
+        #5 0x0000c661
+      #4 0x00000070
+      #6 0x000090f1
+      #7 0x0000003e
+      #8 0x0000a06c
+        #9 0x00009067
+        #12 0x0000c96f
+          #13 0x0000cec0
+      #10 0x0000003e
+      #11 0x0000003e
+free #8: freed 4 object(s), the whole subtree
+live tree:
+  #1 0x00000041
+    #2 0x00000080
+      #3 0x00002080
+        #5 0x0000c661
+      #4 0x00000070
+      #6 0x000090f1
+      #7 0x0000003e
+      #10 0x0000003e
+      #11 0x0000003e
+free #1: freed 9 object(s), the whole subtree
+live tree:
+  (empty)
+run rc=0
+== negative 1: compute object allocated directly under the channel group
+alloc #13 class 0x0000cec0 under #8: REFUSED, this class may not be a child of that class
+run rc=6
+== negative 2: compute object under a channel that was already freed
+alloc #13 class 0x0000cec0 under #12: REFUSED, parent is not a live object
+run rc=6

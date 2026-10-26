@@ -1,0 +1,6 @@
+note intotext.om: negative control. random writes its slice, so a read-only text is refused (error 20)
+text t "abcdefgh"
+fn main to int
+r = random t 0 8 0
+ret 0
+end

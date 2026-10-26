@@ -1,0 +1,13 @@
+receipt 1
+program hello.om
+omega_mv 19f014f2178ca9cd3473728fe00a475a2398c409
+omc_sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+source_sha256 2b026cf84fee9c42c9d1ef10f564dfdee347c85fa4b08903f77c8e05d31952a0
+binary_sha256 96e88a3a630a5e19516bc33b1b1048a04705fa69f3e2d745427cefa87655e2a5
+command ./hello < /dev/null
+platform linux-aarch64 host, no GPU device opened
+expect_exit 0
+observed_exit 0
+expect_stdout_sha256 82f7f10492732a63117acb497846157d2104359facda1eef9e3f243ae64056d6
+observed_stdout_sha256 82f7f10492732a63117acb497846157d2104359facda1eef9e3f243ae64056d6
+limits host only; one run; not hardware qualification

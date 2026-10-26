@@ -1,0 +1,35 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. a class header is named after its class number
+class/cl0080.h:36:#define NV01_DEVICE_0      (0x80U) /* finn: Evaluated from "NV0080_ALLOC
+class/cl2080.h:36:#define NV20_SUBDEVICE_0      (0x2080U) /* finn: Evaluated from "NV2080_
+class/clc96f.h:27:#define  BLACKWELL_CHANNEL_GPFIFO_A                           (0x0000C96
+class/clcec0.h:27:#define BLACKWELL_COMPUTE_B    0xCEC0
+== 2. the control-command layout (ctrl/ctrlxxxx.h)
+47:#define NVXXXX_CTRL_CMD_CLASS                                             31:16
+49:#define NVXXXX_CTRL_CMD_CATEGORY                                           13:8
+50:#define NVXXXX_CTRL_CMD_INDEX                                               7:0
+== 3. the control commands CUDApp nvrm.c sends, as the headers define them
+NV0000_CTRL_CMD_GPU_GET_ID_INFO_V2 = 0x205 (named 1 time(s) in nvrm.c)
+NV0080_CTRL_CMD_GPU_GET_CLASSLIST = 0x800201 (named 2 time(s) in nvrm.c)
+NV2080_CTRL_CMD_GR_GET_INFO = 0x20801201 (named 1 time(s) in nvrm.c)
+NV2080_CTRL_CMD_GPU_GET_GID_INFO = 0x2080014a (named 1 time(s) in nvrm.c)
+NVC36F_CTRL_CMD_GPFIFO_GET_WORK_SUBMIT_TOKEN = 0xc36f0108 (named 2 time(s) in nvrm.c)
+NVA06C_CTRL_CMD_GPFIFO_SCHEDULE = 0xa06c0101 (named 1 time(s) in nvrm.c)
+compile rc=0
+== 4. ctrl.om splits them
+cmd 0x00000205 class=0x0000 category=0x02 index=0x05
+cmd 0x00800201 class=0x0080 category=0x02 index=0x01
+cmd 0x20801201 class=0x2080 category=0x12 index=0x01
+cmd 0x2080014a class=0x2080 category=0x01 index=0x4a
+cmd 0xc36f0108 class=0xc36f category=0x01 index=0x08
+cmd 0xa06c0101 class=0xa06c category=0x01 index=0x01
+run rc=0
+== 5. which object class does each command talk to? (class/cl<class>.h, if vendored)
+0x0000: class/cl0000.h defines NV01_NULL_OBJECT NV01_ROOT 
+0x0080: class/cl0080.h defines NV01_DEVICE_0 
+0x2080: class/cl2080.h defines NV20_SUBDEVICE_0 
+0xa06c: class/cla06c.h defines KEPLER_CHANNEL_GROUP_A 
+0xc36f: class/clc36f.h is not among the 67 vendored headers
+== 6. negative control: a number with bit 14 set
+cmd 0x20805201 REFUSED: bits 14..15 are set
+run rc=7

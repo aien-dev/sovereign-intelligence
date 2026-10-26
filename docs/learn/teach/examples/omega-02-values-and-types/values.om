@@ -1,0 +1,19 @@
+note values.om: prefix words, typed numbers, unsigned wrap, a checked conversion
+fn main to int
+a = uint 7
+b = add mul a a 4
+note b = (7 * 7) + 4, a uint because a is a uint
+c = uchar 255
+d = add c 1
+note uchar arithmetic wraps modulo 256, so d is 0
+if ne d 0
+ret 1
+end
+big = uint 300
+low = uchar and big 255
+note mask first, then convert: the value fits, so the conversion does not trap
+if ne low 44
+ret 2
+end
+ret int b
+end

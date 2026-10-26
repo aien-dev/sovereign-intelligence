@@ -1,0 +1,9 @@
+note hoisted.om: the error 9 fix. make the array once, before the loop
+fn main to int
+s = ulong 0
+a = new uchar 4 0
+for i ulong 4
+s = add s len a
+end
+ret int s
+end

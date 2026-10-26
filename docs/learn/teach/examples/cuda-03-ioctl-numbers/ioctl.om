@@ -1,0 +1,239 @@
+note Compute NVIDIA open-kernel-module ioctl request numbers from their four fields.
+note Input on stdin, decimal, one per line, extracted from the pinned headers by run.sh:
+note   magic, NV_IOCTL_BASE, NV_ESC_RM_FREE, NV_ESC_RM_CONTROL, NV_ESC_RM_ALLOC
+note Linux _IOC: dir in bits 30..31, size in bits 16..29, type in bits 8..15, nr in bits 0..7.
+note Exit 0 all computed, 3 bad input, 4 a size does not fit the 14-bit field.
+om2
+global ob uchar 4096
+global on ulong 1
+global inb uchar 4096
+global inn ulong 1
+global inp ulong 1
+global fsz ulong 32
+global fal ulong 32
+text hx "0123456789abcdef"
+fn putc c uchar to void
+put ob get on 0 c
+put on 0 add get on 0 1
+end
+fn puts s view uchar * to void
+for i ulong len s
+putc get s i
+end
+end
+fn putdec v ulong to void
+d = new uchar 20 0
+n = ulong 0
+x = v
+while true bound 21
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt n 0 bound 21
+n = sub n 1
+putc get d n
+end
+end
+fn puthex v ulong w ulong to void
+putc 48
+putc 120
+for i ulong w
+s = mul sub sub w 1 i 4
+putc get hx and shr v s 0xf
+end
+end
+fn flush to void
+w = write 1 ob 0 get on 0
+put on 0 0
+end
+note Read all of stdin; every pass adds at least one byte to a 4096-byte buffer.
+fn slurp to bool
+while lt get inn 0 4096 bound 4097
+k = read 0 inb get inn 0 sub 4096 get inn 0
+if lt k 0
+ret false
+end
+if eq k 0
+ret true
+end
+put inn 0 add get inn 0 ulong k
+end
+ret false
+end
+note Next decimal number in the input; returns 2^64-1 when none is left.
+fn nextnum to ulong
+v = ulong 0
+seen = false
+while lt get inp 0 get inn 0 bound 4097
+c = get inb get inp 0
+put inp 0 add get inp 0 1
+if and ge c 48 le c 57
+v = add mul v 10 ulong sub c 48
+seen = true
+else
+if seen
+ret v
+end
+end
+end
+if seen
+ret v
+end
+ret 18446744073709551615
+end
+fn up x ulong a ulong to ulong
+ret mul div add x sub a 1 a a
+end
+note C layout of fields a..b-1 (size, alignment): natural alignment, end padded.
+fn csize a ulong b ulong to ulong
+off = ulong 0
+mx = ulong 1
+for k ulong sub b a
+i = add a k
+off = add up off get fal i get fsz i
+if gt get fal i mx
+mx = get fal i
+end
+end
+ret up off mx
+end
+note The same fields with every padding byte forgotten: the classic mistake.
+fn packed a ulong b ulong to ulong
+off = ulong 0
+for k ulong sub b a
+off = add off get fsz add a k
+end
+ret off
+end
+fn fld i ulong s ulong al ulong to void
+put fsz i s
+put fal i al
+end
+note A struct's alignment is its largest field alignment.
+fn calign a ulong b ulong to ulong
+mx = ulong 1
+for k ulong sub b a
+if gt get fal add a k mx
+mx = get fal add a k
+end
+end
+ret mx
+end
+fn ioc dir ulong ty ulong nr ulong size ulong to ulong
+ret or or or shl dir 30 shl size 16 shl ty 8 nr
+end
+note omc's devctl rule (seed/omc/omc.om fn hdevctl): read/write, type F, nonzero size.
+fn devok q ulong to bool
+if ne and q 0xc000ff00 0xc0004600
+ret false
+end
+ret ne and shr q 16 16383 0
+end
+text sacc " devctl-rule=accept\n"
+text sref " devctl-rule=refuse\n"
+text snr " nr="
+text ssz " size="
+text srq " request="
+text sop " ("
+text scp ")"
+fn show name view uchar * ty ulong nr ulong size ulong to int
+if gt size 16383
+ret 4
+end
+q = ioc 3 ty nr size
+puts name
+puts snr
+putdec nr
+puts ssz
+putdec size
+puts srq
+putdec q
+puts sop
+puthex q 8
+puts scp
+if devok q
+puts sacc
+else
+puts sref
+end
+ret 0
+end
+text n21 "NV_ESC_RM_ALLOC    NVOS21_PARAMETERS     "
+text n54 "NV_ESC_RM_CONTROL  NVOS54_PARAMETERS     "
+text n00 "NV_ESC_RM_FREE     NVOS00_PARAMETERS     "
+text ncd "NV_ESC_CARD_INFO   nv_ioctl_card_info[64]"
+text nrf "NV_ESC_REGISTER_FD nv_ioctl_register_fd  "
+text npk "MISTAKE CARD_INFO  packed, no padding    "
+text sbad "input: expected 5 numbers from the headers\n"
+text spci "nv_pci_info_t size="
+text sal " align="
+text scard "nv_ioctl_card_info_t size="
+text spk " (packed sum would be "
+text sclose ")\n"
+fn main to int
+if not slurp
+ret 3
+end
+magic = nextnum
+base = nextnum
+rfree = nextnum
+rctl = nextnum
+ralloc = nextnum
+if or gt ralloc 255 gt magic 255
+puts sbad
+flush
+ret 3
+end
+note NVOS21 and NVOS54: four 32-bit words, an 8-byte-aligned NvP64, two 32-bit words.
+for k ulong 4
+fld k 4 4
+end
+fld 4 8 8
+fld 5 4 4
+fld 6 4 4
+s21 = csize 0 7
+note NVOS00: four 32-bit words.
+s00 = csize 0 4
+note nv_pci_info_t: NvU32, three NvU8, two NvU16.
+fld 7 4 4
+fld 8 1 1
+fld 9 1 1
+fld 10 1 1
+fld 11 2 2
+fld 12 2 2
+pci = csize 7 13
+note nv_ioctl_card_info_t: NvBool, nv_pci_info_t, NvU32, NvU16, four aligned NvU64, NvU32, NvU8[10].
+fld 13 1 1
+fld 14 pci calign 7 13
+fld 15 4 4
+fld 16 2 2
+for k ulong 4
+fld add 17 k 8 8
+end
+fld 21 4 4
+fld 22 10 1
+card = csize 13 23
+spack = packed 13 23
+puts spci
+putdec pci
+puts sal
+putdec calign 7 13
+putc 10
+puts scard
+putdec card
+puts spk
+putdec spack
+puts sclose
+r = show n21 magic ralloc s21
+r = or r show n54 magic rctl s21
+r = or r show n00 magic rfree s00
+r = or r show ncd magic base mul 64 card
+r = or r show nrf magic add base 1 4
+r = or r show npk magic base mul 64 spack
+flush
+ret r
+end

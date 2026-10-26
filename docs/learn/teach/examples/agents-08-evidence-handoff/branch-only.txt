@@ -1,0 +1,6 @@
+Goal: make the line counter refuse input over 64 KiB with exit 2
+Non-goals: no change to the output format, no new host words
+Authority: edit tools/count.om and its test only; no push, no merge, no GPU
+Source: aien-dev/omega-mv, main branch
+Contract: exit 0 with the count on stdout; exit 2 and empty stdout above 65535 bytes
+Evidence back: commit, compile rc, run rc for 65535 and 65536 bytes, and the negative control

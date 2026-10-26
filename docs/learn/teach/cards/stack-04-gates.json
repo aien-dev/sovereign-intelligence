@@ -1,0 +1,70 @@
+{
+  "id": "stack-04-gates",
+  "track": "stack",
+  "lesson": 4,
+  "title": "Gates that must fail their negative control",
+  "keywords": [
+    "gate",
+    "negative control",
+    "mutant",
+    "vacuous gate",
+    "pinned tag",
+    "latest",
+    "install.sh",
+    "host gate",
+    "hardware qualification"
+  ],
+  "summary": "Drake trusts a gate only after it fails on something broken on purpose. In this lesson an Omega gate checks that SI's real install.sh pins one explicit release and never 'latest'; it passes the real file and fails two sed mutants. A weaker gate that only looks for a TAG= line passes the mutants too, so it is refused as a gate. I can help you add a negative control to any check, and I will remind you that a host gate is not hardware qualification.",
+  "goal": "Write a gate that accepts the real input, rejects a mutated one, and refuse any gate that cannot tell them apart.",
+  "key_steps": [
+    "State what the gate guards in one sentence",
+    "Run it on the real input and expect exit 0",
+    "Make mutants that break exactly the guarded property",
+    "Require a nonzero exit on every mutant in the same script",
+    "Refuse the gate if any negative control is accepted",
+    "Say what the gate does not cover, and that a host gate is not hardware qualification"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/stack-04-gates/pingate.om",
+      "examples/stack-04-gates/pingate_weak.om",
+      "examples/stack-04-gates/lib.om",
+      "examples/stack-04-gates/run.sh"
+    ],
+    "code": "note pingate: an installer script on stdin must install one explicit release, never \"latest\"\nnote PASS needs exactly one line TAG=value with value not empty and not latest, and no releases/latest URL\nnote exit 0 PASS, 1 FAIL, 4 REFUSED (input too big or unreadable)\ntext ttag \"TAG=\"\ntext tlatest \"latest \"\ntext turl \"releases/latest\"\ntext tlines \"TAG lines \"\ntext tval \"TAG value \"\ntext tnone \"(none)\"\ntext turls \"releases/latest URLs \"\ntext vpass \"verdict PASS\\n\"\ntext vfail \"verdict FAIL\\n\"\ntext nl \"\\n\"\nnote g: 0 TAG lines, 1 bad TAG values, 2 latest URLs, 3 start of the first TAG value, 4 its end\nglobal g ulong 5\nfn oneline a ulong b ulong to void\nif lt add a 4 b\nif sameb ttag 0 a 4\nc = get g 0\nif eq c 0\nput g 3 add a 4\nput g 4 b\nend\nput g 0 add c 1\nk = lookup tlatest add a 4 b\nif ge k 0\nput g 1 add get g 1 1\nend\nend\nend\nend\nfn urls n ulong to void\nfor i ulong n\nif sameb turl 0 i len turl\nput g 2 add get g 2 1\nend\nend\nend\nfn main to int\nr = rdall\nif lt r 0\nret 4\nend\nif eq get st 2 1\nret 4\nend\nn = ulong r\na = ulong 0\nfor i ulong n\nif eq get inb i 10\noneline a i\na = add i 1\nend\nend\noneline a n\nurls n\not tlines\non get g 0\not nl\not tval\nif gt get g 0 0\noi get g 3 get g 4\nelse\not tnone\nend\not nl\not turls\non get g 2\not nl\nv = int 1\nif eq get g 0 1\nif eq add get g 1 get g 2 0\nv = 0\nend\nend\nif eq v 0\not vpass\nelse\not vfail\nend\nf = flush\nret v\nend\n",
+    "command": "sh examples/stack-04-gates/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\ncompile lib.om+pingate.om rc=0\ncompile lib.om+pingate_weak.om rc=0\ninput install.sh sha256 2c15afb5080dc69dc7c1fb0a9a35b4f1fc8b3a38db27d0569d22bace8632bacb\nmutant mut-tag.sh differs: yes (TAG=latest)\nmutant mut-url.sh differs: yes (downloads from releases/latest)\n== pingate < good.sh\nTAG lines 1\nTAG value alpha-20261026.1\nreleases/latest URLs 0\nverdict PASS\nrun rc=0\n== pingate < mut-tag.sh\nTAG lines 1\nTAG value latest\nreleases/latest URLs 0\nverdict FAIL\nrun rc=1\n== pingate < mut-url.sh\nTAG lines 1\nTAG value alpha-20261026.1\nreleases/latest URLs 1\nverdict FAIL\nrun rc=1\npingate: accepts the real input and rejects every negative control: usable as a gate\n== pingate_weak < good.sh\nverdict PASS\nrun rc=0\n== pingate_weak < mut-tag.sh\nverdict PASS\nrun rc=0\n== pingate_weak < mut-url.sh\nverdict PASS\nrun rc=0\npingate_weak: a negative control was accepted: REFUSED as a gate (it proves nothing)\nevery verdict as expected: yes\n"
+  },
+  "common_mistake": "Seeing a gate pass on good input and stopping; a gate that always exits 0 does that too. Run the negative control every time. Never loosen a gate until the current code passes.",
+  "links": [
+    {
+      "title": "omega-harness section 3: run a negative control; a verifier that accepts it established nothing",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-harness/SKILL.md#L48"
+    },
+    {
+      "title": "omega-harness section 4: never weaken a gate",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-harness/SKILL.md#L101"
+    },
+    {
+      "title": "The installer this gate reads",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/installer/install.sh#L21"
+    },
+    {
+      "title": "Core's gate files, one per check",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/f30eb963918d71dd2998b1cb936c251429417de1/tests/gates"
+    },
+    {
+      "title": "A gate manifest with its expectation and verdict",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/f30eb963918d71dd2998b1cb936c251429417de1/tests/gates/sc-gb10-serve-chat.gate"
+    },
+    {
+      "title": "The SI installer's container receipt, including the canary negative control",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/evidence/alpha-20261026.1/container/receipt.txt"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "Both gates ran on install.sh at the pinned SI commit and on two mutants on a Linux arm64 host. pingate rejected both mutants; pingate_weak accepted them and was refused. Host-only; says nothing about the download, signature or bundle.",
+  "page": "pages/stack-04-gates.md",
+  "steer_refs": []
+}
