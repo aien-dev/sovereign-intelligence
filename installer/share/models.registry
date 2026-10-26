@@ -23,5 +23,5 @@ manifest model-30b.manifest
 engine bin/aien-serve-http
 args --engine omega --max-context 32768 --max-tokens-cap 16384 --thinking off
 memkb 42726400
-status fallback. NOT QUALIFIED: Core's Omega engine ran this checkpoint on a GB10 at 36-39 tok/s (EXERCISED, Core adr0004-step0-baseline-20261015); the G1-G10 x3 gates are NOT_RUN until the qualification window. Tool calls use the Qwen3.6 prompt format, not this model's own.
+status fallback, not shipped yet. NOT QUALIFIED: Core's Omega engine ran this checkpoint on a GB10 at 36-39 tok/s (EXERCISED, Core adr0004-step0-baseline-20261015). This engine build gives it tools in the Qwen3.6 prompt format, not its own; it waits for an engine rebuilt with aien-sovereign-core-mv#778 (Hermes tools), then the G1-G10 x3 gates in a qualification window. Until then those gates are NOT_RUN.
 end

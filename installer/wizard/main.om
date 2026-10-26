@@ -16,7 +16,7 @@ text a_l7 "  evidence: Core evidence/l387-motor-ship (merge train 20261022T0244Z
 text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega ship/motor-l387 6de999da) talks to"
 text a_l9 "  /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. There is no separate CUDA++ runtime."
 text a_l10 "models: share/aienos/models.registry lists every model this release offers, each with its status"
-text a_l11 "  (aienos models). 35B default, 30B smaller fallback, 27B experimental; none qualified yet."
+text a_l11 "  (aienos models). 35B default, 27B experimental, 30B fallback pending; none qualified yet."
 text a_l12 "evidence: this engine binary serving the 35B on a GB10 EXERCISED (it is the live server's build);"
 text a_l13 "  this installer's GB10 install and first token, and the 3x physical qualification: NOT_RUN."
 text a_l14 "signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a"
