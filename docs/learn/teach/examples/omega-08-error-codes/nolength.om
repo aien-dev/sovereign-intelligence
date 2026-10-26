@@ -1,0 +1,7 @@
+note nolength.om: error 16. an array parameter states its element type and its length
+fn sum a view uchar to ulong
+ret 0
+end
+fn main to int
+ret 0
+end

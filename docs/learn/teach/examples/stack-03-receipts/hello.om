@@ -1,0 +1,9 @@
+note hello: the program this receipt is about; it writes one line and exits 0
+text msg "every layer is mine to read\n"
+fn main to int
+w = write 1 msg 0 len msg
+if ne w long len msg
+ret 1
+end
+ret 0
+end

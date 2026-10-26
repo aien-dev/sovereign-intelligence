@@ -1,0 +1,28 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile guides.om rc=0
+
+--- change: compiler change, guide left alone
+changed paths:
+compiler/lower.om
+--- guides.om says
+compiler/ changed; its guide skills/omega-encoding/ was NOT updated: STALE
+GUIDES STALE: update the guide before calling this done
+run rc=1 (expected 1)
+
+--- change: compiler change with its guide
+changed paths:
+compiler/lower.om
+skills/omega-encoding/SKILL.md
+--- guides.om says
+compiler/ changed; its guide skills/omega-encoding/ was updated in the same change
+GUIDES CURRENT
+run rc=0 (expected 0)
+
+--- change: typo fix in docs
+changed paths:
+docs/intro.md
+--- guides.om says
+GUIDES: no guide affected (say why in the report)
+run rc=0 (expected 0)
+
+ALL EXIT STATUSES AS EXPECTED

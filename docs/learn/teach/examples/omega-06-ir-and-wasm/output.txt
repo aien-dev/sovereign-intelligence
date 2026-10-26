@@ -1,0 +1,35 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. native: fns.om + putnum.om + main.om concatenated into one program
+compile native rc=0
+21
+42
+45
+5
+run native rc=101
+== 2. IR: a leading 'ir' line makes omc write OSC IR v1 instead of machine code
+compile ir rc=0
+IR magic: OSC1
+== 3. the WebAssembly back end is itself an Omega program: compile irwasm.om
+compile irwasm.om rc=0
+irwasm rc=0
+two translations identical: yes
+fns.wasm sha256 3028744939f987532d7b69b272eae804761a2bae0644a83e214dbcf8961935b7
+== 4. run the module (node as a read-only oracle)
+valid wasm: true
+imports: 0
+exports: gcd lcm tri addi
+21
+42
+45
+5
+addi(2147483647, 1) trapped: true
+node rc=0
+== 5. negative control: IR mode refuses a global pool
+compile ir irglobal rc=9
+omc: line 3: error 9
+== 6. negative control: irwasm refuses truncated IR and writes nothing
+irwasm truncated rc=22 stdout bytes=0
+irwasm: TRUNCATED
+== 7. SPIR-V at this pin
+seed/spirv: absent (proposed in an open pull request, not on this commit)
+RESULT PASS

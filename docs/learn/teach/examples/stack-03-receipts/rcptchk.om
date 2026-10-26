@@ -1,0 +1,177 @@
+note rcptchk: check a kept receipt against a fresh recomputation, both read on stdin
+note input: the kept receipt, a line "--", then the recomputed receipt; each line is "key value"
+note exit 0 PASS, 1 FAIL (a field differs or expected is not observed), 4 REFUSED (shape wrong)
+text keys "receipt program omega_mv omc_sha256 source_sha256 binary_sha256 command platform expect_exit observed_exit expect_stdout_sha256 observed_stdout_sha256 limits "
+text tsame "fields that match the recomputation: "
+text tdiff "DIFF "
+text tref "REFUSED "
+text tbadk "missing or misplaced key at line "
+text tnosep "no -- separator line\n"
+text tkept "the kept receipt has "
+text tfresh "the recomputed receipt has "
+text tneed " lines; a receipt has 13\n"
+text texit "kept receipt: expect_exit equals observed_exit: "
+text tout "kept receipt: expect_stdout_sha256 equals observed_stdout_sha256: "
+text yes "yes\n"
+text no "no\n"
+text vpass "verdict PASS\n"
+text vfail "verdict FAIL\n"
+text nl "\n"
+const NKEY ulong 13
+global lb ulong 64
+global lz ulong 64
+global nln ulong 1
+fn split n ulong to bool
+note record the start and end of every line; false when there are more than 64 lines
+a = ulong 0
+for i ulong n
+if eq get inb i 10
+c = get nln 0
+if ge c 64
+ret false
+end
+put lb c a
+put lz c i
+put nln 0 add c 1
+a = add i 1
+end
+end
+ret true
+end
+fn issep i ulong to bool
+a = get lb i
+if ne sub get lz i a 2
+ret false
+end
+if ne get inb a 45
+ret false
+end
+ret eq get inb add a 1 45
+end
+fn keyok i ulong k ulong to bool
+note line i starts with key number k of keys, followed by a space
+a = get lb i
+e = wordend a get lz i
+if eq e get lz i
+ret false
+end
+w = lookup keys a e
+ret eq w long k
+end
+fn lineeq i ulong j ulong to bool
+n = sub get lz i get lb i
+if ne n sub get lz j get lb j
+ret false
+end
+ret samei get lb i get lb j n
+end
+fn valeq i ulong j ulong to bool
+note the values (after the first space) of lines i and j are equal
+a = add wordend get lb i get lz i 1
+b = add wordend get lb j get lz j 1
+n = sub get lz i a
+if ne n sub get lz j b
+ret false
+end
+ret samei a b n
+end
+fn findsep to ulong
+note index of the first "--" line, or the line count when there is none
+for i ulong get nln 0
+if issep i
+ret i
+end
+end
+ret get nln 0
+end
+fn shape f ulong to bool
+note lines f .. f+12 carry the 13 keys in order
+for k ulong NKEY
+if not keyok add f k k
+ot tref
+ot tbadk
+on add add f k 1
+ot nl
+ret false
+end
+end
+ret true
+end
+fn yn b bool to void
+if b
+ot yes
+else
+ot no
+end
+end
+fn refuse to int
+f = flush
+ret 4
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 4
+end
+if eq get st 2 1
+ret 4
+end
+if not split ulong r
+ret refuse
+end
+s = findsep
+if eq s get nln 0
+ot tref
+ot tnosep
+ret refuse
+end
+if ne s NKEY
+ot tref
+ot tkept
+on s
+ot tneed
+ret refuse
+end
+if ne get nln 0 add mul NKEY 2 1
+ot tref
+ot tfresh
+on sub sub get nln 0 s 1
+ot tneed
+ret refuse
+end
+if not shape 0
+ret refuse
+end
+if not shape add s 1
+ret refuse
+end
+bad = ulong 0
+for k ulong NKEY
+if not lineeq k add add s 1 k
+ot tdiff
+oi get lb k wordend get lb k get lz k
+ot nl
+bad = add bad 1
+end
+end
+ot tsame
+on sub NKEY bad
+ot nl
+ex = valeq 8 9
+ot texit
+yn ex
+so = valeq 10 11
+ot tout
+yn so
+if not and ex so
+bad = add bad 1
+end
+if eq bad 0
+ot vpass
+f = flush
+ret 0
+end
+ot vfail
+f = flush
+ret 1
+end

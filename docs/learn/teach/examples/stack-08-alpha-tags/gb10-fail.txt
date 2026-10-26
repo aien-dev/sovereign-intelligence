@@ -1,0 +1,6 @@
+scope full
+check SC-FMT host PASS
+check SC-CHECK host PASS
+check SC-TEST host PASS
+check SC-GB10-MODEL-DIR host PASS
+check SC-GB10-SERVE-CHAT gb10 FAIL

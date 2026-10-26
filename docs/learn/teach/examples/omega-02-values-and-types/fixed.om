@@ -1,0 +1,7 @@
+note fixed.om: the two refusals above, fixed by naming every type
+fn main to int
+x = uint 7
+y = add ulong x 1
+z = uint 5
+ret int add y ulong z
+end

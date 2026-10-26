@@ -1,0 +1,53 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile handoff.om rc=0
+
+--- input good.txt
+Goal: make the line counter refuse input over 64 KiB with exit 2
+Non-goals: no change to the output format, no new host words
+Authority: edit tools/count.om and its test only; no push, no merge, no GPU
+Source: aien-dev/omega-mv at 19f014f2178ca9cd3473728fe00a475a2398c409, omc sha256 befb8199
+Contract: exit 0 with the count on stdout; exit 2 and empty stdout above 65535 bytes
+Evidence back: commit, compile rc, run rc for 65535 and 65536 bytes, and the negative control
+--- output
+Goal: ok
+Non-goals: ok
+Authority: ok
+Source: ok
+Contract: ok
+Evidence back: ok
+SEND handoff
+run rc=0 (expected 0)
+
+--- input chat-dump.txt
+Goal: fix the counter thing we talked about earlier
+Source: aien-dev/omega-mv at 19f014f2178ca9cd3473728fe00a475a2398c409
+Contract: see the conversation above
+--- output
+Goal: ok
+Non-goals: MISSING
+Authority: MISSING
+Source: ok
+Contract: ok
+Evidence back: MISSING
+HOLD handoff: the receiver would have to guess
+run rc=1 (expected 1)
+
+--- input branch-only.txt
+Goal: make the line counter refuse input over 64 KiB with exit 2
+Non-goals: no change to the output format, no new host words
+Authority: edit tools/count.om and its test only; no push, no merge, no GPU
+Source: aien-dev/omega-mv, main branch
+Contract: exit 0 with the count on stdout; exit 2 and empty stdout above 65535 bytes
+Evidence back: commit, compile rc, run rc for 65535 and 65536 bytes, and the negative control
+--- output
+Goal: ok
+Non-goals: ok
+Authority: ok
+Source: ok
+Contract: ok
+Evidence back: ok
+Source: no exact commit (a branch name moves under you)
+HOLD handoff: the receiver would have to guess
+run rc=1 (expected 1)
+
+ALL EXIT STATUSES AS EXPECTED

@@ -1,0 +1,58 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== oracle: header fields (NVIDIA 580.173.02 clc96f.h, clcec0.h; MIT)
+82:#define NVC96F_SEM_EXECUTE_OPERATION                                       2:0
+84:#define NVC96F_SEM_EXECUTE_OPERATION_RELEASE                        0x00000001
+85:#define NVC96F_SEM_EXECUTE_RELEASE_WFI                                   20:20
+95:#define NVC96F_GP_ENTRY0_GET                                        31:2
+98:#define NVC96F_GP_ENTRY1_GET_HI                                      7:0
+99:#define NVC96F_GP_ENTRY1_LEVEL                                       9:9
+100:#define NVC96F_GP_ENTRY1_LEVEL_MAIN                           0x00000000
+101:#define NVC96F_GP_ENTRY1_LEVEL_SUBROUTINE                     0x00000001
+102:#define NVC96F_GP_ENTRY1_LENGTH                                    30:10
+103:#define NVC96F_GP_ENTRY1_SYNC                                      31:31
+27:#define BLACKWELL_COMPUTE_B    0xCEC0
+from the M16 receipt: context A marker_va 0x1004111000, expected marker 0x16c0ffee
+pushbuffer VA (illustrative, not from a receipt): 0x1000010000
+== build and decode: gpfifo.om
+compile rc=0
+pb[0] = 0x20012000
+  header: bits28-31=2 count=1 subch=1 method=0x00000000
+pb[1] = 0x0000cec0
+  data for method 0x00000000
+pb[2] = 0x20050017
+  header: bits28-31=2 count=5 subch=0 method=0x0000005c
+pb[3] = 0x04111000
+  data for method 0x0000005c
+pb[4] = 0x00000010
+  data for method 0x00000060
+pb[5] = 0x16c0ffee
+  data for method 0x00000064
+pb[6] = 0x00000000
+  data for method 0x00000068
+pb[7] = 0x00100001
+  data for method 0x0000006c
+gpfifo entry = 0x0000221000010000
+  ENTRY0 GET (31:2) va>>2 = 0x00004000
+  ENTRY1 GET_HI (7:0) = 16
+  ENTRY1 LEVEL (9:9) = 1
+  ENTRY1 LENGTH (30:10) dwords = 8
+  ENTRY1 SYNC (31:31) = 0
+  va rebuilt from GET_HI:GET = 0x1000010000
+round trip: exact
+run rc=0
+== oracle: name each decoded method offset from clc96f.h
+0x00000000 NVC96F_SET_OBJECT
+0x0000005c NVC96F_SEM_ADDR_LO
+0x00000060 NVC96F_SEM_ADDR_HI
+0x00000064 NVC96F_SEM_PAYLOAD_LO
+0x00000068 NVC96F_SEM_PAYLOAD_HI
+0x0000006c NVC96F_SEM_EXECUTE
+== read the code against the header: CUDApp nvrm/nvrm.c says
+808:/* GP entry per clc96f.h: ENTRY0 GET 31:2 (VA low, dword aligned), ENTRY1 GET_HI 7:0,
+809: * LEVEL 9:9 = MAIN, LENGTH 30:10 in dwords, SYNC 31:31 = PROCEED. */
+811:    return (va & ~3ull) | ((uint64_t)(nwords & 0x1fffff) << 42) | (1ull << 41);
+== negative control: method offset written in bytes, the >> 2 forgotten
+  header: bits28-31=2 count=1 subch=1 method=0x00000000
+  header: bits28-31=2 count=5 subch=0 method=0x00000170
+round trip: MISMATCH at pb[2]
+mutant run rc=5

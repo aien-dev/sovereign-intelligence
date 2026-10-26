@@ -1,0 +1,19 @@
+note blend.om: refused with error 12. Six parameters, eleven named results and the temporaries of
+note the last line all want one of the 16 registers at the same time
+fn blend a ulong b ulong c ulong d ulong e ulong f ulong to ulong
+ab = mul a b
+cd = mul c d
+ef = mul e f
+ac = add a c
+bd = add b d
+ce = xor c e
+df = xor d f
+s1 = add ab cd
+s2 = add ef ac
+s3 = add bd ce
+ret add add add s1 s2 add s3 df add add ab cd ef
+end
+fn main to int
+x = blend 1 2 3 4 5 6
+ret int and x 255
+end

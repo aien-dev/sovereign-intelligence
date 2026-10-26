@@ -1,0 +1,4 @@
+Symptom: the seeded compiler exits 12 on a long function
+Root cause: probably the register pool
+Fix: split the function
+Verified:

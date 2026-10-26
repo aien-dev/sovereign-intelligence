@@ -1,0 +1,42 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile lesson.om rc=0
+
+--- input good.txt
+Symptom: the seeded compiler exits 12 on a long function
+Root cause: more live names than the 16-register pool
+Fix: split the function into two helpers
+Verified: recompiled with the pinned omc, compile rc=0, run rc=0
+--- output
+Symptom: ok
+Root cause: ok
+Fix: ok
+Verified: ok
+ACCEPT lesson
+run rc=0 (expected 0)
+
+--- input no-verified.txt
+Symptom: the seeded compiler exits 12 on a long function
+Root cause: probably the register pool
+Fix: split the function
+--- output
+Symptom: ok
+Root cause: ok
+Fix: ok
+Verified: MISSING
+REFUSE lesson: every field needs text, and an unverified lesson is a guess
+run rc=1 (expected 1)
+
+--- input empty-verified.txt
+Symptom: the seeded compiler exits 12 on a long function
+Root cause: probably the register pool
+Fix: split the function
+Verified:
+--- output
+Symptom: ok
+Root cause: ok
+Fix: ok
+Verified: MISSING
+REFUSE lesson: every field needs text, and an unverified lesson is a guess
+run rc=1 (expected 1)
+
+ALL EXIT STATUSES AS EXPECTED

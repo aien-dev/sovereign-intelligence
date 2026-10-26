@@ -1,0 +1,6 @@
+note narrow.om: negative control. 300 does not fit a uchar, so the conversion traps 5
+fn main to int
+big = uint 300
+low = uchar big
+ret int low
+end

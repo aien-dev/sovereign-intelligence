@@ -1,0 +1,17 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. values: exit status is the computed value b = 53
+compile values.om rc=0
+run values rc=53
+== 2. trap 5: a conversion whose value does not fit (exit 100 + 5)
+compile narrow.om rc=0
+run narrow rc=105
+== 3. error 7: no implicit conversion between uint and long
+compile mixed.om rc=7
+omc: line 4: error 7
+== 4. error 11: a bare number with no type
+compile bare.om rc=11
+omc: line 3: error 11
+== 5. the fix: say every type; 8 + 5 = 13
+compile fixed.om rc=0
+run fixed rc=13
+RESULT PASS

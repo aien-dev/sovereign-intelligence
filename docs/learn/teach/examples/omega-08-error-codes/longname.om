@@ -1,0 +1,5 @@
+note longname.om: error 13. names other than functions are at most 8 characters
+fn main to int
+totalsize = ulong 1
+ret int totalsize
+end

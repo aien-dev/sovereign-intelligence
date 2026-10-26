@@ -1,0 +1,67 @@
+{
+  "id": "stack-06-honest-status",
+  "track": "stack",
+  "lesson": 6,
+  "title": "Honest status: writing what is true",
+  "keywords": [
+    "status",
+    "overclaim",
+    "honest",
+    "NOT_RUN",
+    "relabel",
+    "history",
+    "correction",
+    "production-ready",
+    "evidence"
+  ],
+  "summary": "Drake writes status in a fixed shape: the thing and its level, what the level rests on, and what is not done. Words like done, fully and production-ready carry no evidence, and QUALIFIED or PASS need a receipt on the same line. He never relabels old receipts or edits history; corrections go beside the old record. I can rewrite a status with you, and run overclaim.om, an Omega word check, on the before and after text.",
+  "goal": "Write a status line that says what was shown and what was not, and catch common overclaim words mechanically.",
+  "key_steps": [
+    "Name the thing and its narrowest level",
+    "Say what the level rests on: a number with its source, or a receipt",
+    "Say what is not done, with NOT_RUN where it applies",
+    "Remove evidence-free words like done, fully, production-ready",
+    "Never relabel an old status or receipt; add a new one or a correction beside it",
+    "Run the overclaim check before publishing"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/stack-06-honest-status/overclaim.om",
+      "examples/stack-06-honest-status/lib.om",
+      "examples/stack-06-honest-status/run.sh",
+      "examples/stack-06-honest-status/before.txt",
+      "examples/stack-06-honest-status/after.txt"
+    ],
+    "code": "note overclaim: read status text on stdin and flag words that claim more than evidence can carry\nnote list a is always flagged; list b (ladder and verdict words) is flagged unless the same line also\nnote carries a receipt reference or a negation; a word is letters, digits, _ - and %\nnote exit 0 no flags, 1 flags found, 4 REFUSED (input too big)\ntext wa \"production-ready blazing guaranteed fully done Done works bulletproof 100% \"\ntext wb \"QUALIFIED DEPLOYED VERIFIED PASS verified qualified deployed \"\ntext wx \"receipt not NOT NOT_RUN Nothing \"\ntext tline \"line \"\ntext ta \": always an overclaim: \"\ntext tb \": ladder word with no receipt or negation on the line: \"\ntext tflags \"flags \"\ntext vclean \"verdict CLEAN\\n\"\ntext vover \"verdict OVERCLAIM\\n\"\ntext nl \"\\n\"\nnote ln: 0 line number, 1 flags\nglobal ln ulong 2\nfn isw c uchar to bool\nif and ge c 97 le c 122\nret true\nend\nif and ge c 65 le c 90\nret true\nend\nif and ge c 48 le c 57\nret true\nend\nret or or eq c 95 eq c 45 eq c 37\nend\nfn wend a ulong b ulong to ulong\ne = a\nwhile lt e b bound 524289\nif not isw get inb e\nret e\nend\ne = add e 1\nend\nret e\nend\nfn excused a ulong b ulong to bool\nnote does the line a .. b-1 carry a word from wx\ni = a\nwhile lt i b bound 524289\ne = wend i b\nif lt i e\nif ge lookup wx i e 0\nret true\nend\ni = e\nelse\ni = add i 1\nend\nend\nret false\nend\nfn flag t view uchar * a ulong e ulong to void\not tline\non get ln 0\not t\noi a e\not nl\nput ln 1 add get ln 1 1\nend\nfn oneline a ulong b ulong to void\nput ln 0 add get ln 0 1\nx = excused a b\ni = a\nwhile lt i b bound 524289\ne = wend i b\nif lt i e\nif ge lookup wa i e 0\nflag ta i e\nend\nif not x\nif ge lookup wb i e 0\nflag tb i e\nend\nend\ni = e\nelse\ni = add i 1\nend\nend\nend\nfn main to int\nr = rdall\nif lt r 0\nret 4\nend\nif eq get st 2 1\nret 4\nend\nn = ulong r\na = ulong 0\nfor i ulong n\nif eq get inb i 10\noneline a i\na = add i 1\nend\nend\nif lt a n\noneline a n\nend\not tflags\non get ln 1\not nl\nv = int 0\nif gt get ln 1 0\nv = 1\not vover\nelse\not vclean\nend\nf = flush\nret v\nend\n",
+    "command": "sh examples/stack-06-honest-status/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\ncompile lib.om+overclaim.om rc=0\n== before.txt\nline 1: always an overclaim: done\nline 1: always an overclaim: fully\nline 2: always an overclaim: production-ready\nline 2: ladder word with no receipt or negation on the line: QUALIFIED\nline 3: ladder word with no receipt or negation on the line: verified\nline 3: ladder word with no receipt or negation on the line: PASS\nline 3: always an overclaim: blazing\nflags 7\nverdict OVERCLAIM\nrun rc=1\n== after.txt\nflags 0\nverdict CLEAN\nrun rc=0\n== negative control: after.txt with the receipt pointer cut from line 2\nline 2: ladder word with no receipt or negation on the line: PASS\nflags 1\nverdict OVERCLAIM\nrun rc=1\nevery verdict as expected: yes\n"
+  },
+  "common_mistake": "Deleting the flagged word and keeping the claim ('the installer is ready'). Rewrite to the shape instead. And never edit last week's status upward because a later run went well; write a new one.",
+  "links": [
+    {
+      "title": "omega-communication: the claim ladder and corrections",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-communication/SKILL.md"
+    },
+    {
+      "title": "omega-harness section 4: never edit a historical receipt",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-harness/SKILL.md#L101"
+    },
+    {
+      "title": "The SI alpha release notes: what was run and what was not",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/notes/alpha-20261026.1.md"
+    },
+    {
+      "title": "What I am building: README claims checked against the code",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/docs/WHAT-I-AM-BUILDING.md"
+    },
+    {
+      "title": "omega-mv README: old receipts stay in evidence/ unchanged as history",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/README.md#L34"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "overclaim.om ran on before.txt (7 flags), after.txt (clean) and a negative control on a Linux arm64 host. A word list catches common slips; it cannot judge whether a cited receipt supports the claim.",
+  "page": "pages/stack-06-honest-status.md",
+  "steer_refs": []
+}

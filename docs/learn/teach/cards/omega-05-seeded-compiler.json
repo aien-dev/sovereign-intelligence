@@ -1,0 +1,61 @@
+{
+  "id": "omega-05-seeded-compiler",
+  "track": "omega",
+  "lesson": 5,
+  "title": "The seeded compiler: from 408 bytes to omc, and what a fixpoint proves",
+  "keywords": [
+    "seed",
+    "bootstrap",
+    "fixpoint",
+    "omc",
+    "om4",
+    "seed0",
+    "trusting trust",
+    "self-hosting",
+    "reproducible build"
+  ],
+  "summary": "Drake grew the Omega compiler from 408 hand-written bytes: seed0 builds hex1, hex1 builds asm2, asm2 builds om4, om4 builds omc, and omc rebuilds itself to the same bytes. I'll show you the full rebuild (under a second) in a disposable copy, matching the pinned hash, and a negative control proving a fixpoint shows consistency, not correctness: a changed source reaches its own fixpoint too.",
+  "goal": "Rebuild omc from the seed in a disposable copy, match the pinned hash, and state what the fixpoint does not prove.",
+  "key_steps": [
+    "Copy seed/ to a temporary directory (the script rewrites tracked files)",
+    "Run sh seed/omega-from-seed.sh there and read every PASS line",
+    "Compare the rebuilt seed/out/omc sha256 with the pin",
+    "Compile a program with both compilers and compare the bytes",
+    "Change the compiler source and see that it reaches a different fixpoint"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/omega-05-seeded-compiler/extra.om",
+      "examples/omega-05-seeded-compiler/hello.om",
+      "examples/omega-05-seeded-compiler/run.sh",
+      "examples/omega-05-seeded-compiler/output.txt"
+    ],
+    "code": "note extra.om: appended to a copy of omc.om as a negative control. omc never calls it\nfn zzextra to int\nret 7\nend\n",
+    "command": "sh examples/omega-05-seeded-compiler/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. the committed compiler and the hash recorded beside it\nseed/out/omc.sha256: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\nseed0.bin bytes: 408\nomc bytes: 297836\nomc.om lines: 11118\n== 2. birth: seed0 -> hex1 -> asm2 -> om4 -> omc -> omc -> omc, in a disposable copy\nPASS seed0 408 bytes, rebuilds itself\nPASS hex1 776 bytes, born from seed0\nPASS asm2 2464 bytes, born from hex1\nPASS om4 om4.bin 14224 bytes\nPASS omc fixpoint befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\nPASS fwd exit 0\nPASS fwd runs, exit 7\nPASS mut exit 0\nPASS mut runs, exit 0\nPASS cycle exit 9\nPASS assign exit 7\nRC=0\nomega-from-seed.sh rc=0\nrebuilt omc equals the pin: yes\n== 3. the rebuilt compiler and the committed one make the same program bytes\ncompile rc=0 and rc=0\nhello binaries identical: yes\n== 4. negative control: a changed compiler source reaches a fixpoint of its own\nom4-built equals omc-built: yes\nstage2 equals stage3 (a fixpoint): yes\nmutant fixpoint equals the pin: no\nRESULT PASS\n"
+  },
+  "common_mistake": "Treating the self-rebuild as proof of correctness or as independent verification. It proves the binary matches this seed and source; correctness comes from referees, fixtures and gates, and independence would need a different lineage. Also: never run omega-from-seed.sh in a shared clone; it rewrites tracked files.",
+  "links": [
+    {
+      "title": "seed/README.md",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/README.md"
+    },
+    {
+      "title": "omega-from-seed.sh",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omega-from-seed.sh"
+    },
+    {
+      "title": "omc.om",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omc/omc.om"
+    },
+    {
+      "title": "OM-2 guarantee matrix",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OM2-TUTORIAL.md#L178"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "Full seed rebuild run on Linux AArch64 in a temporary copy at omega-mv 19f014f2; rebuilt omc sha256 equals befb8199...8a1d; reproduced byte for byte. Not diverse double compilation, not a correctness proof, and the repository gate tests/gates/run.sh seed was not run here.",
+  "page": "pages/omega-05-seeded-compiler.md",
+  "steer_refs": []
+}

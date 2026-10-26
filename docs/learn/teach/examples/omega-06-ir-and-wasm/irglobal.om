@@ -1,0 +1,5 @@
+note irglobal.om: negative control. IR mode has no global pools (error 9)
+global g uchar 4
+fn f a uint to uint
+ret a
+end

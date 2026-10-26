@@ -1,0 +1,73 @@
+{
+  "id": "omega-09-adding-a-word",
+  "track": "omega",
+  "lesson": 9,
+  "title": "Building a missing feature: how a new word gets into Omega",
+  "keywords": [
+    "extension",
+    "new word",
+    "feature",
+    "proposal",
+    "host word",
+    "random",
+    "getrandom",
+    "keyword",
+    "gate",
+    "missing feature"
+  ],
+  "summary": "Drake's rule: if .om doesn't have a feature you need, make that feature. No host-language helper passed off as Omega. I'll walk you through a real addition, the random host word (Linux getrandom): keyword id 135, the hrand lowering in omc.om, one OMEGESE row, a host gate fixture that can fail, refusal codes, a corpus audit and a new compiler fixpoint, all in one commit.",
+  "goal": "Turn a missing capability into a proposal and a complete, gated word addition, using the random host word as the model.",
+  "key_steps": [
+    "Write the proposal: need, word, types, result convention",
+    "List the refusals (compile codes) and run-time traps",
+    "Add the keyword and the lowering in seed/omc/omc.om",
+    "Add a gate fixture that can fail and a negative control",
+    "Update OMEGESE and the guide, audit the corpus for the newly reserved word, rebuild the fixpoint"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/omega-09-adding-a-word/kwpack.om",
+      "examples/omega-09-adding-a-word/intotext.om",
+      "examples/omega-09-adding-a-word/badflags.om",
+      "examples/omega-09-adding-a-word/overrun.om",
+      "examples/omega-09-adding-a-word/asname.om",
+      "examples/omega-09-adding-a-word/run.sh",
+      "examples/omega-09-adding-a-word/output.txt"
+    ],
+    "code": "note kwpack.om: how omc spells a keyword inside itself. The bytes of \"random\", first byte lowest,\nnote packed into one ulong: the number fn kw in seed/omc/omc.om compares against for word id 135\ntext word \"random\"\nfn putnum v ulong to long\nnote write v in decimal and a newline. A ulong has at most 20 digits, so bound 20 is proved\nd = new uchar 21 0\no = new uchar 21 0\nn = ulong 0\nx = v\nwhile true bound 20\nput d n uchar add rem x 10 48\nn = add n 1\nx = div x 10\nif eq x 0\nbreak\nend\nend\nfor i ulong n\nput o i get d sub sub n i 1\nend\nput o n 10\nw = write 1 o 0 add n 1\nret w\nend\nfn main to int\nv = ulong 0\nfor i ulong len word\nv = or v shl ulong get word i mul i 8\nend\nw = putnum v\nret 0\nend\n",
+    "command": "sh examples/omega-09-adding-a-word/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. the guide row in docs/one_layer/OMEGESE.md\nOMEGESE.md rows for random: 1\n== 2. the keyword: compute its packed spelling in Omega, then find it in omc.om\ncompile kwpack.om rc=0\n120325193752946\nrun kwpack rc=0\n767:if eq w 120325193752946\n768-ret 135\n== 3. the lowering: fn hrand issues Linux syscall 278 (getrandom on arm64)\n1:fn hrand dst ulong x ulong to void\n10:hsys 278\n== 4. the host gate fixture, compiled and run as the gate does\ncompile seed/host/tests/random.om rc=0\nrun random rc=0\n== 5. negative control: the fixture with a wrong expected count must fail\ncompile mutant rc=0\nrun mutant rc=1\n== 6. the refusals the word promises\ncompile intotext.om rc=20\nomc: line 4: error 20\ncompile badflags.om rc=7\nomc: line 4: error 7\ncompile asname.om rc=16\nomc: line 3: error 16\ncompile overrun.om rc=0\nrun overrun rc=103\nRESULT PASS\n"
+  },
+  "common_mistake": "Filling the gap with a C, Rust, Python or shell helper and calling it Omega, or landing a word without refusal cases, a fixture that can fail, a guide row and a corpus audit for the newly reserved spelling. If you cannot land it, file the concrete proposal instead.",
+  "links": [
+    {
+      "title": "random host word commit 3fba1c43",
+      "url": "https://github.com/aien-dev/omega-mv/commit/3fba1c438bfc05f4469a581a9d2f428336f41a56"
+    },
+    {
+      "title": "seed/README.md rung R17",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/README.md#L464"
+    },
+    {
+      "title": "omc.om fn kw",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omc/omc.om#L745"
+    },
+    {
+      "title": "omc.om fn hrand",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omc/omc.om#L4662"
+    },
+    {
+      "title": "seed/host/tests/random.om",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/host/tests/random.om"
+    },
+    {
+      "title": "OM_COMPLETION.md",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OM_COMPLETION.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "The random word, its host fixture (and a mutated copy that must fail) and its refusals run on Linux AArch64 with omc befb8199...8a1d; reproduced byte for byte (random bytes are never printed). The extension workflow is a project rule; no new word was added by this lesson.",
+  "page": "pages/omega-09-adding-a-word.md",
+  "steer_refs": []
+}

@@ -1,0 +1,145 @@
+note alphachk: a teaching model of the Alpha rule in aien-test verify-bundle --require-full (not that tool)
+note input lines: "scope full|changed" and "check NAME BACKEND VERDICT", BACKEND host|gb10, VERDICT PASS|FAIL|NOT_RUN
+note rules, in order: malformed input REFUSED; scope not full REJECTED NOT_FULL_SCOPE; any FAIL is FAIL (a gb10
+note FAIL is still a receipt); no gb10 check that ran REJECTED NO_GPU_RECEIPT; any NOT_RUN is NOT_RUN; else ALPHA
+note exit 0 ALPHA, 1 FAIL, 2 NOT_RUN, 3 REJECTED, 4 REFUSED
+text words "scope check full changed host gb10 PASS FAIL NOT_RUN "
+text tby "checks by backend: host="
+text tgpu " gb10="
+text tran "gb10 checks that ran (PASS or FAIL): "
+text vok "verdict ALPHA: full-scope PASS that carries a gb10 receipt\n"
+text vfail "verdict FAIL\n"
+text vnrun "verdict NOT_RUN\n"
+text vscope "verdict REJECTED NOT_FULL_SCOPE: plan scope is not full\n"
+text vgpu "verdict REJECTED NO_GPU_RECEIPT: no required gb10 check ran on the GPU\n"
+text vref "verdict REFUSED malformed line\n"
+text nl "\n"
+note g: 0 scope (1 full, 2 changed), 1 host, 2 gb10, 3 gb10 ran, 4 fails, 5 not run, 6 malformed
+global g ulong 7
+fn bump i ulong to void
+put g i add get g i 1
+end
+fn tok a ulong b ulong to long
+note the word a .. b-1 as an index into words
+ret lookup words a b
+end
+fn check a ulong b ulong to void
+note a is just after "check "; skip NAME, then read BACKEND and VERDICT
+e = wordend a b
+if ge e b
+bump 6
+else
+p = add e 1
+e = wordend p b
+be = tok p e
+if ge e b
+bump 6
+else
+v = tok add e 1 b
+if eq be 4
+bump 1
+else
+if eq be 5
+bump 2
+else
+bump 6
+end
+end
+if eq v 7
+bump 4
+end
+if eq v 8
+bump 5
+end
+if lt v 6
+bump 6
+end
+if eq be 5
+if or eq v 6 eq v 7
+bump 3
+end
+end
+end
+end
+end
+fn oneline a ulong b ulong to void
+if lt a b
+e = wordend a b
+w = tok a e
+if ge e b
+bump 6
+else
+if eq w 0
+s = tok add e 1 b
+if eq s 2
+put g 0 1
+else
+if eq s 3
+put g 0 2
+else
+bump 6
+end
+end
+else
+if eq w 1
+check add e 1 b
+else
+bump 6
+end
+end
+end
+end
+end
+fn verdict to int
+if gt get g 6 0
+ot vref
+ret 4
+end
+if ne get g 0 1
+ot vscope
+ret 3
+end
+if gt get g 4 0
+ot vfail
+ret 1
+end
+if eq get g 3 0
+ot vgpu
+ret 3
+end
+if gt get g 5 0
+ot vnrun
+ret 2
+end
+ot vok
+ret 0
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 4
+end
+if eq get st 2 1
+ret 4
+end
+n = ulong r
+a = ulong 0
+for i ulong n
+if eq get inb i 10
+oneline a i
+a = add i 1
+end
+end
+oneline a n
+ot tby
+on get g 1
+ot tgpu
+on get g 2
+ot nl
+ot tran
+on get g 3
+ot nl
+v = verdict
+f = flush
+ret v
+end

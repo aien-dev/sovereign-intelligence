@@ -1,0 +1,7 @@
+SHA256SUMS.sig in this folder is a copy of the release asset
+https://github.com/aien-dev/sovereign-intelligence/releases/download/alpha-20261026.1/SHA256SUMS.sig
+(64 bytes, sha256 274321c4b9959159a36b3fdb4a4a1cef29663ae96add4c1990844941101debe9), downloaded 2026-10-26.
+It is the only input here that is not in the sovereign-intelligence repository. The signed file itself is
+the repository's evidence/alpha-20261026.1/SHA256SUMS.tested, which evidence/alpha-20261026.1/README.md
+says is identical to the release's SHA256SUMS; on 2026-10-26 the downloaded release SHA256SUMS compared
+byte-identical to it (cmp).

@@ -1,0 +1,36 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+compile lib.om+pingate.om rc=0
+compile lib.om+pingate_weak.om rc=0
+input install.sh sha256 2c15afb5080dc69dc7c1fb0a9a35b4f1fc8b3a38db27d0569d22bace8632bacb
+mutant mut-tag.sh differs: yes (TAG=latest)
+mutant mut-url.sh differs: yes (downloads from releases/latest)
+== pingate < good.sh
+TAG lines 1
+TAG value alpha-20261026.1
+releases/latest URLs 0
+verdict PASS
+run rc=0
+== pingate < mut-tag.sh
+TAG lines 1
+TAG value latest
+releases/latest URLs 0
+verdict FAIL
+run rc=1
+== pingate < mut-url.sh
+TAG lines 1
+TAG value alpha-20261026.1
+releases/latest URLs 1
+verdict FAIL
+run rc=1
+pingate: accepts the real input and rejects every negative control: usable as a gate
+== pingate_weak < good.sh
+verdict PASS
+run rc=0
+== pingate_weak < mut-tag.sh
+verdict PASS
+run rc=0
+== pingate_weak < mut-url.sh
+verdict PASS
+run rc=0
+pingate_weak: a negative control was accepted: REFUSED as a gate (it proves nothing)
+every verdict as expected: yes

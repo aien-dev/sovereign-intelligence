@@ -1,0 +1,3 @@
+PASS SC-FMT
+FAIL SC-TEST 2 of 140 tests failed
+NOT_RUN SC-GB10-SERVE-CHAT memory_short

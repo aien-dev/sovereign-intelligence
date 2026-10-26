@@ -1,0 +1,6 @@
+note slice.om: negative control. offset 1 plus 4096 bytes does not fit a 4096-byte array: trap 3
+global buf uchar 4096
+fn main to int
+k = read 0 buf 1 len buf
+ret 0
+end

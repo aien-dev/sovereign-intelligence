@@ -1,0 +1,9 @@
+note global.om: negative control. a global is never passed as an argument (error 19)
+global buf uchar 4
+fn fill a edit uchar 4 to void
+put a 0 1
+end
+fn main to int
+fill buf
+ret 0
+end

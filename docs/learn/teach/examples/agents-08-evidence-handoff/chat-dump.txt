@@ -1,0 +1,3 @@
+Goal: fix the counter thing we talked about earlier
+Source: aien-dev/omega-mv at 19f014f2178ca9cd3473728fe00a475a2398c409
+Contract: see the conversation above

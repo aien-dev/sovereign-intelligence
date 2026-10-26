@@ -1,0 +1,29 @@
+note pingate_weak: the gate as first written; it only asks that some line starts with TAG=
+note it is here to be caught: it accepts the negative control, so it proves nothing
+text ttag "TAG="
+text vpass "verdict PASS\n"
+text vfail "verdict FAIL\n"
+fn main to int
+r = rdall
+if lt r 0
+ret 4
+end
+n = ulong r
+a = ulong 0
+v = int 1
+for i ulong n
+if eq get inb i 10
+if sameb ttag 0 a 4
+v = 0
+end
+a = add i 1
+end
+end
+if eq v 0
+ot vpass
+else
+ot vfail
+end
+f = flush
+ret v
+end

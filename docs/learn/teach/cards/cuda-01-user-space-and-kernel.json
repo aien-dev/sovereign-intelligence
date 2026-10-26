@@ -1,0 +1,58 @@
+{
+  "id": "cuda-01-user-space-and-kernel",
+  "track": "cuda",
+  "lesson": 1,
+  "title": "User space and the kernel: what CUDA++ replaces and what it still needs",
+  "keywords": [
+    "user space",
+    "kernel module",
+    "libcuda",
+    "nvidia.ko",
+    "nvidia-uvm",
+    "GSP firmware",
+    "device files",
+    "CUDA++"
+  ],
+  "summary": "Drake built CUDA++ by cutting at the user-space/kernel line: everything closed above NVIDIA's open kernel module (nvcc, PTX, libcudart, libcuda, cuBLAS) is replaced by his own encoder and runtime, which talk to nvidia.ko and nvidia-uvm.ko through ioctls on /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. What stays NVIDIA's: the open kernel module (580.173.02 only) and the signed GSP firmware. I can show you the grep that proves the line, including the one interop probe that links libcuda on purpose.",
+  "goal": "Know which parts of the CUDA stack run in your process and which in the kernel, and what CUDA++ still depends on.",
+  "key_steps": [
+    "List the layers: compiler, runtime, driver library, kernel module, firmware.",
+    "Find the device files the driver client opens.",
+    "Confirm the library links no CUDA library (and find the one interop tool that does).",
+    "Name what stays NVIDIA: the open kernel module version and the signed firmware.",
+    "Check the evidence state before claiming the path works on a GPU."
+  ],
+  "example": {
+    "lang": "sh",
+    "files": [
+      "examples/cuda-01-user-space-and-kernel/output.txt",
+      "examples/cuda-01-user-space-and-kernel/run.sh"
+    ],
+    "code": "#!/bin/sh\n# Lesson cuda-01: where the line between user space and the kernel runs in CUDApp, read from the\n# pinned sources with grep (an inspection, no first-party logic, no device opened).\nset -u\nexport LC_ALL=C\nSRC=${SRC:?set SRC to a directory holding the clones in docs/learn/teach/PINS}\nOMC=${OMC:-$SRC/omega-mv/seed/out/omc}\nPIN=befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\ngot=$(sha256sum \"$OMC\" 2>/dev/null | cut -c1-64)\nif [ \"$got\" != \"$PIN\" ]; then\n    echo \"omc sha256 mismatch: refusing to run\"\n    exit 90\nfi\necho \"omc sha256 $PIN (not needed by this inspection; checked so every lesson pins the same tools)\"\nC=$SRC/CUDApp\ncd \"$C\" || exit 2\n\necho \"== 1. the build promise (Makefile header)\"\ngrep -n 'no CUDA toolkit, no NVIDIA user-space library' Makefile\n\necho \"== 2. files that include a CUDA header or link libcuda (first-party C, Makefile, mk/)\"\ngit grep -l '#include <cuda\\|#include \"cuda\\|-lcuda' -- '*.c' '*.h' Makefile mk\necho \"   the Makefile line that links it, and the target it belongs to:\"\ngrep -n -- '-lcuda' Makefile | cut -c1-120\n\necho \"== 3. the three device files the driver client opens (kernel entry points)\"\ngrep -n '\"/dev/nvidia' nvrm/nvrm.c native/nvrm/context.om\n\necho \"== 4. what came from the kernel side: the open module's headers, by folder\"\ncd third_party/nvidia-open-580.173.02 || exit 2\nfor d in kernel-open/common/inc kernel-open/nvidia-uvm src/common/sdk/nvidia/inc src/nvidia/arch/nvalloc/unix/include; do\n    echo \"   $(find \"$d\" -name '*.h' | wc -l | tr -d ' ') headers in $d\"\ndone\necho \"   $(grep -c '\\.h$' SHA256SUMS) headers listed in SHA256SUMS\"\ncd \"$C\" || exit 2\n\necho \"== 5. what still belongs to NVIDIA below the line (ROADMAP.md)\"\ngrep -n '^| `nvidia.ko`\\|^| `nvidia-uvm.ko`\\|^| GSP firmware' ROADMAP.md | cut -d'|' -f2,4,5\n",
+    "command": "sh examples/cuda-01-user-space-and-kernel/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (not needed by this inspection; checked so every lesson pins the same tools)\n== 1. the build promise (Makefile header)\n2:# CUDA++ build. Plain make + gcc; no CUDA toolkit, no NVIDIA user-space library.\n== 2. files that include a CUDA header or link libcuda (first-party C, Makefile, mk/)\nMakefile\ntools/interop/cubin_probe.c\n   the Makefile line that links it, and the target it belongs to:\n65:\t$(CC) $(CFLAGS) -I$(CUDA_INC) -o $@ tools/interop/cubin_probe.c $(OUT_DIR)/libomega_gpu.a -L$(CUDA_LIB) -lcuda -lpth\n== 3. the three device files the driver client opens (kernel entry points)\nnvrm/nvrm.c:233:    snprintf(path, sizeof path, \"/dev/nvidia%u\", rm->minor);\nnvrm/nvrm.c:243:    int fd = system ? open(\"/dev/nvidiactl\", O_RDWR | O_CLOEXEC) : open_dev_fd(rm);\nnvrm/nvrm.c:299:    rm->fd_ctl = open(\"/dev/nvidiactl\", O_RDWR | O_CLOEXEC);\nnvrm/nvrm.c:300:    rm->fd_uvm = open(\"/dev/nvidia-uvm\", O_RDWR | O_CLOEXEC);\nnvrm/nvrm.c:301:    rm->fd_uvm2 = open(\"/dev/nvidia-uvm\", O_RDWR | O_CLOEXEC);\nnative/nvrm/context.om:4:text nvctl \"/dev/nvidiactl\"\nnative/nvrm/context.om:5:text nvdev \"/dev/nvidia0\"\nnative/nvrm/context.om:6:text nvuvm \"/dev/nvidia-uvm\"\n== 4. what came from the kernel side: the open module's headers, by folder\n   5 headers in kernel-open/common/inc\n   3 headers in kernel-open/nvidia-uvm\n   57 headers in src/common/sdk/nvidia/inc\n   2 headers in src/nvidia/arch/nvalloc/unix/include\n   67 headers listed in SHA256SUMS\n== 5. what still belongs to NVIDIA below the line (ROADMAP.md)\n `nvidia.ko` | AIEN's own GB10 driver (L332) | BUILDING \n `nvidia-uvm.ko` | same driver: GPU page tables, allocator, channels (L193 cut D, L332) | BUILDING \n GSP firmware (`gsp_*.bin`) | stays NVIDIA's: the chip checks its signature | not replaceable \n"
+  },
+  "common_mistake": "Saying CUDA++ uses no NVIDIA software. It uses no NVIDIA user-space software at run time; the open kernel module (one pinned version) and the signed GSP firmware are still NVIDIA's. Say exactly that.",
+  "links": [
+    {
+      "title": "How I did it",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/docs/HOW_I_DID_IT.md"
+    },
+    {
+      "title": "The driver client, call by call",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/docs/DRIVER.md"
+    },
+    {
+      "title": "Roadmap: every NVIDIA piece and its status",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/ROADMAP.md"
+    },
+    {
+      "title": "Start here",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/docs/START_HERE.md"
+    }
+  ],
+  "evidence_level": "IMPLEMENTED",
+  "evidence_note": "IMPLEMENTED: the driver client (nvrm/, m16/, native/nvrm/context.om) exists at CUDApp 780a0af1. Its chip proof is the M16 receipt, which the README calls an unauditable historical summary; current native qualification is NOT_RUN. The example is a host-only grep inspection.",
+  "page": "pages/cuda-01-user-space-and-kernel.md",
+  "steer_refs": []
+}

@@ -1,0 +1,61 @@
+{
+  "id": "omega-01-hello-world",
+  "track": "omega",
+  "lesson": 1,
+  "title": "Your first Omega program: hello, compile, run, exit status",
+  "keywords": [
+    "hello world",
+    "first program",
+    "compile",
+    "omc",
+    "run",
+    "exit status",
+    "text",
+    "write"
+  ],
+  "summary": "Drake's first Omega program is a text and one write call, compiled by the seeded compiler omc into a static AArch64 Linux program with no libc underneath. I'll show you the routine he uses every time: check the compiler hash, compile, read the compile status, run only a clean build, then read the exit status. main's value modulo 256 is the status; a trap exits 100 plus its code.",
+  "goal": "Compile and run a hello-world .om program with the pinned omc and read both the compile status and the run status.",
+  "key_steps": [
+    "Check sha256 of seed/out/omc against the pin",
+    "Write a text and a fn main that binds the result of write",
+    "Compile with omc < hello.om > hello and read the compile status",
+    "Run the program only if the compile returned 0",
+    "Read the run status: main value modulo 256, or 100 plus a trap code"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/omega-01-hello-world/hello.om",
+      "examples/omega-01-hello-world/status.om",
+      "examples/omega-01-hello-world/unbound.om",
+      "examples/omega-01-hello-world/run.sh",
+      "examples/omega-01-hello-world/output.txt"
+    ],
+    "code": "note hello.om: the smallest useful Omega program\ntext msg \"hello from seeded Omega\\n\"\nfn main to int\nw = write 1 msg 0 len msg\nif ne w long len msg\nret 1\nend\nret 0\nend\n",
+    "command": "sh examples/omega-01-hello-world/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. hello: compile, then run only if the compile returned 0\ncompile hello.om rc=0\nhello from seeded Omega\nrun rc=0\n== 2. the exit status is main's value modulo 256\ncompile status.om rc=0\nrun rc=44\n== 3. negative control: a result that is not bound to a name\ncompile unbound.om rc=16\nomc: line 4: error 16\nRESULT PASS\n"
+  },
+  "common_mistake": "Calling write as a bare statement. It returns a long (bytes written or minus errno), so it must be bound and checked: w = write 1 msg 0 len msg. At this pin the bare write line is refused with error 16; a bare call to your own value-returning function is error 7.",
+  "links": [
+    {
+      "title": "OMEGESE section 3: the language",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L49"
+    },
+    {
+      "title": "OMEGESE section 9.1: program and function mode",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L400"
+    },
+    {
+      "title": "OMEGESE section 9.5: read, write, exit",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L476"
+    },
+    {
+      "title": "omega-encoding guide",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-encoding/SKILL.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "Compiled and run on a Linux AArch64 host with omc sha256 befb8199...8a1d at omega-mv 19f014f2; output reproduced byte for byte on a second run. Not hardware qualification; no other OS or ISA was run.",
+  "page": "pages/omega-01-hello-world.md",
+  "steer_refs": []
+}

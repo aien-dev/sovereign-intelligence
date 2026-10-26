@@ -1,0 +1,30 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. an external byte layout, written through an edit parameter
+compile header.om rc=0
+OMEG
+run header rc=0
+== 2. error 29 (layout): two fields share a byte
+compile overlap.om rc=29
+omc: line 5: error 29
+omc-diag 1 code=29 sev=error line=5 col=24 span=160-166 expect=type found=6c6974746c65 obligation=layout profile=OM-2
+== 3. error 27 (init): a fresh element is read before it is written
+compile fresh.om rc=27
+omc: line 5: error 27
+omc-diag 1 code=27 sev=error line=5 col=11 span=168-169 expect=value found=31 obligation=init profile=OM-2
+== 4. without the om2 line, rotr is an unknown word (error 3)
+compile oneline.om rc=3
+omc: line 3: error 3
+== 5. the repository's tour: examples/om2-tour.om
+compile tour rc=0
+run tour rc=0
+== 6. the same tour under 'om2 diag': trap sites and the erased constructor check
+compile diag rc=0
+omc-site records: 15
+omc-check 1 erased line=11 rule=dup32
+== 7. negative control: a predicate omc does not know (holds v32 dup31)
+compile dup31 rc=28
+omc: line 8: error 28
+== 8. negative control: one changed constant in stamp is caught by main
+compile stamp rc=0
+run stamp rc=11
+RESULT PASS

@@ -1,0 +1,29 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+compile lib.om+elfinfo.om rc=0
+== the pinned compiler, omc
+elf64 little-endian
+type 2
+machine 183
+program headers 2
+PT_LOAD 2
+PT_DYNAMIC 0
+PT_INTERP 0
+verdict STATIC: no loader, no shared libraries, only kernel system calls below it
+run rc=0
+== elfinfo itself, as omc built it
+elf64 little-endian
+type 2
+machine 183
+program headers 2
+PT_LOAD 2
+PT_DYNAMIC 0
+PT_INTERP 0
+verdict STATIC: no loader, no shared libraries, only kernel system calls below it
+run rc=0
+== negative control: the host's /bin/sh (verdict line only; its sizes differ between hosts)
+verdict DYNAMIC: needs a loader and shared libraries before its first instruction
+run rc=1
+== negative control: elfinfo.om, a text file
+verdict NOT_ELF64
+run rc=3
+every verdict as expected: yes

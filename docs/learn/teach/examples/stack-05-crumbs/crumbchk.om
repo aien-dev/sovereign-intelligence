@@ -1,0 +1,141 @@
+note crumbchk: read a .crumb (JSON) on stdin, list its top-level keys and judge its shape
+note RFC-0001 requires schema_version, name, purpose and allows layer above below invariants exports extensions;
+note anything else at the top level is invalid (additionalProperties false). The older Rust writer used
+note version dir_path history whispers description dir_name: that is the legacy shape.
+note exit 0 RFC-0001 shape, 3 LEGACY, 4 INVALID missing required key, 5 INVALID unknown key, 6 not JSON-shaped
+text keys "schema_version name purpose layer above below invariants exports extensions version dir_path history whispers description dir_name generated "
+text tkey "key "
+text treq " (required)\n"
+text topt " (optional)\n"
+text tleg " (legacy)\n"
+text tunk " (UNKNOWN)\n"
+text tgen "extensions.generated present: written by crumb compile, never by hand\n"
+text vok "verdict RFC-0001 shape: required keys present, no unknown keys\n"
+text vleg "verdict LEGACY shape: left as it is; a new crumb never copies it\n"
+text vmiss "verdict INVALID: a required key is missing\n"
+text vunk "verdict INVALID: unknown top-level key\n"
+text vbad "verdict NOT_JSON_SHAPED\n"
+note js: 0 depth, 1 in string, 2 escape, 3 last string start, 4 last string end, 5 required bits, 6 legacy, 7 unknown
+global js ulong 9
+fn onkey to void
+note a ":" was read: the last string is a key at the current depth
+a = get js 3
+b = get js 4
+k = lookup keys a b
+d = get js 0
+if eq d 2
+if eq k 15
+put js 8 1
+end
+end
+if eq d 1
+ot tkey
+oi a b
+if lt k 0
+put js 7 add get js 7 1
+ot tunk
+else
+if lt k 3
+put js 5 or get js 5 shl ulong 1 ulong k
+ot treq
+else
+if lt k 9
+ot topt
+else
+if lt k 15
+put js 6 add get js 6 1
+ot tleg
+else
+put js 7 add get js 7 1
+ot tunk
+end
+end
+end
+end
+end
+end
+fn instr c uchar i ulong to void
+if eq get js 2 1
+put js 2 0
+else
+if eq c 92
+put js 2 1
+end
+if eq c 34
+put js 1 0
+put js 4 i
+end
+end
+end
+fn outstr c uchar i ulong to bool
+note false when a closing bracket has no opener
+if eq c 34
+put js 1 1
+put js 3 add i 1
+end
+if or eq c 123 eq c 91
+put js 0 add get js 0 1
+end
+if or eq c 125 eq c 93
+if eq get js 0 0
+ret false
+end
+put js 0 sub get js 0 1
+end
+if eq c 58
+onkey
+end
+ret true
+end
+fn verdict to int
+if ne add get js 0 get js 1 0
+ot vbad
+ret 6
+end
+if gt get js 7 0
+ot vunk
+ret 5
+end
+if gt get js 6 0
+ot vleg
+ret 3
+end
+if ne get js 5 7
+ot vmiss
+ret 4
+end
+ot vok
+ret 0
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 6
+end
+if eq get st 2 1
+ret 6
+end
+ok = true
+for i ulong ulong r
+c = get inb i
+if eq get js 1 1
+instr c i
+else
+if not outstr c i
+ok = false
+break
+end
+end
+end
+if eq get js 8 1
+ot tgen
+end
+v = int 6
+if ok
+v = verdict
+else
+ot vbad
+end
+f = flush
+ret v
+end

@@ -1,0 +1,126 @@
+note Split RM control command numbers into the fields ctrlxxxx.h defines:
+note CLASS 31:16, CATEGORY 13:8, INDEX 7:0. Bits 8..15 outside CATEGORY (14 and 15) must be 0.
+note Input: decimal command numbers on stdin, one per line. Exit 0 all well formed,
+note 7 a number with bits 14..15 set (not a command this layout can produce), 3 no input.
+om2
+global ob uchar 4096
+global on ulong 1
+global inb uchar 4096
+global inn ulong 1
+global inp ulong 1
+text hx "0123456789abcdef"
+fn putc c uchar to void
+put ob get on 0 c
+put on 0 add get on 0 1
+end
+fn puts s view uchar * to void
+for i ulong len s
+putc get s i
+end
+end
+fn putdec v ulong to void
+d = new uchar 20 0
+n = ulong 0
+x = v
+while true bound 21
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt n 0 bound 21
+n = sub n 1
+putc get d n
+end
+end
+fn puthex v ulong w ulong to void
+putc 48
+putc 120
+for i ulong w
+s = mul sub sub w 1 i 4
+putc get hx and shr v s 0xf
+end
+end
+fn flush to void
+w = write 1 ob 0 get on 0
+put on 0 0
+end
+note Read all of stdin; every pass adds at least one byte to a 4096-byte buffer.
+fn slurp to bool
+while lt get inn 0 4096 bound 4097
+k = read 0 inb get inn 0 sub 4096 get inn 0
+if lt k 0
+ret false
+end
+if eq k 0
+ret true
+end
+put inn 0 add get inn 0 ulong k
+end
+ret false
+end
+note Next decimal number in the input; returns 2^64-1 when none is left.
+fn nextnum to ulong
+v = ulong 0
+seen = false
+while lt get inp 0 get inn 0 bound 4097
+c = get inb get inp 0
+put inp 0 add get inp 0 1
+if and ge c 48 le c 57
+v = add mul v 10 ulong sub c 48
+seen = true
+else
+if seen
+ret v
+end
+end
+end
+if seen
+ret v
+end
+ret 18446744073709551615
+end
+text scmd "cmd "
+text scls " class=0x"
+text scat " category=0x"
+text sidx " index=0x"
+text sbad " REFUSED: bits 14..15 are set\n"
+fn hexn v ulong n ulong to void
+for i ulong n
+putc get hx and shr v mul sub sub n 1 i 4 0xf
+end
+end
+fn main to int
+if not slurp
+ret 3
+end
+seen = ulong 0
+while true bound 65
+c = nextnum
+if eq c 18446744073709551615
+break
+end
+seen = add seen 1
+puts scmd
+puthex c 8
+if ne and c 0xc000 0
+puts sbad
+flush
+ret 7
+end
+puts scls
+hexn shr c 16 4
+puts scat
+hexn and shr c 8 0x3f 2
+puts sidx
+hexn and c 0xff 2
+putc 10
+end
+flush
+if eq seen 0
+ret 3
+end
+ret 0
+end

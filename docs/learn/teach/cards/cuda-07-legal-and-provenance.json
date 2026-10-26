@@ -1,0 +1,62 @@
+{
+  "id": "cuda-07-legal-and-provenance",
+  "track": "cuda",
+  "lesson": 7,
+  "title": "Legal and ethical ground: interoperability, MIT headers, and what was never taken apart",
+  "keywords": [
+    "licence",
+    "MIT",
+    "interoperability",
+    "provenance",
+    "THIRD_PARTY",
+    "Mesa",
+    "nvdisasm",
+    "AGPL"
+  ],
+  "summary": "CUDA++ uses 67 MIT headers from NVIDIA's open kernel module, unchanged; Mesa NVK/NAK facts are cited, not copied; Drake ran nvcc and cuobjdump only on his own probe kernels, took apart no NVIDIA program, and ships no firmware. The audit says it is not a legal opinion. Re-checking the pinned tree finds three things to know: two cubins that are CUDA++'s own exports, an nvdisasm-made golden file, and AGPL-3.0-only tags on native .om files under an Apache LICENSE.",
+  "goal": "Know exactly what CUDA++ used from NVIDIA and under which terms, and check those statements against the tree.",
+  "key_steps": [
+    "Count the vendored headers and their licence lines.",
+    "Read NVIDIA COPYING for the scope of the GPL option.",
+    "Search the tree for binaries and NVIDIA tool listings.",
+    "Read what HOW_I_DID_IT.md says was and was not done.",
+    "Check the SPDX line of any file before reusing it."
+  ],
+  "example": {
+    "lang": "sh",
+    "files": [
+      "examples/cuda-07-legal-and-provenance/output.txt",
+      "examples/cuda-07-legal-and-provenance/run.sh"
+    ],
+    "code": "#!/bin/sh\n# Lesson cuda-07: check CUDApp's provenance claims against its own tree with grep and git.\n# Each claim from THIRD_PARTY.md or HOW_I_DID_IT.md is printed next to the count that tests it.\n# An inspection only: no first-party logic, no device, no network.\nset -u\nexport LC_ALL=C\nSRC=${SRC:?set SRC to a directory holding the clones in docs/learn/teach/PINS}\nOMC=${OMC:-$SRC/omega-mv/seed/out/omc}\nPIN=befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\ngot=$(sha256sum \"$OMC\" 2>/dev/null | cut -c1-64)\nif [ \"$got\" != \"$PIN\" ]; then\n    echo \"omc sha256 mismatch: refusing to run\"\n    exit 90\nfi\necho \"omc sha256 $PIN (not needed by this inspection; checked so every lesson pins the same tools)\"\nC=$SRC/CUDApp\ncd \"$C\" || exit 2\n\necho \"== claim 1 (THIRD_PARTY.md): 67 NVIDIA headers, 60 with an SPDX MIT line, 7 with the MIT text only\"\ngrep -n '67 header files\\|60 carry' THIRD_PARTY.md | cut -c1-110\ncd third_party/nvidia-open-580.173.02 || exit 2\ntotal=$(find . -name '*.h' | wc -l | tr -d ' ')\nspdx=$(grep -rl 'SPDX-License-Identifier: MIT' --include='*.h' . | wc -l | tr -d ' ')\ntextonly=$(grep -rL 'SPDX-License-Identifier: MIT' --include='*.h' . | xargs grep -l 'Permission is hereby granted' | wc -l | tr -d ' ')\necho \"   counted: $total headers, $spdx with SPDX MIT, $textonly with the permission text only\"\necho \"   NVIDIA's own licence file (COPYING), the line that limits the dual licence:\"\ngrep -n 'GPL' COPYING | cut -c1-110\ncd \"$C\" || exit 2\n\necho \"== claim 2 (THIRD_PARTY.md): no NVIDIA firmware, libcuda, cubin, fatbin or PTX; no NVIDIA tool listing stored\"\ngrep -n 'No NVIDIA firmware, no libcuda\\|No listing made by NVIDIA tools' THIRD_PARTY.md | cut -c1-110\necho \"   tracked files named *.cubin *.fatbin *.ptx *.sass libcuda* *.so or *.bin under firmware paths:\"\ngit ls-files '*.cubin' '*.fatbin' '*.ptx' '*.sass' 'libcuda*' '*.so' '*gsp*.bin' | sed 's/^/     /'\necho \"   where the two cubins come from (CUDA++'s own exporter):\"\ngrep -n 'Both cubins are sm_121 ELF\\|generated text byte-for-byte' evidence/MAX-INTEROP/68/RESULT.md | sed 's/^/     /'\necho \"   how expected.sass is made (the emitter test's own script):\"\ngrep -n 'nvdisasm --binary\\|nvdisasm decode matches\\|rewrite expected.sass' tests/device-trace/run-emitter-checks.sh | sed 's/^/     /'\ngrep -n 'headerflags' tests/device-trace/expected.sass | sed -n '1p' | sed 's/^/     /'\n\necho \"== claim 3 (HOW_I_DID_IT.md): NVIDIA tools were run on my own probe kernels, nothing was taken apart\"\ngrep -n 'I did not take apart' docs/HOW_I_DID_IT.md | cut -c1-140\ngrep -n 'One CUDA C++ source remains' docs/AUDIT.md | cut -c1-150\necho \"   the one CUDA C++ file in the tree:\"\ngit ls-files '*.cu'\n\necho \"== claim 4 (THIRD_PARTY.md): Mesa facts cited in comments, no Mesa code copied\"\necho \"   files under src/ that name a Mesa source file: $(git grep -l 'sm70_encode.rs\\|qmd.rs\\|nvk_cmd_dispatch.c\\|sm120_instr_latencies.rs' -- src | wc -l | tr -d ' ')\"\n\necho \"== what the licence of first-party code says at this pin\"\nsed -n '2,3p' LICENSE | sed 's/^ *//'\necho \"   files whose SPDX line says Apache-2.0 WITH LLVM-exception: $(git grep -l 'SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception' | wc -l | tr -d ' ')\"\necho \"   files whose SPDX line says AGPL-3.0-only: $(git grep -l 'SPDX-License-Identifier: AGPL-3.0-only' | wc -l | tr -d ' '), for example:\"\ngit grep -l 'SPDX-License-Identifier: AGPL-3.0-only' -- native | sed -n '1,3p'\n",
+    "command": "sh examples/cuda-07-legal-and-provenance/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (not needed by this inspection; checked so every lesson pins the same tools)\n== claim 1 (THIRD_PARTY.md): 67 NVIDIA headers, 60 with an SPDX MIT line, 7 with the MIT text only\n7:`third_party/nvidia-open-580.173.02/` holds 67 header files from NVIDIA's open-gpu-kernel-modules,\n10:folder lists every file. Each file keeps its own NVIDIA copyright and MIT notice (60 carry\n   counted: 67 headers, 60 with SPDX MIT, 7 with the permission text only\n   NVIDIA's own licence file (COPYING), the line that limits the dual licence:\n26:kernel module is dual licensed as MIT/GPLv2.\n== claim 2 (THIRD_PARTY.md): no NVIDIA firmware, libcuda, cubin, fatbin or PTX; no NVIDIA tool listing stored\n48:- No NVIDIA firmware, no libcuda, no cubin or fatbin, no PTX. The GPU's signed GSP firmware is loaded\n51:  cross-check. No listing made by NVIDIA tools is stored in this repository (one such file was kept out\n   tracked files named *.cubin *.fatbin *.ptx *.sass libcuda* *.so or *.bin under firmware paths:\n     evidence/MAX-INTEROP/68/attention-hd128-gqa8.cubin\n     evidence/MAX-INTEROP/68/matmul-16x16x8.cubin\n     tests/device-trace/expected.sass\n   where the two cubins come from (CUDA++'s own exporter):\n     24:Both cubins are sm_121 ELF (`e_machine=190`, `e_flags=0x6007902`), carry the\n     25:generated text byte-for-byte, bind text/QMD/cbank/SHA-256, contract id,\n   how expected.sass is made (the emitter test's own script):\n     11:#        add --update to rewrite expected.sass from the current emitter output.\n     62:nvdisasm --binary SM121 \"$work/words.bin\" > \"$work/got.sass\"\n     69:  echo 'nvdisasm decode matches expected.sass'\n     1:\t.headerflags\t@\"EF_CUDA_64BIT_ADDRESS EF_CUDA_SM121 EF_CUDA_VIRTUAL_SM(EF_CUDA_SM121)\"\n== claim 3 (HOW_I_DID_IT.md): NVIDIA tools were run on my own probe kernels, nothing was taken apart\n59:- I did not take apart `libcuda`, `nvcc` or any other NVIDIA program. I ran NVIDIA's compiler and disassembler on my own small kernels an\n68:- One CUDA C++ source remains in a receipt: `evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z/fa_ops.cu`, my own probe kernel, used once with \n   the one CUDA C++ file in the tree:\nevidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z/fa_ops.cu\n== claim 4 (THIRD_PARTY.md): Mesa facts cited in comments, no Mesa code copied\n   files under src/ that name a Mesa source file: 5\n== what the licence of first-party code says at this pin\nApache License\nVersion 2.0, January 2004\n   files whose SPDX line says Apache-2.0 WITH LLVM-exception: 213\n   files whose SPDX line says AGPL-3.0-only: 67, for example:\nnative/blackwell/launch.om\nnative/blackwell/trace-emit.om\nnative/blackwell/vector.om\n"
+  },
+  "common_mistake": "Overclaiming either way: NVIDIA tools were used offline on Drake's own probes (not never), and CUDApp contains NVIDIA's MIT headers (not NVIDIA code beyond them). Cite the file and leave legal conclusions to lawyers.",
+  "links": [
+    {
+      "title": "THIRD_PARTY.md",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/THIRD_PARTY.md"
+    },
+    {
+      "title": "NVIDIA COPYING",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/third_party/nvidia-open-580.173.02/COPYING"
+    },
+    {
+      "title": "How I did it: what I did not do",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/docs/HOW_I_DID_IT.md"
+    },
+    {
+      "title": "Licence and provenance audit",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/docs/LICENSE_PROVENANCE.md"
+    },
+    {
+      "title": "MAX-INTEROP cubin export result",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/evidence/MAX-INTEROP/68/RESULT.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "EXERCISED on a Linux AArch64 host: header counts 67/60/7 match THIRD_PARTY.md. The tree at the pin also holds tests/device-trace/expected.sass, an nvdisasm-made golden, which conflicts with THIRD_PARTY.md's no-listing sentence. Not legal advice.",
+  "page": "pages/cuda-07-legal-and-provenance.md",
+  "steer_refs": []
+}

@@ -1,0 +1,115 @@
+note overclaim: read status text on stdin and flag words that claim more than evidence can carry
+note list a is always flagged; list b (ladder and verdict words) is flagged unless the same line also
+note carries a receipt reference or a negation; a word is letters, digits, _ - and %
+note exit 0 no flags, 1 flags found, 4 REFUSED (input too big)
+text wa "production-ready blazing guaranteed fully done Done works bulletproof 100% "
+text wb "QUALIFIED DEPLOYED VERIFIED PASS verified qualified deployed "
+text wx "receipt not NOT NOT_RUN Nothing "
+text tline "line "
+text ta ": always an overclaim: "
+text tb ": ladder word with no receipt or negation on the line: "
+text tflags "flags "
+text vclean "verdict CLEAN\n"
+text vover "verdict OVERCLAIM\n"
+text nl "\n"
+note ln: 0 line number, 1 flags
+global ln ulong 2
+fn isw c uchar to bool
+if and ge c 97 le c 122
+ret true
+end
+if and ge c 65 le c 90
+ret true
+end
+if and ge c 48 le c 57
+ret true
+end
+ret or or eq c 95 eq c 45 eq c 37
+end
+fn wend a ulong b ulong to ulong
+e = a
+while lt e b bound 524289
+if not isw get inb e
+ret e
+end
+e = add e 1
+end
+ret e
+end
+fn excused a ulong b ulong to bool
+note does the line a .. b-1 carry a word from wx
+i = a
+while lt i b bound 524289
+e = wend i b
+if lt i e
+if ge lookup wx i e 0
+ret true
+end
+i = e
+else
+i = add i 1
+end
+end
+ret false
+end
+fn flag t view uchar * a ulong e ulong to void
+ot tline
+on get ln 0
+ot t
+oi a e
+ot nl
+put ln 1 add get ln 1 1
+end
+fn oneline a ulong b ulong to void
+put ln 0 add get ln 0 1
+x = excused a b
+i = a
+while lt i b bound 524289
+e = wend i b
+if lt i e
+if ge lookup wa i e 0
+flag ta i e
+end
+if not x
+if ge lookup wb i e 0
+flag tb i e
+end
+end
+i = e
+else
+i = add i 1
+end
+end
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 4
+end
+if eq get st 2 1
+ret 4
+end
+n = ulong r
+a = ulong 0
+for i ulong n
+if eq get inb i 10
+oneline a i
+a = add i 1
+end
+end
+if lt a n
+oneline a n
+end
+ot tflags
+on get ln 1
+ot nl
+v = int 0
+if gt get ln 1 0
+v = 1
+ot vover
+else
+ot vclean
+end
+f = flush
+ret v
+end

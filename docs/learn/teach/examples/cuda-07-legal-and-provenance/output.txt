@@ -1,0 +1,37 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (not needed by this inspection; checked so every lesson pins the same tools)
+== claim 1 (THIRD_PARTY.md): 67 NVIDIA headers, 60 with an SPDX MIT line, 7 with the MIT text only
+7:`third_party/nvidia-open-580.173.02/` holds 67 header files from NVIDIA's open-gpu-kernel-modules,
+10:folder lists every file. Each file keeps its own NVIDIA copyright and MIT notice (60 carry
+   counted: 67 headers, 60 with SPDX MIT, 7 with the permission text only
+   NVIDIA's own licence file (COPYING), the line that limits the dual licence:
+26:kernel module is dual licensed as MIT/GPLv2.
+== claim 2 (THIRD_PARTY.md): no NVIDIA firmware, libcuda, cubin, fatbin or PTX; no NVIDIA tool listing stored
+48:- No NVIDIA firmware, no libcuda, no cubin or fatbin, no PTX. The GPU's signed GSP firmware is loaded
+51:  cross-check. No listing made by NVIDIA tools is stored in this repository (one such file was kept out
+   tracked files named *.cubin *.fatbin *.ptx *.sass libcuda* *.so or *.bin under firmware paths:
+     evidence/MAX-INTEROP/68/attention-hd128-gqa8.cubin
+     evidence/MAX-INTEROP/68/matmul-16x16x8.cubin
+     tests/device-trace/expected.sass
+   where the two cubins come from (CUDA++'s own exporter):
+     24:Both cubins are sm_121 ELF (`e_machine=190`, `e_flags=0x6007902`), carry the
+     25:generated text byte-for-byte, bind text/QMD/cbank/SHA-256, contract id,
+   how expected.sass is made (the emitter test's own script):
+     11:#        add --update to rewrite expected.sass from the current emitter output.
+     62:nvdisasm --binary SM121 "$work/words.bin" > "$work/got.sass"
+     69:  echo 'nvdisasm decode matches expected.sass'
+     1:	.headerflags	@"EF_CUDA_64BIT_ADDRESS EF_CUDA_SM121 EF_CUDA_VIRTUAL_SM(EF_CUDA_SM121)"
+== claim 3 (HOW_I_DID_IT.md): NVIDIA tools were run on my own probe kernels, nothing was taken apart
+59:- I did not take apart `libcuda`, `nvcc` or any other NVIDIA program. I ran NVIDIA's compiler and disassembler on my own small kernels an
+68:- One CUDA C++ source remains in a receipt: `evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z/fa_ops.cu`, my own probe kernel, used once with 
+   the one CUDA C++ file in the tree:
+evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z/fa_ops.cu
+== claim 4 (THIRD_PARTY.md): Mesa facts cited in comments, no Mesa code copied
+   files under src/ that name a Mesa source file: 5
+== what the licence of first-party code says at this pin
+Apache License
+Version 2.0, January 2004
+   files whose SPDX line says Apache-2.0 WITH LLVM-exception: 213
+   files whose SPDX line says AGPL-3.0-only: 67, for example:
+native/blackwell/launch.om
+native/blackwell/trace-emit.om
+native/blackwell/vector.om

@@ -1,0 +1,6 @@
+note mixed.om: negative control. a uint and a long in one op: no implicit conversion
+fn main to int
+x = uint 7
+y = add x long 1
+ret 0
+end

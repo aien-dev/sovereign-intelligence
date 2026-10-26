@@ -1,0 +1,23 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. three short lines on stdin
+compile wc.om rc=0
+bytes 14
+lines 3
+run wc rc=0
+== 2. 5000 lines of 'abc' through a pipe: many partial reads, one total
+bytes 20000
+lines 5000
+run wc rc=0
+== 3. stdin closed: read returns -9 (EBADF), the program exits 9
+run wc rc=9
+== 4. negative control: a loop that treats k <= 0 as end of input hides the error
+compile naive.om rc=0
+bytes 0
+run naive rc=0
+== 5. trap 3: the slice is checked before the kernel call (exit 103)
+compile slice.om rc=0
+run slice rc=103
+== 6. error 19: a global passed as an argument
+compile global.om rc=19
+omc: line 7: error 19
+RESULT PASS

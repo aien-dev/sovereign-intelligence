@@ -1,0 +1,57 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+vecadd.bin sha256 39f3dfdfc529a75a8274a27900acf4e7382b7f280a211e0412c51609f44b62a1, 512 bytes
+compile rc=0
+ 0 op=0xb82 pred=7 rd=1 ra=255 | stall=1 yield=1 sets=- rsets=- waits=-
+ 1 op=0x919 pred=7 rd=9 ra=0 | stall=1 yield=1 sets=SB0 rsets=- waits=-
+ 2 op=0x7ac pred=7 rd=4 ra=255 | stall=1 yield=1 sets=SB0 rsets=- waits=-
+ 3 op=0x919 pred=7 rd=0 ra=0 | stall=1 yield=1 sets=SB0 rsets=- waits=-
+ 4 op=0x7ac pred=7 rd=5 ra=255 | stall=1 yield=1 sets=SB1 rsets=- waits=-
+ 5 op=0xc24 pred=7 rd=9 ra=9 | stall=5 yield=0 sets=- rsets=- waits=SB0 
+ 6 op=0xc0c pred=7 rd=0 ra=9 | stall=13 yield=0 sets=- rsets=- waits=SB1 
+ 7 op=0x94d pred=0 rd=0 ra=0 | stall=5 yield=1 sets=- rsets=- waits=-
+ 8 op=0xb82 pred=7 rd=2 ra=255 | stall=1 yield=1 sets=SB0 rsets=- waits=-
+ 9 op=0x7ac pred=7 rd=4 ra=255 | stall=7 yield=1 sets=SB1 rsets=- waits=-
+10 op=0xb82 pred=7 rd=4 ra=255 | stall=8 yield=1 sets=SB2 rsets=- waits=-
+11 op=0xb82 pred=7 rd=6 ra=255 | stall=1 yield=1 sets=SB3 rsets=- waits=-
+12 op=0x825 pred=7 rd=2 ra=9 | stall=6 yield=0 sets=- rsets=- waits=SB0 
+13 op=0x981 pred=7 rd=2 ra=2 | stall=1 yield=1 sets=SB4 rsets=- waits=SB1 
+14 op=0x825 pred=7 rd=4 ra=9 | stall=6 yield=0 sets=- rsets=- waits=SB2 
+15 op=0x981 pred=7 rd=5 ra=4 | stall=1 yield=1 sets=SB4 rsets=- waits=-
+16 op=0x825 pred=7 rd=6 ra=9 | stall=1 yield=1 sets=- rsets=- waits=SB3 
+17 op=0x210 pred=7 rd=9 ra=2 | stall=5 yield=0 sets=- rsets=- waits=SB4 
+18 op=0x986 pred=7 rd=0 ra=6 | stall=1 yield=1 sets=- rsets=- waits=-
+19 op=0x94d pred=7 rd=0 ra=0 | stall=5 yield=1 sets=- rsets=- waits=-
+20 op=0x947 pred=7 rd=252 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+21 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+22 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+23 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+24 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+25 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+26 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+27 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+28 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+29 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+30 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+31 op=0x918 pred=7 rd=0 ra=0 | stall=0 yield=0 sets=- rsets=- waits=-
+IADD3 decoded: IADD3 R9, PT, PT, R2, R5, RZ
+run rc=0
+== names for each opcode, from the base words in sm121.tbl (word 0, bits 0..11)
+0x210: iadd3 
+0x7ac: ldcu ldcu.64 
+0x825: imad.wide 
+0x918: nop 
+0x919: s2r 
+0x947: bra 
+0x94d: exit exit.p0 
+0x981: ldg 
+0x986: stg stg.strong.sys 
+0xb82: ldc ldc.64 
+0xc0c: isetp.ge.u 
+0xc24: imad.u 
+== oracle: the listing's own comment for this instruction (vecadd.s2)
+listing: IADD3 R9, PT, PT, R2, R5, RZ
+decoded add: MATCH
+== negative control: one bit changed in the add's destination register (byte 274)
+IADD3 decoded: IADD3 R8, PT, PT, R2, R5, RZ
+decoded add: DIFFERS
+mutant run rc=0

@@ -1,0 +1,6 @@
+YY loop bound off by one in the parser
+YN race in the lock release path
+YU read result not checked for a negative count
+UU helper name could be clearer
+NN suspected leak in the cache
+UN unused import

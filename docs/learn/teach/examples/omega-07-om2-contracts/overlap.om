@@ -1,0 +1,9 @@
+note overlap.om: negative control. size would share byte 3 with magic (error 29, layout)
+om2 diag
+layout hdr 8
+field magic uint at 0 big
+field size ushort at 3 little
+end
+fn main to int
+ret 0
+end

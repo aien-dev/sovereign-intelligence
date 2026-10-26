@@ -1,0 +1,5 @@
+note asname.om: negative control. once added, a word is reserved and cannot be a name
+fn main to int
+random = ulong 1
+ret 0
+end

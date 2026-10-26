@@ -219,6 +219,7 @@ The specs, decisions and protocols the layers agree on.
 ## More
 
 - [What I am building](docs/WHAT-I-AM-BUILDING.md): every repository, what it really does, and how far it has got
+- [Learn](docs/learn/README.md): four tracks on how I built it (CUDA++, Omega, a sovereign stack, orchestrating agents), every example runnable with its real output
 - [About the engineer](https://www.aienos.com/engineer/)
 - [Naming](NAMING.md): how to write Sovereign Intelligence (SI) and AienOS
 - [NOTICE](NOTICE) and [LICENSE](LICENSE): Apache-2.0 WITH LLVM-exception

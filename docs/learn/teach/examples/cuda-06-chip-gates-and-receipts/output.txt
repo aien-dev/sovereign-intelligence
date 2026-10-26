@@ -1,0 +1,30 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+compile rc=0
+== 1. NVIDIA headers: third_party/nvidia-open-580.173.02/SHA256SUMS
+  matched=68 missing=0 differs=0
+verdict: PASS (integrity only: these are the recorded bytes)
+  verdict.om rc=0
+== 2. chip receipt: evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z/SHA256SUMS
+  MISSING  fa_ops.sass
+  matched=4 missing=1 differs=0
+verdict: INCOMPLETE (a listed file is absent; the receipt cannot be re-checked in full)
+  verdict.om rc=10
+  why the missing file is missing (docs/AUDIT.md):
+60:- `evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z/fa_ops.sass`: a listing of machine code produced by NVIDIA's compiler (see section 5). That receipt'
+  what the log itself says:
+peak stall 1 chains 16 threads 256 ctas 384 (declared 88): median 7162.2 us, 115.14 TFLOPS, 0 wrong values
+GPU_TC_PEAK: PASS
+== 3. negative control: the same receipt with one byte appended to peak.log
+  MISSING  fa_ops.sass
+  DIFFERS  peak.log
+  matched=3 missing=1 differs=1
+verdict: FAIL (a file differs from its recorded hash)
+  verdict.om rc=11
+== 4. negative control: an empty file list
+  matched=0 missing=0 differs=0
+verdict: NOT_RUN (nothing was checked; zero files is not a pass)
+  verdict.om rc=12
+== 5. the M16 receipt: what it claims, and whether its raw logs are here
+  qualification_status=PASS implementation_commit=a2c0d7fbc03f7ce91fcb6389312a0ee8630322cd evidence_dir=evidence/m16-requalification
+  evidence/m16-requalification: absent at this pin
+119:missing logs has been established. Current native qualification is **NOT_RUN**;

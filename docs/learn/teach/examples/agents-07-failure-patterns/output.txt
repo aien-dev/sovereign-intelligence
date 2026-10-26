@@ -1,0 +1,56 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile tally.om rc=0
+
+naive reading first: count FAIL lines and call zero a green run
+full.log: FAIL lines=0
+shrunk.log: FAIL lines=0
+notrun.log: FAIL lines=0
+noexpect.log: FAIL lines=0
+
+--- input full.log
+expect 5
+PASS parse_empty
+PASS parse_long
+runner: cache warm
+PASS trap_bounds
+PASS trap_div0
+PASS io_short_read
+--- output
+expected=5 results=5 pass=5 fail=0 not_run=0 noise=1
+VERDICT PASS
+run rc=0 (expected 0)
+
+--- input shrunk.log
+expect 5
+PASS parse_empty
+PASS parse_long
+PASS trap_bounds
+runner: 2 case files not found, continuing
+--- output
+expected=5 results=3 pass=3 fail=0 not_run=0 noise=1
+SHRUNK: denominator lost 2 case(s): they produced no result, so they did not pass
+VERDICT FAIL
+run rc=1 (expected 1)
+
+--- input notrun.log
+expect 5
+PASS parse_empty
+PASS parse_long
+PASS trap_bounds
+NOT_RUN trap_div0
+SKIP io_short_read
+--- output
+expected=5 results=5 pass=3 fail=0 not_run=2 noise=0
+NOT_RUN or SKIP=2 (NOT_RUN is not PASS)
+VERDICT FAIL
+run rc=1 (expected 1)
+
+--- input noexpect.log
+PASS parse_empty
+PASS parse_long
+PASS trap_bounds
+--- output
+REFUSE: no expected case count, so no pass rate can be trusted
+run rc=3 (expected 3)
+
+ALL EXIT STATUSES AS EXPECTED

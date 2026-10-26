@@ -1,0 +1,68 @@
+{
+  "id": "stack-03-receipts",
+  "track": "stack",
+  "lesson": 3,
+  "title": "Receipts: what a run leaves behind",
+  "keywords": [
+    "receipt",
+    "sha256",
+    "provenance",
+    "expected vs observed",
+    "limits",
+    "binary hash",
+    "compiler hash",
+    "verify a receipt",
+    "correction"
+  ],
+  "summary": "Drake never trusts 'it works'; he keeps receipts. A receipt names the commit, the sha256 of the source, compiler and binary, the exact command, the platform, expected next to observed, and the limits of the run. To verify one you rebuild and recompute every field and compare. I can show you a kept receipt for a tiny Omega program, a checker in Omega that compares it field by field, and two negative controls: a one-byte source change (FAIL) and a missing limits line (REFUSED).",
+  "goal": "Know what a receipt must contain, keep one for an Omega run, and verify it later by recomputing every field.",
+  "key_steps": [
+    "Record commit, source sha256 and compiler sha256",
+    "Record the binary sha256 and the exact command",
+    "State the platform plainly",
+    "Write expected exit and output before the run, and record observed next to them",
+    "Add a limits line saying what the run does not show",
+    "Verify by rebuilding, recomputing every field and comparing line by line"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/stack-03-receipts/rcptchk.om",
+      "examples/stack-03-receipts/hello.om",
+      "examples/stack-03-receipts/lib.om",
+      "examples/stack-03-receipts/run.sh",
+      "examples/stack-03-receipts/receipt.txt",
+      "examples/stack-03-receipts/expected.txt"
+    ],
+    "code": "note rcptchk: check a kept receipt against a fresh recomputation, both read on stdin\nnote input: the kept receipt, a line \"--\", then the recomputed receipt; each line is \"key value\"\nnote exit 0 PASS, 1 FAIL (a field differs or expected is not observed), 4 REFUSED (shape wrong)\ntext keys \"receipt program omega_mv omc_sha256 source_sha256 binary_sha256 command platform expect_exit observed_exit expect_stdout_sha256 observed_stdout_sha256 limits \"\ntext tsame \"fields that match the recomputation: \"\ntext tdiff \"DIFF \"\ntext tref \"REFUSED \"\ntext tbadk \"missing or misplaced key at line \"\ntext tnosep \"no -- separator line\\n\"\ntext tkept \"the kept receipt has \"\ntext tfresh \"the recomputed receipt has \"\ntext tneed \" lines; a receipt has 13\\n\"\ntext texit \"kept receipt: expect_exit equals observed_exit: \"\ntext tout \"kept receipt: expect_stdout_sha256 equals observed_stdout_sha256: \"\ntext yes \"yes\\n\"\ntext no \"no\\n\"\ntext vpass \"verdict PASS\\n\"\ntext vfail \"verdict FAIL\\n\"\ntext nl \"\\n\"\nconst NKEY ulong 13\nglobal lb ulong 64\nglobal lz ulong 64\nglobal nln ulong 1\nfn split n ulong to bool\nnote record the start and end of every line; false when there are more than 64 lines\na = ulong 0\nfor i ulong n\nif eq get inb i 10\nc = get nln 0\nif ge c 64\nret false\nend\nput lb c a\nput lz c i\nput nln 0 add c 1\na = add i 1\nend\nend\nret true\nend\nfn issep i ulong to bool\na = get lb i\nif ne sub get lz i a 2\nret false\nend\nif ne get inb a 45\nret false\nend\nret eq get inb add a 1 45\nend\nfn keyok i ulong k ulong to bool\nnote line i starts with key number k of keys, followed by a space\na = get lb i\ne = wordend a get lz i\nif eq e get lz i\nret false\nend\nw = lookup keys a e\nret eq w long k\nend\nfn lineeq i ulong j ulong to bool\nn = sub get lz i get lb i\nif ne n sub get lz j get lb j\nret false\nend\nret samei get lb i get lb j n\nend\nfn valeq i ulong j ulong to bool\nnote the values (after the first space) of lines i and j are equal\na = add wordend get lb i get lz i 1\nb = add wordend get lb j get lz j 1\nn = sub get lz i a\nif ne n sub get lz j b\nret false\nend\nret samei a b n\nend\nfn findsep to ulong\nnote index of the first \"--\" line, or the line count when there is none\nfor i ulong get nln 0\nif issep i\nret i\nend\nend\nret get nln 0\nend\nfn shape f ulong to bool\nnote lines f .. f+12 carry the 13 keys in order\nfor k ulong NKEY\nif not keyok add f k k\not tref\not tbadk\non add add f k 1\not nl\nret false\nend\nend\nret true\nend\nfn yn b bool to void\nif b\not yes\nelse\not no\nend\nend\nfn refuse to int\nf = flush\nret 4\nend\nfn main to int\nr = rdall\nif lt r 0\nret 4\nend\nif eq get st 2 1\nret 4\nend\nif not split ulong r\nret refuse\nend\ns = findsep\nif eq s get nln 0\not tref\not tnosep\nret refuse\nend\nif ne s NKEY\not tref\not tkept\non s\not tneed\nret refuse\nend\nif ne get nln 0 add mul NKEY 2 1\not tref\not tfresh\non sub sub get nln 0 s 1\not tneed\nret refuse\nend\nif not shape 0\nret refuse\nend\nif not shape add s 1\nret refuse\nend\nbad = ulong 0\nfor k ulong NKEY\nif not lineeq k add add s 1 k\not tdiff\noi get lb k wordend get lb k get lz k\not nl\nbad = add bad 1\nend\nend\not tsame\non sub NKEY bad\not nl\nex = valeq 8 9\not texit\nyn ex\nso = valeq 10 11\not tout\nyn so\nif not and ex so\nbad = add bad 1\nend\nif eq bad 0\not vpass\nf = flush\nret 0\nend\not vfail\nf = flush\nret 1\nend\n",
+    "command": "sh examples/stack-03-receipts/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\ncompile lib.om+rcptchk.om rc=0\n== the kept receipt\nreceipt 1\nprogram hello.om\nomega_mv 19f014f2178ca9cd3473728fe00a475a2398c409\nomc_sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\nsource_sha256 2b026cf84fee9c42c9d1ef10f564dfdee347c85fa4b08903f77c8e05d31952a0\nbinary_sha256 96e88a3a630a5e19516bc33b1b1048a04705fa69f3e2d745427cefa87655e2a5\ncommand ./hello < /dev/null\nplatform linux-aarch64 host, no GPU device opened\nexpect_exit 0\nobserved_exit 0\nexpect_stdout_sha256 82f7f10492732a63117acb497846157d2104359facda1eef9e3f243ae64056d6\nobserved_stdout_sha256 82f7f10492732a63117acb497846157d2104359facda1eef9e3f243ae64056d6\nlimits host only; one run; not hardware qualification\n== verify: recompute every field from hello.om and compare\nfields that match the recomputation: 13\nkept receipt: expect_exit equals observed_exit: yes\nkept receipt: expect_stdout_sha256 equals observed_stdout_sha256: yes\nverdict PASS\nrun rc=0\n== negative control: hello.om with one byte changed (mine -> Mine)\nDIFF source_sha256\nDIFF binary_sha256\nDIFF observed_stdout_sha256\nfields that match the recomputation: 10\nkept receipt: expect_exit equals observed_exit: yes\nkept receipt: expect_stdout_sha256 equals observed_stdout_sha256: yes\nverdict FAIL\nrun rc=1\n== negative control: the kept receipt with its limits line removed\nREFUSED the kept receipt has 12 lines; a receipt has 13\nrun rc=4\nevery verdict as expected: yes\n"
+  },
+  "common_mistake": "Keeping a log instead of a receipt, or 'updating' an old receipt after a fix. A receipt is history: keep the old one, add the new one beside it, and add a correction file if the old one was wrong.",
+  "links": [
+    {
+      "title": "omega-harness section 3: record revision, hashes, command, platform, expected versus observed, limits",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-harness/SKILL.md#L48"
+    },
+    {
+      "title": "omega-communication: corrections beside a receipt, never edits",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-communication/SKILL.md#L57"
+    },
+    {
+      "title": "The SI alpha evidence folder, receipt by receipt",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/evidence/alpha-20261026.1/README.md"
+    },
+    {
+      "title": "The container receipt for the SI installer",
+      "url": "https://github.com/aien-dev/sovereign-intelligence/blob/5279659888301816d1f41e1715056560a4781608/evidence/alpha-20261026.1/container/receipt.txt"
+    },
+    {
+      "title": "Core's evidence receipt adapter",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/f30eb963918d71dd2998b1cb936c251429417de1/docs/EVIDENCE_RECEIPT_ADAPTER.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "One host run of hello.om was receipted and re-verified by recomputation on a Linux arm64 host, with two negative controls. It is not hardware evidence and the receipt is not signed.",
+  "page": "pages/stack-03-receipts.md",
+  "steer_refs": []
+}

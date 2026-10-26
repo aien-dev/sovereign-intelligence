@@ -1,0 +1,71 @@
+{
+  "id": "omega-08-error-codes",
+  "track": "omega",
+  "lesson": 8,
+  "title": "Compiler error codes and how to fix them",
+  "keywords": [
+    "error",
+    "error code",
+    "error 12",
+    "register",
+    "error 9",
+    "error 13",
+    "error 16",
+    "gate15",
+    "refusal",
+    "omc error"
+  ],
+  "summary": "omc refuses a program with omc: line N: error K and exits K; there are no warnings. Drake pins one minimal refusal per code in gate15.sh. I'll show you the ones people hit most: 12 (the 16-register pool, fixed by splitting into helpers and checking the split against a reference), 9 (a word in the wrong place, like new inside a loop), 13 (a name over 8 characters) and 16 (syntax, like an array parameter without its length).",
+  "goal": "Read omc refusal codes and fix errors 12, 9, 13 and 16 with a verified change.",
+  "key_steps": [
+    "Read the line number and code from omc: line N: error K",
+    "Look the code up in the gate15 table",
+    "For error 12, split the function into helpers with about 10 live names each",
+    "Check the split against a reference and a deliberately wrong variant",
+    "For 9, move new to the outermost block; for 13, shorten the name to 8 characters; for 16, fix the syntax (for example state array lengths)"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/omega-08-error-codes/blend.om",
+      "examples/omega-08-error-codes/split.om",
+      "examples/omega-08-error-codes/inblock.om",
+      "examples/omega-08-error-codes/hoisted.om",
+      "examples/omega-08-error-codes/longname.om",
+      "examples/omega-08-error-codes/nolength.om",
+      "examples/omega-08-error-codes/withlen.om",
+      "examples/omega-08-error-codes/run.sh",
+      "examples/omega-08-error-codes/output.txt"
+    ],
+    "code": "note blend.om: refused with error 12. Six parameters, eleven named results and the temporaries of\nnote the last line all want one of the 16 registers at the same time\nfn blend a ulong b ulong c ulong d ulong e ulong f ulong to ulong\nab = mul a b\ncd = mul c d\nef = mul e f\nac = add a c\nbd = add b d\nce = xor c e\ndf = xor d f\ns1 = add ab cd\ns2 = add ef ac\ns3 = add bd ce\nret add add add s1 s2 add s3 df add add ab cd ef\nend\nfn main to int\nx = blend 1 2 3 4 5 6\nret int and x 255\nend\n",
+    "command": "sh examples/omega-08-error-codes/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. error 12: the 16-register pool runs out\ncompile blend.om rc=12\nomc: line 14: error 12\n== 2. the fix: split the work into helpers\ncompile split.om rc=0\n106\n123\nrun split rc=0\n== 2b. negative control: a wrong split (xor d f made and d f in mixes) fails the reference check\ncompile badsplit rc=0\nrun badsplit rc=3\n== 3. error 9: new inside a loop\ncompile inblock.om rc=9\nomc: line 5: error 9\n== 4. the fix: hoist the array to the outermost block\ncompile hoisted.om rc=0\nrun hoisted rc=16\n== 5. error 13: a 9-character variable name\ncompile longname.om rc=13\nomc: line 3: error 13\n== 6. error 16: an array parameter without its length\ncompile nolength.om rc=16\nomc: line 2: error 16\n== 7. the fix: state the length\ncompile withlen.om rc=0\nrun withlen rc=20\n== 8. the whole table: seed/omc/gate15.sh, one minimal refusal per code, in a disposable copy\nPASS gate15 21 refusal cases (codes 3..23; 1 and 2 are compiler I/O) plus a valid control\ngate15 rc=0\nRESULT PASS\n"
+  },
+  "common_mistake": "Working around error 12 by shortening names or deleting checks. Live values use registers, not long names. Split the function into helpers, keep a reference computation and a negative control that show the split is equivalent.",
+  "links": [
+    {
+      "title": "gate15.sh",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omc/gate15.sh"
+    },
+    {
+      "title": "OMEGESE section 9.2",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L409"
+    },
+    {
+      "title": "OMEGESE section 9.6: capacities",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md#L488"
+    },
+    {
+      "title": "omc.om register alloc",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omc/omc.om#L2369"
+    },
+    {
+      "title": "OM-2 tutorial: when the compiler refuses",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OM2-TUTORIAL.md#L242"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "Refusals 12, 9, 13, 16, their fixes, a wrong-split negative control and gate15.sh (in a disposable copy) run on Linux AArch64 with omc befb8199...8a1d; reproduced byte for byte. The full repository gate set was not run here.",
+  "page": "pages/omega-08-error-codes.md",
+  "steer_refs": []
+}

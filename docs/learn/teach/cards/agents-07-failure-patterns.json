@@ -1,0 +1,64 @@
+{
+  "id": "agents-07-failure-patterns",
+  "track": "agents",
+  "lesson": 7,
+  "title": "Failure patterns: how agents overclaim, and how to catch it",
+  "keywords": [
+    "failure",
+    "overclaim",
+    "receipt",
+    "NOT_RUN",
+    "shrinking denominator",
+    "silent test loss",
+    "compile is not run",
+    "status"
+  ],
+  "summary": "Drake has catalogued how agents overclaim: receipts with no artifact, runners that silently lose cases so the pass rate looks perfect, NOT_RUN counted as PASS, a compile taken as proof of behavior, merged called deployed, and a lead restoring a model setting before its child agent started. Each has a mechanical check. I can run his tally program that counts PASS, FAIL and NOT_RUN against the case count fixed before the run.",
+  "goal": "Recognize the common ways agent reports overclaim and put a mechanical check in front of each.",
+  "key_steps": [
+    "Require an artifact for every claim of done, PASS, merged or measured",
+    "Fix the expected case count before the run",
+    "Treat fewer results than expected as a failure",
+    "Report NOT_RUN and SKIP as not passed",
+    "Run the changed path and a negative control, not just the compile",
+    "Confirm a child agent's model from its own session record"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/agents-07-failure-patterns/tally.om",
+      "examples/agents-07-failure-patterns/full.log",
+      "examples/agents-07-failure-patterns/shrunk.log",
+      "examples/agents-07-failure-patterns/notrun.log",
+      "examples/agents-07-failure-patterns/noexpect.log",
+      "examples/agents-07-failure-patterns/run.sh"
+    ],
+    "code": "note tally: count PASS, FAIL and NOT_RUN in a runner log against the case count fixed before the run\nnote exit 0 every expected case passed, 1 not a pass, 2 read error, 3 no expected count (fail closed)\ntext KW \"expect \\nPASS \\nFAIL \\nNOT_RUN \\nSKIP \\nexpected=\\n results=\\n pass=\\n fail=\\nSHRUNK: denominator lost \\n case(s): they produced no result, so they did not pass\\nGREW: unexpected results=\\n (the case list changed: re-pin it before trusting a rate)\\nNOT_RUN or SKIP=\\n (NOT_RUN is not PASS)\\nREFUSE: no expected case count, so no pass rate can be trusted\\n not_run=\\n noise=\\n\\nVERDICT PASS\\nVERDICT FAIL\\n\"\nnote helpers: read all of stdin into inb, walk lines, compare a line prefix with the n-th\nnote entry of the newline separated table KW, and write table entries, input bytes and numbers\nglobal inb uchar 65536\nglobal num uchar 24\nfn rdall to long\nt = ulong 0\nwhile lt t len inb bound 65536\nk = read 0 inb t sub len inb t\nif lt k 0\nret k\nend\nif eq k 0\nret long t\nend\nt = add t ulong k\nend\nret neg long 27\nend\nfn eol s ulong n ulong to ulong\ni = s\nwhile lt i n bound 65536\nif eq get inb i 10\nret i\nend\ni = add i 1\nend\nret n\nend\nfn kstart k ulong to ulong\np = ulong 0\nc = ulong 0\nwhile lt c k bound 4096\nif eq get KW p 10\nc = add c 1\nend\np = add p 1\nend\nret p\nend\nfn klen k ulong to ulong\ns = kstart k\ni = s\nwhile ne get KW i 10 bound 4096\ni = add i 1\nend\nret sub i s\nend\nfn pmat at ulong e ulong k ulong to bool\no = kstart k\nm = klen k\nif gt m sub e at\nret false\nend\nfor j ulong m\nif ne get inb add at j get KW add o j\nret false\nend\nend\nret true\nend\nfn emitk o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 4096\nw = write 1 KW add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emiti o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 65536\nw = write 1 inb add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emitn o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 24\nw = write 1 num add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn say k ulong to void\nemitk kstart k add klen k 1\nend\nfn word k ulong to void\nemitk kstart k klen k\nend\nfn emitu v ulong to void\np = ulong 24\nx = v\nwhile true bound 21\np = sub p 1\nput num p uchar add rem x 10 48\nx = div x 10\nif eq x 0\nbreak\nend\nend\nemitn p sub 24 p\nend\nnote the first line is: expect N (the case count fixed before the run)\nnote then PASS name, FAIL name, NOT_RUN name or SKIP name per case; other lines are runner noise\nglobal cnt ulong 5\nfn expn s ulong e ulong to ulong\nif not pmat s e 0\nret 0\nend\nv = ulong 0\ni = add s klen 0\nif ge i e\nret 0\nend\nwhile lt i e bound 7\nc = get inb i\nif lt c 48\nret 0\nend\nif gt c 57\nret 0\nend\nv = add mul v 10 ulong sub c 48\ni = add i 1\nif gt sub i s 12\nret 0\nend\nend\nret v\nend\nfn kind s ulong e ulong to ulong\nfor k ulong 4\nif pmat s e add k 1\nif eq k 3\nret 2\nend\nret k\nend\nend\nret 3\nend\nfn shout k ulong v ulong to void\nword k\nemitu v\nend\nfn flags x ulong m ulong to void\nif lt m x\nshout 9 sub x m\nsay 10\nend\nif gt m x\nshout 11 sub m x\nsay 12\nend\nif gt get cnt 2 0\nshout 13 get cnt 2\nsay 14\nend\nend\nfn main to int\nr = rdall\nif lt r 0\nret 2\nend\nn = ulong r\ne = eol 0 n\nx = expn 0 e\nif eq x 0\nsay 15\nret 3\nend\ns = add e 1\nwhile lt s n bound 65536\ne = eol s n\nk = kind s e\nput cnt k add get cnt k 1\ns = add e 1\nend\nm = add add get cnt 0 get cnt 1 get cnt 2\nshout 5 x\nshout 6 m\nshout 7 get cnt 0\nshout 8 get cnt 1\nshout 16 get cnt 2\nshout 17 get cnt 3\nsay 18\nflags x m\nif eq get cnt 0 x\nif eq m x\nsay 19\nret 0\nend\nend\nsay 20\nret 1\nend\n",
+    "command": "sh examples/agents-07-failure-patterns/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)\ncompile tally.om rc=0\n\nnaive reading first: count FAIL lines and call zero a green run\nfull.log: FAIL lines=0\nshrunk.log: FAIL lines=0\nnotrun.log: FAIL lines=0\nnoexpect.log: FAIL lines=0\n\n--- input full.log\nexpect 5\nPASS parse_empty\nPASS parse_long\nrunner: cache warm\nPASS trap_bounds\nPASS trap_div0\nPASS io_short_read\n--- output\nexpected=5 results=5 pass=5 fail=0 not_run=0 noise=1\nVERDICT PASS\nrun rc=0 (expected 0)\n\n--- input shrunk.log\nexpect 5\nPASS parse_empty\nPASS parse_long\nPASS trap_bounds\nrunner: 2 case files not found, continuing\n--- output\nexpected=5 results=3 pass=3 fail=0 not_run=0 noise=1\nSHRUNK: denominator lost 2 case(s): they produced no result, so they did not pass\nVERDICT FAIL\nrun rc=1 (expected 1)\n\n--- input notrun.log\nexpect 5\nPASS parse_empty\nPASS parse_long\nPASS trap_bounds\nNOT_RUN trap_div0\nSKIP io_short_read\n--- output\nexpected=5 results=5 pass=3 fail=0 not_run=2 noise=0\nNOT_RUN or SKIP=2 (NOT_RUN is not PASS)\nVERDICT FAIL\nrun rc=1 (expected 1)\n\n--- input noexpect.log\nPASS parse_empty\nPASS parse_long\nPASS trap_bounds\n--- output\nREFUSE: no expected case count, so no pass rate can be trusted\nrun rc=3 (expected 3)\n\nALL EXIT STATUSES AS EXPECTED\n"
+  },
+  "common_mistake": "Trusting a runner's '0 failed' summary. It is true in every failing log of the example. Fix: compare results against a pre-fixed expected count and fail closed on any gap.",
+  "links": [
+    {
+      "title": "AIEN agent rules (public edition)",
+      "url": "https://www.aienos.com/agents/RULES.md"
+    },
+    {
+      "title": "omega-communication skill",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-communication/SKILL.md"
+    },
+    {
+      "title": "omega-harness workflow skill",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-harness/SKILL.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "The example ran on a Linux AArch64 host (no GPU) and its output is recorded byte for byte with a negative control. Rests on the recorded run of tally.om: a full log passes; shrunk, NOT_RUN and uncounted logs fail (exit 1 or 3) although all have zero FAIL lines. NOT done: this is a teaching checker, not any repository's gate.",
+  "page": "pages/agents-07-failure-patterns.md",
+  "steer_refs": [
+    "s12",
+    "p01",
+    "p07",
+    "p04"
+  ]
+}

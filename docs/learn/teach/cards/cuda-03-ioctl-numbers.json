@@ -1,0 +1,63 @@
+{
+  "id": "cuda-03-ioctl-numbers",
+  "track": "cuda",
+  "lesson": 3,
+  "title": "ioctl request numbers: four fields, one 32-bit word",
+  "keywords": [
+    "ioctl",
+    "_IOC",
+    "request number",
+    "NV_IOCTL_MAGIC",
+    "NVOS21_PARAMETERS",
+    "struct padding",
+    "devctl",
+    "sizeof"
+  ],
+  "summary": "An NVIDIA ioctl request is _IOC(read|write, 'F', escape, sizeof params): direction in bits 31..30, size 29..16, type 15..8, number 7..0. Drake computes them in Omega from the header values, with C alignment rules for the struct size, and gets 0xc020462b for NV_ESC_RM_ALLOC, the same literal CUDApp's native/nvrm/context.om uses. The padded card-info struct is 72 bytes; summing fields gives 65 and a request nothing uses. I can show how omc's devctl word checks the shape at compile time.",
+  "goal": "Compute an NVIDIA ioctl request number from the header and verify it three independent ways.",
+  "key_steps": [
+    "Read NV_IOCTL_MAGIC, NV_IOCTL_BASE and the NV_ESC_* codes from the headers.",
+    "Compute the parameter struct size with natural alignment and end padding.",
+    "Pack direction, size, type and number into one 32-bit word.",
+    "Compare with a known-good literal from real code.",
+    "Compile it into a devctl and watch the compiler refuse a wrong direction."
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/cuda-03-ioctl-numbers/ioctl.om",
+      "examples/cuda-03-ioctl-numbers/output.txt",
+      "examples/cuda-03-ioctl-numbers/run.sh"
+    ],
+    "code": "note Compute NVIDIA open-kernel-module ioctl request numbers from their four fields.\nnote Input on stdin, decimal, one per line, extracted from the pinned headers by run.sh:\nnote   magic, NV_IOCTL_BASE, NV_ESC_RM_FREE, NV_ESC_RM_CONTROL, NV_ESC_RM_ALLOC\nnote Linux _IOC: dir in bits 30..31, size in bits 16..29, type in bits 8..15, nr in bits 0..7.\nnote Exit 0 all computed, 3 bad input, 4 a size does not fit the 14-bit field.\nom2\nglobal ob uchar 4096\nglobal on ulong 1\nglobal inb uchar 4096\nglobal inn ulong 1\nglobal inp ulong 1\nglobal fsz ulong 32\nglobal fal ulong 32\ntext hx \"0123456789abcdef\"\nfn putc c uchar to void\nput ob get on 0 c\nput on 0 add get on 0 1\nend\nfn puts s view uchar * to void\nfor i ulong len s\nputc get s i\nend\nend\nfn putdec v ulong to void\nd = new uchar 20 0\nn = ulong 0\nx = v\nwhile true bound 21\nput d n uchar add rem x 10 48\nn = add n 1\nx = div x 10\nif eq x 0\nbreak\nend\nend\nwhile gt n 0 bound 21\nn = sub n 1\nputc get d n\nend\nend\nfn puthex v ulong w ulong to void\nputc 48\nputc 120\nfor i ulong w\ns = mul sub sub w 1 i 4\nputc get hx and shr v s 0xf\nend\nend\nfn flush to void\nw = write 1 ob 0 get on 0\nput on 0 0\nend\nnote Read all of stdin; every pass adds at least one byte to a 4096-byte buffer.\nfn slurp to bool\nwhile lt get inn 0 4096 bound 4097\nk = read 0 inb get inn 0 sub 4096 get inn 0\nif lt k 0\nret false\nend\nif eq k 0\nret true\nend\nput inn 0 add get inn 0 ulong k\nend\nret false\nend\nnote Next decimal number in the input; returns 2^64-1 when none is left.\nfn nextnum to ulong\nv = ulong 0\nseen = false\nwhile lt get inp 0 get inn 0 bound 4097\nc = get inb get inp 0\nput inp 0 add get inp 0 1\nif and ge c 48 le c 57\nv = add mul v 10 ulong sub c 48\nseen = true\nelse\nif seen\nret v\nend\nend\nend\nif seen\nret v\nend\nret 18446744073709551615\nend\nfn up x ulong a ulong to ulong\nret mul div add x sub a 1 a a\nend\nnote C layout of fields a..b-1 (size, alignment): natural alignment, end padded.\nfn csize a ulong b ulong to ulong\noff = ulong 0\nmx = ulong 1\nfor k ulong sub b a\ni = add a k\noff = add up off get fal i get fsz i\nif gt get fal i mx\nmx = get fal i\nend\nend\nret up off mx\nend\nnote The same fields with every padding byte forgotten: the classic mistake.\nfn packed a ulong b ulong to ulong\noff = ulong 0\nfor k ulong sub b a\noff = add off get fsz add a k\nend\nret off\nend\nfn fld i ulong s ulong al ulong to void\nput fsz i s\nput fal i al\nend\nnote A struct's alignment is its largest field alignment.\nfn calign a ulong b ulong to ulong\nmx = ulong 1\nfor k ulong sub b a\nif gt get fal add a k mx\nmx = get fal add a k\nend\nend\nret mx\nend\nfn ioc dir ulong ty ulong nr ulong size ulong to ulong\nret or or or shl dir 30 shl size 16 shl ty 8 nr\nend\nnote omc's devctl rule (seed/omc/omc.om fn hdevctl): read/write, type F, nonzero size.\nfn devok q ulong to bool\nif ne and q 0xc000ff00 0xc0004600\nret false\nend\nret ne and shr q 16 16383 0\nend\ntext sacc \" devctl-rule=accept\\n\"\ntext sref \" devctl-rule=refuse\\n\"\ntext snr \" nr=\"\ntext ssz \" size=\"\ntext srq \" request=\"\ntext sop \" (\"\ntext scp \")\"\nfn show name view uchar * ty ulong nr ulong size ulong to int\nif gt size 16383\nret 4\nend\nq = ioc 3 ty nr size\nputs name\nputs snr\nputdec nr\nputs ssz\nputdec size\nputs srq\nputdec q\nputs sop\nputhex q 8\nputs scp\nif devok q\nputs sacc\nelse\nputs sref\nend\nret 0\nend\ntext n21 \"NV_ESC_RM_ALLOC    NVOS21_PARAMETERS     \"\ntext n54 \"NV_ESC_RM_CONTROL  NVOS54_PARAMETERS     \"\ntext n00 \"NV_ESC_RM_FREE     NVOS00_PARAMETERS     \"\ntext ncd \"NV_ESC_CARD_INFO   nv_ioctl_card_info[64]\"\ntext nrf \"NV_ESC_REGISTER_FD nv_ioctl_register_fd  \"\ntext npk \"MISTAKE CARD_INFO  packed, no padding    \"\ntext sbad \"input: expected 5 numbers from the headers\\n\"\ntext spci \"nv_pci_info_t size=\"\ntext sal \" align=\"\ntext scard \"nv_ioctl_card_info_t size=\"\ntext spk \" (packed sum would be \"\ntext sclose \")\\n\"\nfn main to int\nif not slurp\nret 3\nend\nmagic = nextnum\nbase = nextnum\nrfree = nextnum\nrctl = nextnum\nralloc = nextnum\nif or gt ralloc 255 gt magic 255\nputs sbad\nflush\nret 3\nend\nnote NVOS21 and NVOS54: four 32-bit words, an 8-byte-aligned NvP64, two 32-bit words.\nfor k ulong 4\nfld k 4 4\nend\nfld 4 8 8\nfld 5 4 4\nfld 6 4 4\ns21 = csize 0 7\nnote NVOS00: four 32-bit words.\ns00 = csize 0 4\nnote nv_pci_info_t: NvU32, three NvU8, two NvU16.\nfld 7 4 4\nfld 8 1 1\nfld 9 1 1\nfld 10 1 1\nfld 11 2 2\nfld 12 2 2\npci = csize 7 13\nnote nv_ioctl_card_info_t: NvBool, nv_pci_info_t, NvU32, NvU16, four aligned NvU64, NvU32, NvU8[10].\nfld 13 1 1\nfld 14 pci calign 7 13\nfld 15 4 4\nfld 16 2 2\nfor k ulong 4\nfld add 17 k 8 8\nend\nfld 21 4 4\nfld 22 10 1\ncard = csize 13 23\nspack = packed 13 23\nputs spci\nputdec pci\nputs sal\nputdec calign 7 13\nputc 10\nputs scard\nputdec card\nputs spk\nputdec spack\nputs sclose\nr = show n21 magic ralloc s21\nr = or r show n54 magic rctl s21\nr = or r show n00 magic rfree s00\nr = or r show ncd magic base mul 64 card\nr = or r show nrf magic add base 1 4\nr = or r show npk magic base mul 64 spack\nflush\nret r\nend\n",
+    "command": "sh examples/cuda-03-ioctl-numbers/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== oracle 1: the header lines (CUDApp third_party, NVIDIA 580.173.02, MIT)\n29:#define NV_IOCTL_MAGIC      'F'\n30:#define NV_IOCTL_BASE       200\n31:#define NV_ESC_CARD_INFO             (NV_IOCTL_BASE + 0)\n32:#define NV_ESC_REGISTER_FD           (NV_IOCTL_BASE + 1)\n29:#define NV_ESC_RM_FREE                              0x29\n30:#define NV_ESC_RM_CONTROL                           0x2A\n31:#define NV_ESC_RM_ALLOC                             0x2B\ninput to ioctl.om (decimal): 70 200 41 42 43 \n== compute: ioctl.om\ncompile rc=0\nnv_pci_info_t size=12 align=4\nnv_ioctl_card_info_t size=72 (packed sum would be 65)\nNV_ESC_RM_ALLOC    NVOS21_PARAMETERS      nr=43 size=32 request=3223340587 (0xc020462b) devctl-rule=accept\nNV_ESC_RM_CONTROL  NVOS54_PARAMETERS      nr=42 size=32 request=3223340586 (0xc020462a) devctl-rule=accept\nNV_ESC_RM_FREE     NVOS00_PARAMETERS      nr=41 size=16 request=3222292009 (0xc0104629) devctl-rule=accept\nNV_ESC_CARD_INFO   nv_ioctl_card_info[64] nr=200 size=4608 request=3523233480 (0xd20046c8) devctl-rule=accept\nNV_ESC_REGISTER_FD nv_ioctl_register_fd   nr=201 size=4 request=3221505737 (0xc00446c9) devctl-rule=accept\nMISTAKE CARD_INFO  packed, no padding     nr=200 size=4160 request=3493873352 (0xd04046c8) devctl-rule=accept\nrun rc=0\n== oracle 2: does CUDApp native/nvrm/context.om use the same literal?\n3223340587 used 1 time(s): NV_ESC_RM_ALLOC    NVOS21_PARAMETERS\n3223340586 used 1 time(s): NV_ESC_RM_CONTROL  NVOS54_PARAMETERS\n3222292009 used 1 time(s): NV_ESC_RM_FREE     NVOS00_PARAMETERS\n3523233480 used 1 time(s): NV_ESC_CARD_INFO   nv_ioctl_card_info[64]\n3221505737 used 2 time(s): NV_ESC_REGISTER_FD nv_ioctl_register_fd\n3493873352 used 0 time(s): MISTAKE CARD_INFO  packed, no padding\n== oracle 3: the pinned omc's devctl rule, compiled (never opens a GPU device)\nRM_ALLOC read/write, 32-byte span: compile rc=0\nRM_ALLOC read/write, 32-byte span: run on /dev/null rc=25\nnegative: same fields, write-only direction (1075856939): compile rc=9\nomc: line 3: error 9\nnegative: RM_ALLOC with a 16-byte span: compile rc=0\nnegative: RM_ALLOC with a 16-byte span: run on /dev/null rc=103\n"
+  },
+  "common_mistake": "Summing field sizes and forgetting alignment padding. The size is part of the request number, so the wrong size is a different request. Compute the layout with alignment rules and check it against a known literal.",
+  "links": [
+    {
+      "title": "nv-ioctl-numbers.h",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/third_party/nvidia-open-580.173.02/kernel-open/common/inc/nv-ioctl-numbers.h"
+    },
+    {
+      "title": "nv_escape.h",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/third_party/nvidia-open-580.173.02/src/nvidia/arch/nvalloc/unix/include/nv_escape.h"
+    },
+    {
+      "title": "native/nvrm/context.om",
+      "url": "https://github.com/aien-dev/CUDApp/blob/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb/native/nvrm/context.om"
+    },
+    {
+      "title": "omc devctl rule (fn hdevctl)",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/omc/omc.om"
+    },
+    {
+      "title": "Device word contract",
+      "url": "https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/seed/host/MAPPING.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "EXERCISED on a Linux AArch64 host with omc befb8199: five requests match CUDApp's context.om literals; omc accepts the real RM_ALLOC request, refuses a write-only one (error 9), traps a wrong span (exit 103). The one ioctl issued goes to /dev/null (ENOTTY). No GPU device was opened.",
+  "page": "pages/cuda-03-ioctl-numbers.md",
+  "steer_refs": []
+}

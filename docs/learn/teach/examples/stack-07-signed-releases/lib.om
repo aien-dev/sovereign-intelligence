@@ -1,0 +1,126 @@
+om2
+note lib.om: shared helpers; the lesson program is concatenated after it (Omega units compose by concatenation, there is no import)
+note st 0 is the output position, st 1 the input length, st 2 is 1 when the input filled inb
+global inb uchar 524288
+global ob uchar 65536
+global st ulong 4
+fn rdall to long
+note every pass adds at least one byte or ends, so len inb + 1 passes is enough
+t = ulong 0
+while lt t len inb bound 524289
+k = read 0 inb t sub len inb t
+if lt k 0
+ret k
+end
+if eq k 0
+put st 1 t
+ret long t
+end
+t = add t ulong k
+end
+put st 1 t
+put st 2 1
+ret long t
+end
+fn oc c uchar to void
+p = get st 0
+if lt p len ob
+put ob p c
+put st 0 add p 1
+end
+end
+fn ot s view uchar * to void
+for i ulong len s
+oc get s i
+end
+end
+fn oi a ulong b ulong to void
+note copy input bytes a .. b-1 to the output
+for i ulong sub b a
+oc get inb add a i
+end
+end
+fn on v ulong to void
+note write v in decimal
+d = new uchar 20 0
+n = ulong 0
+x = v
+while lt n 20 bound 20
+put d n uchar add rem x 10 48
+x = div x 10
+n = add n 1
+if eq x 0
+break
+end
+end
+while gt n 0 bound 20
+n = sub n 1
+oc get d n
+end
+end
+fn flush to int
+n = get st 0
+d = ulong 0
+while lt d n bound 65536
+w = write 1 ob d sub n d
+if le w 0
+ret 1
+end
+d = add d ulong w
+end
+ret 0
+end
+fn sameb s view uchar * o ulong a ulong n ulong to bool
+note s[o .. o+n) equals inb[a .. a+n)
+if gt add a n get st 1
+ret false
+end
+for i ulong n
+if ne get s add o i get inb add a i
+ret false
+end
+end
+ret true
+end
+fn samei a ulong b ulong n ulong to bool
+note inb[a .. a+n) equals inb[b .. b+n)
+for i ulong n
+if ne get inb add a i get inb add b i
+ret false
+end
+end
+ret true
+end
+fn lookup s view uchar * a ulong b ulong to long
+note index of the word inb[a .. b) in s, a list of words each followed by one space; -1 if absent
+k = long 0
+o = ulong 0
+while lt o len s bound 4096
+e = o
+while lt e len s bound 4096
+if eq get s e 32
+break
+end
+e = add e 1
+end
+if eq sub e o sub b a
+if sameb s o a sub b a
+ret k
+end
+end
+k = add k 1
+o = add e 1
+end
+ret -1
+end
+fn wordend a ulong b ulong to ulong
+note first space in inb[a .. b), or b
+e = a
+while lt e b bound 524289
+if eq get inb e 32
+ret e
+end
+e = add e 1
+end
+ret e
+end

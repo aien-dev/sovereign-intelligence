@@ -1,0 +1,59 @@
+note wc.om: count bytes and lines on stdin with a partial-read loop
+note proof of the bound: every pass but the last reads at least one byte, and more than CAP
+note bytes stops the program, so at most CAP passes read data and one more sees end of input
+const CAP ulong 999998
+global buf uchar 4096
+text lb "bytes "
+text ll "lines "
+fn putnum v ulong to long
+note write v in decimal and a newline. A ulong has at most 20 digits, so bound 20 is proved
+d = new uchar 21 0
+o = new uchar 21 0
+n = ulong 0
+x = v
+while true bound 20
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong n
+put o i get d sub sub n i 1
+end
+put o n 10
+w = write 1 o 0 add n 1
+ret w
+end
+fn main to int
+total = ulong 0
+lines = ulong 0
+done = false
+while not done bound 999999
+k = read 0 buf 0 len buf
+if lt k 0
+note a negative result is minus the Linux errno: report it, never treat it as end of input
+ret int neg k
+end
+if eq k 0
+done = true
+else
+n = ulong k
+for i ulong n
+if eq get buf i 10
+lines = add lines 1
+end
+end
+total = add total n
+if gt total CAP
+ret 3
+end
+end
+end
+w = write 1 lb 0 len lb
+w = putnum total
+w = write 1 ll 0 len ll
+w = putnum lines
+ret 0
+end

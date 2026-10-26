@@ -1,0 +1,27 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (not needed by this inspection; checked so every lesson pins the same tools)
+== 1. the build promise (Makefile header)
+2:# CUDA++ build. Plain make + gcc; no CUDA toolkit, no NVIDIA user-space library.
+== 2. files that include a CUDA header or link libcuda (first-party C, Makefile, mk/)
+Makefile
+tools/interop/cubin_probe.c
+   the Makefile line that links it, and the target it belongs to:
+65:	$(CC) $(CFLAGS) -I$(CUDA_INC) -o $@ tools/interop/cubin_probe.c $(OUT_DIR)/libomega_gpu.a -L$(CUDA_LIB) -lcuda -lpth
+== 3. the three device files the driver client opens (kernel entry points)
+nvrm/nvrm.c:233:    snprintf(path, sizeof path, "/dev/nvidia%u", rm->minor);
+nvrm/nvrm.c:243:    int fd = system ? open("/dev/nvidiactl", O_RDWR | O_CLOEXEC) : open_dev_fd(rm);
+nvrm/nvrm.c:299:    rm->fd_ctl = open("/dev/nvidiactl", O_RDWR | O_CLOEXEC);
+nvrm/nvrm.c:300:    rm->fd_uvm = open("/dev/nvidia-uvm", O_RDWR | O_CLOEXEC);
+nvrm/nvrm.c:301:    rm->fd_uvm2 = open("/dev/nvidia-uvm", O_RDWR | O_CLOEXEC);
+native/nvrm/context.om:4:text nvctl "/dev/nvidiactl"
+native/nvrm/context.om:5:text nvdev "/dev/nvidia0"
+native/nvrm/context.om:6:text nvuvm "/dev/nvidia-uvm"
+== 4. what came from the kernel side: the open module's headers, by folder
+   5 headers in kernel-open/common/inc
+   3 headers in kernel-open/nvidia-uvm
+   57 headers in src/common/sdk/nvidia/inc
+   2 headers in src/nvidia/arch/nvalloc/unix/include
+   67 headers listed in SHA256SUMS
+== 5. what still belongs to NVIDIA below the line (ROADMAP.md)
+ `nvidia.ko` | AIEN's own GB10 driver (L332) | BUILDING 
+ `nvidia-uvm.ko` | same driver: GPU page tables, allocator, channels (L193 cut D, L332) | BUILDING 
+ GSP firmware (`gsp_*.bin`) | stays NVIDIA's: the chip checks its signature | not replaceable 

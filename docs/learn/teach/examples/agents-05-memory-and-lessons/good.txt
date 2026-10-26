@@ -1,0 +1,4 @@
+Symptom: the seeded compiler exits 12 on a long function
+Root cause: more live names than the 16-register pool
+Fix: split the function into two helpers
+Verified: recompiled with the pinned omc, compile rc=0, run rc=0

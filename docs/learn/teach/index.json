@@ -1,0 +1,651 @@
+{
+  "version": 1,
+  "note": "Generated from cards/*.json; each card names its page, example and evidence level.",
+  "cards": [
+    {
+      "id": "agents-01-roles-and-models",
+      "track": "agents",
+      "lesson": 1,
+      "title": "Roles and models: who does the work, who gets consulted",
+      "keywords": [
+        "roles",
+        "models",
+        "consultant",
+        "consult",
+        "advisor",
+        "fork",
+        "escalate",
+        "default worker",
+        "omp"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-01-roles-and-models.md"
+    },
+    {
+      "id": "agents-02-skills",
+      "track": "agents",
+      "lesson": 2,
+      "title": "Skills: teaching agents the checks they keep forgetting",
+      "keywords": [
+        "skill",
+        "SKILL.md",
+        "frontmatter",
+        "description",
+        "symlink",
+        "install",
+        "omega-harness",
+        "agent skills"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-02-skills.md"
+    },
+    {
+      "id": "agents-03-reviewers-and-advisors",
+      "track": "agents",
+      "lesson": 3,
+      "title": "Reviewers and advisors: who checks the work, and how to weigh them",
+      "keywords": [
+        "reviewer",
+        "security reviewer",
+        "advisor",
+        "witness",
+        "review",
+        "disagree",
+        "weigh",
+        "aggregate"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-03-reviewers-and-advisors.md"
+    },
+    {
+      "id": "agents-04-lanes-and-integration",
+      "track": "agents",
+      "lesson": 4,
+      "title": "Lanes and integration owners: many agents, one shared surface",
+      "keywords": [
+        "lane",
+        "worktree",
+        "parallel",
+        "integration owner",
+        "merge",
+        "conflict",
+        "dirty tree",
+        "crumb"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-04-lanes-and-integration.md"
+    },
+    {
+      "id": "agents-05-memory-and-lessons",
+      "track": "agents",
+      "lesson": 5,
+      "title": "Memory and lessons: keep what was verified, retract what was wrong",
+      "keywords": [
+        "memory",
+        "lesson",
+        "Symptom",
+        "Root cause",
+        "Fix",
+        "Verified",
+        "retract",
+        "cortex"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-05-memory-and-lessons.md"
+    },
+    {
+      "id": "agents-06-correcting-agents",
+      "track": "agents",
+      "lesson": 6,
+      "title": "Correcting and redirecting agents: how I steer",
+      "keywords": [
+        "steer",
+        "correct",
+        "redirect",
+        "fix it don't file it",
+        "evidence over claims",
+        "check before you claim",
+        "feedback"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-06-correcting-agents.md"
+    },
+    {
+      "id": "agents-07-failure-patterns",
+      "track": "agents",
+      "lesson": 7,
+      "title": "Failure patterns: how agents overclaim, and how to catch it",
+      "keywords": [
+        "failure",
+        "overclaim",
+        "receipt",
+        "NOT_RUN",
+        "shrinking denominator",
+        "silent test loss",
+        "compile is not run",
+        "status"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-07-failure-patterns.md"
+    },
+    {
+      "id": "agents-08-evidence-handoff",
+      "track": "agents",
+      "lesson": 8,
+      "title": "The evidence-first handoff: what a receiving agent needs",
+      "keywords": [
+        "handoff",
+        "brief",
+        "delegate",
+        "report",
+        "evidence",
+        "commit",
+        "contract",
+        "subagent"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-08-evidence-handoff.md"
+    },
+    {
+      "id": "agents-09-keeping-guides-current",
+      "track": "agents",
+      "lesson": 9,
+      "title": "Keeping the guides current: part of every task",
+      "keywords": [
+        "guides",
+        "documentation",
+        "skills",
+        "stale",
+        "keep current",
+        "pin",
+        "update"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/agents-09-keeping-guides-current.md"
+    },
+    {
+      "id": "cuda-01-user-space-and-kernel",
+      "track": "cuda",
+      "lesson": 1,
+      "title": "User space and the kernel: what CUDA++ replaces and what it still needs",
+      "keywords": [
+        "user space",
+        "kernel module",
+        "libcuda",
+        "nvidia.ko",
+        "nvidia-uvm",
+        "GSP firmware",
+        "device files",
+        "CUDA++"
+      ],
+      "evidence_level": "IMPLEMENTED",
+      "page": "pages/cuda-01-user-space-and-kernel.md"
+    },
+    {
+      "id": "cuda-02-reading-the-headers",
+      "track": "cuda",
+      "lesson": 2,
+      "title": "Reading the open kernel module's headers: escapes, classes and controls",
+      "keywords": [
+        "nvos.h",
+        "nv_escape.h",
+        "class id",
+        "escape code",
+        "control command",
+        "ctrlxxxx",
+        "RM API",
+        "headers"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/cuda-02-reading-the-headers.md"
+    },
+    {
+      "id": "cuda-03-ioctl-numbers",
+      "track": "cuda",
+      "lesson": 3,
+      "title": "ioctl request numbers: four fields, one 32-bit word",
+      "keywords": [
+        "ioctl",
+        "_IOC",
+        "request number",
+        "NV_IOCTL_MAGIC",
+        "NVOS21_PARAMETERS",
+        "struct padding",
+        "devctl",
+        "sizeof"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/cuda-03-ioctl-numbers.md"
+    },
+    {
+      "id": "cuda-04-rm-object-tree",
+      "track": "cuda",
+      "lesson": 4,
+      "title": "GPU objects: the resource-manager tree, handles and classes",
+      "keywords": [
+        "RM object tree",
+        "handle",
+        "class",
+        "NV01_ROOT_CLIENT",
+        "channel group",
+        "GPFIFO",
+        "compute object",
+        "rm_alloc"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/cuda-04-rm-object-tree.md"
+    },
+    {
+      "id": "cuda-05-gpfifo-and-methods",
+      "track": "cuda",
+      "lesson": 5,
+      "title": "The command ring: GPFIFO entries, method headers and the QMD",
+      "keywords": [
+        "GPFIFO",
+        "pushbuffer",
+        "method header",
+        "doorbell",
+        "USERD",
+        "QMD",
+        "semaphore release",
+        "clc96f"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/cuda-05-gpfifo-and-methods.md"
+    },
+    {
+      "id": "cuda-06-chip-gates-and-receipts",
+      "track": "cuda",
+      "lesson": 6,
+      "title": "Verifying with chip gates: receipts, mutants, and why a host run is not qualification",
+      "keywords": [
+        "chip gate",
+        "receipt",
+        "qualification",
+        "NOT_RUN",
+        "mutation test",
+        "sha256",
+        "M16",
+        "fail closed"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/cuda-06-chip-gates-and-receipts.md"
+    },
+    {
+      "id": "cuda-07-legal-and-provenance",
+      "track": "cuda",
+      "lesson": 7,
+      "title": "Legal and ethical ground: interoperability, MIT headers, and what was never taken apart",
+      "keywords": [
+        "licence",
+        "MIT",
+        "interoperability",
+        "provenance",
+        "THIRD_PARTY",
+        "Mesa",
+        "nvdisasm",
+        "AGPL"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/cuda-07-legal-and-provenance.md"
+    },
+    {
+      "id": "cuda-08-sass-words",
+      "track": "cuda",
+      "lesson": 8,
+      "title": "Machine code: reading 16-byte GB10 instructions and their scheduling bits",
+      "keywords": [
+        "SASS",
+        "machine code",
+        "sm_121",
+        "control word",
+        "scoreboard",
+        "stall",
+        "IADD3",
+        "asm2"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/cuda-08-sass-words.md"
+    },
+    {
+      "id": "omega-01-hello-world",
+      "track": "omega",
+      "lesson": 1,
+      "title": "Your first Omega program: hello, compile, run, exit status",
+      "keywords": [
+        "hello world",
+        "first program",
+        "compile",
+        "omc",
+        "run",
+        "exit status",
+        "text",
+        "write"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-01-hello-world.md"
+    },
+    {
+      "id": "omega-02-values-and-types",
+      "track": "omega",
+      "lesson": 2,
+      "title": "Values and types: prefix words and no implicit conversions",
+      "keywords": [
+        "types",
+        "prefix",
+        "add",
+        "conversion",
+        "error 7",
+        "error 11",
+        "trap 5",
+        "uint",
+        "ulong"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-02-values-and-types.md"
+    },
+    {
+      "id": "omega-03-loops",
+      "track": "omega",
+      "lesson": 3,
+      "title": "Loops in Omega: while with a bound, for with a count",
+      "keywords": [
+        "loop",
+        "while",
+        "bound",
+        "for",
+        "break",
+        "continue",
+        "trap 4",
+        "exit 104",
+        "how do I write a loop"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-03-loops.md"
+    },
+    {
+      "id": "omega-04-arrays-and-io",
+      "track": "omega",
+      "lesson": 4,
+      "title": "Arrays, globals and host I/O: counts and negative errno",
+      "keywords": [
+        "array",
+        "global",
+        "new",
+        "read",
+        "write",
+        "stdin",
+        "errno",
+        "partial read",
+        "trap 3",
+        "error 19"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-04-arrays-and-io.md"
+    },
+    {
+      "id": "omega-05-seeded-compiler",
+      "track": "omega",
+      "lesson": 5,
+      "title": "The seeded compiler: from 408 bytes to omc, and what a fixpoint proves",
+      "keywords": [
+        "seed",
+        "bootstrap",
+        "fixpoint",
+        "omc",
+        "om4",
+        "seed0",
+        "trusting trust",
+        "self-hosting",
+        "reproducible build"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-05-seeded-compiler.md"
+    },
+    {
+      "id": "omega-06-ir-and-wasm",
+      "track": "omega",
+      "lesson": 6,
+      "title": "IR mode and WebAssembly: one source, two targets (and where SPIR-V stands)",
+      "keywords": [
+        "IR",
+        "ir mode",
+        "OSC IR",
+        "WebAssembly",
+        "wasm",
+        "irwasm",
+        "SPIR-V",
+        "spirv",
+        "node",
+        "target"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-06-ir-and-wasm.md"
+    },
+    {
+      "id": "omega-07-om2-contracts",
+      "track": "omega",
+      "lesson": 7,
+      "title": "OM-2: letting the compiler hold the contract",
+      "keywords": [
+        "OM-2",
+        "om2",
+        "layout",
+        "fresh",
+        "abstract",
+        "seal",
+        "om2 diag",
+        "guarantee matrix",
+        "error 27",
+        "error 28",
+        "error 29"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-07-om2-contracts.md"
+    },
+    {
+      "id": "omega-08-error-codes",
+      "track": "omega",
+      "lesson": 8,
+      "title": "Compiler error codes and how to fix them",
+      "keywords": [
+        "error",
+        "error code",
+        "error 12",
+        "register",
+        "error 9",
+        "error 13",
+        "error 16",
+        "gate15",
+        "refusal",
+        "omc error"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-08-error-codes.md"
+    },
+    {
+      "id": "omega-09-adding-a-word",
+      "track": "omega",
+      "lesson": 9,
+      "title": "Building a missing feature: how a new word gets into Omega",
+      "keywords": [
+        "extension",
+        "new word",
+        "feature",
+        "proposal",
+        "host word",
+        "random",
+        "getrandom",
+        "keyword",
+        "gate",
+        "missing feature"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/omega-09-adding-a-word.md"
+    },
+    {
+      "id": "stack-01-why-sovereign",
+      "track": "stack",
+      "lesson": 1,
+      "title": "Why sovereign: owning every layer",
+      "keywords": [
+        "sovereign",
+        "stack",
+        "Sovereign Intelligence",
+        "SI",
+        "AienOS",
+        "Aienux",
+        "layers",
+        "static ELF",
+        "PT_INTERP",
+        "dependencies",
+        "own the hardware"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-01-why-sovereign.md"
+    },
+    {
+      "id": "stack-02-evidence-levels",
+      "track": "stack",
+      "lesson": 2,
+      "title": "Evidence levels and verdict words",
+      "keywords": [
+        "evidence level",
+        "PROPOSED",
+        "IMPLEMENTED",
+        "EXERCISED",
+        "QUALIFIED",
+        "MERGED",
+        "DEPLOYED",
+        "PASS",
+        "FAIL",
+        "NOT_RUN",
+        "BLOCKED_HARDWARE",
+        "fail closed",
+        "vacuous PASS"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-02-evidence-levels.md"
+    },
+    {
+      "id": "stack-03-receipts",
+      "track": "stack",
+      "lesson": 3,
+      "title": "Receipts: what a run leaves behind",
+      "keywords": [
+        "receipt",
+        "sha256",
+        "provenance",
+        "expected vs observed",
+        "limits",
+        "binary hash",
+        "compiler hash",
+        "verify a receipt",
+        "correction"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-03-receipts.md"
+    },
+    {
+      "id": "stack-04-gates",
+      "track": "stack",
+      "lesson": 4,
+      "title": "Gates that must fail their negative control",
+      "keywords": [
+        "gate",
+        "negative control",
+        "mutant",
+        "vacuous gate",
+        "pinned tag",
+        "latest",
+        "install.sh",
+        "host gate",
+        "hardware qualification"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-04-gates.md"
+    },
+    {
+      "id": "stack-05-crumbs",
+      "track": "stack",
+      "lesson": 5,
+      "title": "Crumbs: a directory that explains itself",
+      "keywords": [
+        "crumb",
+        ".crumb",
+        "Crumb Protocol",
+        "RFC-0001",
+        "purpose",
+        "extensions.generated",
+        "crumb verify",
+        "lock",
+        "claim",
+        "whisper",
+        "agents"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-05-crumbs.md"
+    },
+    {
+      "id": "stack-06-honest-status",
+      "track": "stack",
+      "lesson": 6,
+      "title": "Honest status: writing what is true",
+      "keywords": [
+        "status",
+        "overclaim",
+        "honest",
+        "NOT_RUN",
+        "relabel",
+        "history",
+        "correction",
+        "production-ready",
+        "evidence"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-06-honest-status.md"
+    },
+    {
+      "id": "stack-07-signed-releases",
+      "track": "stack",
+      "lesson": 7,
+      "title": "Signed releases: owning distribution",
+      "keywords": [
+        "release",
+        "signature",
+        "Ed25519",
+        "SHA256SUMS",
+        "KEYS",
+        "release key",
+        "install.sh",
+        "pinned tag",
+        "verify download",
+        "alpha key",
+        "openssl"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-07-signed-releases.md"
+    },
+    {
+      "id": "stack-08-alpha-tags",
+      "track": "stack",
+      "lesson": 8,
+      "title": "Alpha tags versus merge gates",
+      "keywords": [
+        "Alpha",
+        "alpha tag",
+        "merge gate",
+        "NO_GPU_RECEIPT",
+        "NOT_FULL_SCOPE",
+        "verify-bundle",
+        "full scope",
+        "gb10",
+        "SC-GB10-SERVE-CHAT",
+        "GitHub",
+        "thin gate"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/stack-08-alpha-tags.md"
+    }
+  ]
+}

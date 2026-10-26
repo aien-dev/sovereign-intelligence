@@ -1,0 +1,4 @@
+note extra.om: appended to a copy of omc.om as a negative control. omc never calls it
+fn zzextra to int
+ret 7
+end

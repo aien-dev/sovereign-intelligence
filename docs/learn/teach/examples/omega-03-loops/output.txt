@@ -1,0 +1,17 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+== 1. gcd(1071, 462) with while+bound, sum of 0..9 with for, first i with i*i > 3000 with break
+compile loops.om rc=0
+21
+45
+55
+run loops rc=0
+== 2. trap 4: one pass more than the bound allows (exit 100 + 4)
+compile runaway.om rc=0
+run runaway rc=104
+== 3. the fix: a bound that matches the proof
+compile bounded.om rc=0
+run bounded rc=10
+== 4. error 8: a written bound outside 1..999999
+compile toobig.om rc=8
+omc: line 4: error 8
+RESULT PASS

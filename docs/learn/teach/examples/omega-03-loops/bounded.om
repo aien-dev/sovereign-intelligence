@@ -1,0 +1,8 @@
+note bounded.om: the same loop with a bound that matches the proof (n goes 0..10)
+fn main to int
+n = uint 0
+while lt n 10 bound 10
+n = add n 1
+end
+ret int n
+end

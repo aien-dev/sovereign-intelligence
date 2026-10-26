@@ -1,0 +1,21 @@
+fn putnum v ulong to long
+note write v in decimal and a newline. A ulong has at most 20 digits, so bound 20 is proved
+d = new uchar 21 0
+o = new uchar 21 0
+n = ulong 0
+x = v
+while true bound 20
+put d n uchar add rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong n
+put o i get d sub sub n i 1
+end
+put o n 10
+w = write 1 o 0 add n 1
+ret w
+end
