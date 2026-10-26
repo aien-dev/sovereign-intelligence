@@ -1,0 +1,26 @@
+Sovereign Intelligence (SI), built on AienOS (aien-dev/sovereign-intelligence)
+Copyright 2024-2026 Drake Stapleton and AIEN Contributors
+
+Licensed under the Apache License, Version 2.0 with LLVM Exceptions.
+
+"Sovereign Intelligence" and "SI" are trademarks of Drake Stapleton.
+"AIEN", "AIENOS", "AienOS", "Omega", "CUDA++", "CUDApp", "INTERPLANE", "FORGE"
+and "Aienux" are trademarks of Drake Stapleton. Section 6 of the Apache
+License does not grant trademark rights.
+
+This distribution contains:
+- bin/aienos and installer/wizard: the installer and the aienos command,
+  written in Omega by Drake Stapleton (installer/ in this repository).
+- installer/wizard/sha256.om: derived from aien-dev/omega-mv
+  om/sha256/sha256-om2.om (Apache-2.0).
+- bin/aien-serve-http: built from aien-dev/aien-sovereign-core-mv
+  (Apache-2.0, "AIEN Sovereign Core, Copyright 2024-2026 Drake Stapleton and
+  AIEN Contributors"), with aien-dev/omega-mv's libomega_gpu.a linked in.
+
+The model is not part of this distribution. The wizard downloads
+Qwen/Qwen3.8-27B-FP8 from Hugging Face under its own license (Apache-2.0,
+see the LICENSE file in the model folder).
+
+NVIDIA, CUDA, cuBLAS and GB10 are trademarks of NVIDIA Corporation.
+Sovereign Intelligence uses none of NVIDIA's user-space software; it talks to
+NVIDIA's kernel driver through its device files.
