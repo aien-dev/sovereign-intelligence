@@ -16,7 +16,9 @@ trademarks (see [NOTICE](NOTICE)). This page says how to write them.
    AienOS keeps its own name and its own home in [aien-dev/AienOS-nv](https://github.com/aien-dev/AienOS-nv).
    SI never replaces or absorbs the AienOS name.
 6. **Keep the other names as they are.** Aienux is the kernel ([aien-dev/aienux](https://github.com/aien-dev/aienux)).
-   Omega, CUDA++ and Allen are parts of SI, not other names for it.
+   Omega, CUDA++ and Aien are parts of SI, not other names for it. Aien is the assistant's name
+   (capital A, lowercase ien); he used to be called Allen, and internal names such as the
+   `allen` repository keep the old name.
 
 ## Examples
 
