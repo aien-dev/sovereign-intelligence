@@ -10,15 +10,24 @@
 #            (scripts/pins.sh --gpu, then cargo build --release -p aien-serve-http).
 # OUT        output folder: OUT/stage (the bundle tree) and OUT/dist (the release assets).
 #
+# Optional, the Open Humanity lending program (aienos lend):
+# OH_VOLUNTEER        oh-infer-volunteer built from aien-dev/open-humanity at OH_REV
+#                     (cargo build --release -p oh-infer). Unset: the bundle has no lending program
+#                     and the wizard's lending step says so.
+# OH_COORDINATOR_KEY  the coordinator's 64-hex public key; required when OH_VOLUNTEER is set.
+# OH_REV is open-humanity PR #41's head and stays pending until that PR merges.
+#
 # Exit: 2 missing input, 3 wrong pin, 4 derived source differs, 5 nondeterministic compile,
-#       6 compile refused, 7 engine identity or linkage wrong. Signing is tools/sign.sh.
+#       6 compile refused, 7 engine or lending program identity or linkage wrong. Signing is tools/sign.sh.
 set -eu
 cd "$(dirname "$0")"
 TAG=alpha-20261026.1
 OMEGA_REV=3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9
 OMC_PIN=befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
 CORE_REV=cf239078d05a47d84353c1508a08663273f00c3e
-ORDER="sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om"
+OH_REV=60a093c1b7cfab2abc942f3dce82b6a6d6eae5da
+OH_COORDINATOR=https://www.aienos.com/oh/v1/volunteer
+ORDER="sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om"
 out=${1:?usage: build.sh OUT}
 src=${OMEGA_SRC:?set OMEGA_SRC to an omega-mv clone at $OMEGA_REV}
 engine=${ENGINE:?set ENGINE to aien-serve-http built from Core $CORE_REV}
@@ -32,6 +41,14 @@ omc=$src/seed/out/omc
 have=$(sha256sum "$omc" | cut -d' ' -f1)
 [ "$have" = "$OMC_PIN" ] || fail 3 "omc sha256 $have, want $OMC_PIN"
 
+vol=${OH_VOLUNTEER:-}
+if [ -n "$vol" ]; then
+    [ -x "$vol" ] || fail 2 "OH_VOLUNTEER $vol is not executable"
+    printf '%s' "${OH_COORDINATOR_KEY:-}" | grep -Eqx '[0-9a-f]{64}' \
+        || fail 2 "OH_VOLUNTEER is set: OH_COORDINATOR_KEY must be 64 lowercase hex"
+    "$vol" > /dev/null 2>&1 && fail 7 "$vol does not behave like oh-infer-volunteer"
+    [ $? -eq 2 ] || fail 7 "$vol does not behave like oh-infer-volunteer (want usage exit 2)"
+fi
 # wizard/sha256.om is omega-mv's unit with "export fn" made "fn" (program mode refuses export).
 shasrc=$src/om/sha256/sha256-om2.om
 work=$(mktemp -d "${TMPDIR:-/tmp}/aienos-build.XXXXXX")
@@ -71,6 +88,15 @@ rm -rf "$stage" "$dist"
 mkdir -p "$stage/bin" "$stage/share/aienos/wizard" "$dist"
 install -m 755 "$work/aienos.1" "$stage/bin/aienos"
 install -m 755 "$engine" "$stage/bin/aien-serve-http"
+if [ -n "$vol" ]; then
+    install -m 755 "$vol" "$stage/bin/oh-infer-volunteer"
+    {
+        printf 'coordinator %s\n' "$OH_COORDINATOR"
+        printf 'coordinator-key %s\n' "$OH_COORDINATOR_KEY"
+        printf 'model-digest %s\n' "$(sha256sum share/model.manifest | cut -d' ' -f1)"
+    } > "$work/lend.conf"
+    install -m 644 "$work/lend.conf" "$stage/share/aienos/lend.conf"
+fi
 for f in $ORDER; do install -m 644 "wizard/$f" "$stage/share/aienos/wizard/$f"; done
 install -m 644 "$work/aienos.om" "$stage/share/aienos/aienos.om"
 install -m 644 share/model.manifest share/aienos.desktop.in share/aienos.svg "$stage/share/aienos/"
@@ -86,6 +112,12 @@ install -m 644 bundle/README.txt "$stage/README.txt"
     printf 'engine source: aien-dev/aien-sovereign-core-mv %s (tag alpha/20261025.1)\n' "$CORE_REV"
     printf 'engine NEEDED: %s\n' "$(tr '\n' ' ' < "$work/engine.needed")"
     sed 's/^/engine --version: /' "$work/engine.version"
+    if [ -n "$vol" ]; then
+        printf 'lending: bin/oh-infer-volunteer sha256 %s, from aien-dev/open-humanity %s (pending PR #41)\n' \
+            "$(sha256sum "$vol" | cut -d' ' -f1)" "$OH_REV"
+    else
+        printf 'lending: not included\n'
+    fi
 } > "$stage/VERSION"
 (cd "$stage" && find . -type f ! -name SHA256SUMS | sed 's|^\./||' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS)
 

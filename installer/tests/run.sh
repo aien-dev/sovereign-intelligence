@@ -4,7 +4,7 @@
 # fake hardware tree (AIENOS_PROBE_ROOT) and a local HTTP server. Nothing here opens a GPU device,
 # uses sudo, or writes outside its own scratch folder.
 #
-#   OMC=/path/to/omc DIST=/path/to/out/dist STAGE=/path/to/out/stage sh tests/run.sh [SCRATCH]
+#   OMC=/path/to/omc DIST=/path/to/out/dist STAGE=/path/to/out/stage [OH_VOLUNTEER=...] sh tests/run.sh [SCRATCH]
 #
 # DIST and STAGE are build.sh's output (DIST signed with tools/sign.sh). OMC compiles the fake
 # engine (tests/fake-engine.om). Prints one line per case, "PASS name" or "FAIL name: why", then
@@ -167,6 +167,8 @@ m=$h/.local/share/aienos/models/test-model
     && cmp -s "$m/weights.bin" "$S/www/model/weights.bin" && [ -f "$m/.aienos-verified" ]; verdict wizard-happy-path $?
 grep -q 'Hello from the fake engine, café "ok"' "$S/b1.out"; verdict wizard-first-chat $?
 grep -q "CUDA libraries in the engine's memory map (/proc/[0-9]*/maps): 0" "$S/b1.out"; verdict wizard-zero-cuda-maps $?
+grep -q "Type yes to lend this Spark, or press Enter to skip." "$S/b1.out" \
+    && [ ! -e "$h/.local/share/aienos/lend" ]; verdict wizard-lend-skipped-by-default $?
 out=$(env HOME="$h" "$h/.local/share/aienos/current/bin/aienos" stop 2>&1); rc=$?
 [ $rc -eq 0 ] && [ ! -e "$h/.local/share/aienos/engine.pid" ]; verdict engine-stops $?
 out=$(printf 'second question\n/bye\n' | env HOME="$h" AIENOS_PROBE_ROOT="$S/root-gb10" \
@@ -223,6 +225,9 @@ out=$(printf 'no\n' | env HOME="$h" "$tb/bin/aienos" uninstall 2>&1); rc=$?
 [ $rc -eq 0 ] && [ -f "$h/.local/share/aienos/models/test-model/weights.bin" ]; verdict uninstall-asks-first $?
 out=$(env HOME="$h" "$tb/bin/aienos" uninstall --yes 2>&1); rc=$?
 [ $rc -eq 0 ] && [ -z "$(files "$h")" ] && [ ! -e "$h/.local/share/aienos" ]; verdict uninstall-everything $?
+
+# ---- C: the lending step and aienos lend (tests/lend.sh; OH_VOLUNTEER optional) ----
+sh "$here/lend.sh" "$S/lend"; verdict lend-suite $?
 
 printf 'AIENOS-TESTS pass=%s fail=%s scratch=%s\n' "$pass" "$fail" "$S"
 [ "$fail" -eq 0 ]
