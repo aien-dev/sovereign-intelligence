@@ -2,10 +2,11 @@ note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 note main.om: the aienos command. With no argument (or "wizard") it runs the full-screen wizard;
 note "doctor", "chat", "start", "stop", "verify", "source", "about", "uninstall" and "rollback" are the
 note small commands beside it. Build: concatenate sha256.om lib.om hole.om doctor.om net.om steps.om
-note engine.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
+note models.om engine.om detect.om main.om, in that order, and compile the result with the pinned
+note omc (see build.sh).
 
-text v_tag "alpha-20261026.2"
-text a_l1 "Sovereign Intelligence alpha-20261026.2: the installer and the aienos command"
+text v_tag "alpha-20261026.3"
+text a_l1 "Sovereign Intelligence alpha-20261026.3: the installer and the aienos command"
 text a_l2 "written in Omega (.om), compiled by omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d"
 text a_l3 "  (aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, seed/out/omc)"
 text a_l4 "engine: aien-serve-http sha256 19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb,"
@@ -14,15 +15,15 @@ text a_l6 "  commit 59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3 (a development buil
 text a_l7 "  evidence: Core evidence/l387-motor-ship (merge train 20261022T0244Z-bfc41659, timing runs)"
 text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega ship/motor-l387 6de999da) talks to"
 text a_l9 "  /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. There is no separate CUDA++ runtime."
-text a_l10 "model: Qwen/Qwen3.6-35B-A3B-FP8 revision 95a723d08a9490559dae23d0cff1d9466213d989 (37.5 GB)"
-text a_l11 "  This is the only model offered. A 27B is to come; it is not offered in this release."
+text a_l10 "models: share/aienos/models.registry lists every model this release offers, each with its status"
+text a_l11 "  (aienos models). The 35B is the default; the 27B is experimental. Others are not supported yet."
 text a_l12 "evidence: this engine binary serving the 35B on a GB10 EXERCISED (it is the live server's build);"
 text a_l13 "  this installer's GB10 install and first token, and the 3x physical qualification: NOT_RUN."
 text a_l14 "signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a"
 text a_l15 "  (an alpha key; it is rotated to a ceremony key before beta)"
 text s_l1 "My Omega source ships with this release:"
 text s_l2 "/share/aienos/wizard/"
-text s_l3 "  sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om"
+text s_l3 "  sha256.om lib.om hole.om doctor.om net.om steps.om models.om engine.om detect.om main.om"
 text s_l4 "/share/aienos/aienos.om"
 text s_l5 "  the same files concatenated in build order: one unit, one compile"
 text s_l6 "Also online: https://www.aienos.com/alpha/ and https://github.com/aien-dev/sovereign-intelligence"
@@ -30,9 +31,9 @@ text w_l1 "Welcome. I am Drake, and this is Sovereign Intelligence, the AienOS a
 text w_l2 "This installer is written in Omega, my own language. It sets up a local model on"
 text w_l3 "your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS."
 text w_l4 "NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused."
-text w_l5 "Next: doctor, plan, your yes, install, model, first chat. Nothing changes before your yes."
+text w_l5 "Next: your model, doctor, plan, your yes, install, model files, first chat. Nothing changes before your yes."
 text w_l6 "Type about for versions and evidence, source for my .om source, q to quit."
-text w_go "Press Enter to run the doctor"
+text w_go "Press Enter to choose your model"
 text x_l1 "This alpha runs on Linux arm64 with an NVIDIA GB10 (DGX Spark) only."
 text x_l2 "Here is what is coming: https://www.aienos.com/alpha/"
 text x_l3 "I changed nothing. The files the installer unpacked go away with:  aienos uninstall"
@@ -67,20 +68,25 @@ text k_stop "stop"
 text k_vfy "verify"
 text k_unin "uninstall"
 text k_roll "rollback"
-text k_help "usage: aienos [wizard [--plain] | doctor | chat | start | stop | verify | source | about | uninstall [--keep-model] [--yes] | rollback]"
+text k_status "status"
+text k_rest "restore"
+text k_det "detect"
+text k_mods "models"
+text n_model "The model is not installed and verified yet. Run aienos to download or resume it first."
+text n_idle "Your local model is stopped. Run aienos start to start it."
+text n_load "Your engine is running but not ready. Model loading can take a few minutes. See ~/.local/share/aienos/engine.log."
+text k_help "usage: aienos [wizard [--plain] | doctor | status | models | detect | chat | start | stop | restore | verify | source | about | uninstall [--keep-model] [--yes] | rollback]"
 text n_nohome "HOME is not set; I cannot tell where to install."
 text n_badrt "I cannot find my own folder (/proc/self/exe)."
 text n_vok " files match SHA256SUMS"
 text n_vbad "a file does not match SHA256SUMS"
 text n_start "engine started, pid "
 text n_ready "engine ready on http://127.0.0.1:18100/v1"
-text n_nostrt "engine did not become ready; see ~/.local/share/aienos/engine.log"
 text n_stopd "engine stopped"
 text n_chat1 "aienos chat: type a message and press Enter. /bye leaves."
 text n_bye "/bye"
 text n_you "you> "
 text n_ai "model> "
-text n_err "request failed: "
 text t_sp " "
 
 note argument i into ib; returns its length or -1.
@@ -305,7 +311,7 @@ end
 
 note Doctor screen. Returns true when the machine can take this alpha.
 fn stdoc to bool
-enter 1
+enter 2
 pclear
 need = mneed
 ok = doctor need
@@ -402,7 +408,7 @@ end
 end
 
 fn stplan to bool
-enter 2
+enter 3
 pclear
 pl p_l1
 pln
@@ -448,7 +454,7 @@ ret ge r 0
 end
 
 fn styes to bool
-enter 3
+enter 4
 pclear
 pc 6
 pl c_l1
@@ -484,6 +490,10 @@ if not stwel
 bye c_stop
 ret 0
 end
+if not stfind
+bye c_stop
+ret 0
+end
 if not stdoc
 bye x_l3
 ret 0
@@ -500,6 +510,7 @@ if not stinst
 bye c_fail
 ret 1
 end
+rsave
 if not mstep
 bye c_fail
 ret 1
@@ -561,13 +572,34 @@ end
 note Start the engine when the doctor allows it and wait until it answers.
 fn cstart to int
 x = mopen
+if gt epid 0
 if alive PORT
 emit n_ready
 putb 10
 w = flush
 ret 0
 end
+emit n_load
+putb 10
+w = flush
+ret 2
+end
+if portbusy
+emit n_port
+putb 10
+w = flush
+ret 2
+end
 ok = doctor 0
+if not ok
+ret cdoctor
+end
+if not mdone
+emit n_model
+putb 10
+w = flush
+ret 2
+end
 pclear
 if ckskip
 for i ulong get ptn 0
@@ -596,6 +628,29 @@ putb 10
 w = flush
 ret 0
 end
+
+note Read-only status: never starts an engine or treats a foreign health endpoint as ours.
+fn cstatus to int
+if gt epid 0
+if alive PORT
+emit n_ready
+else
+emit n_load
+end
+putb 10
+w = flush
+ret 0
+end
+if portbusy
+emit n_port
+else
+emit n_idle
+end
+putb 10
+w = flush
+ret 1
+end
+
 
 fn cstop to int
 if estop
@@ -686,6 +741,9 @@ end
 if iskey k_doc
 ret cdoctor
 end
+if iskey k_status
+ret cstatus
+end
 if iskey k_chat
 ret cchat
 end
@@ -714,6 +772,15 @@ end
 if iskey k_roll
 ret rollbk
 end
+if iskey k_rest
+ret crest
+end
+if iskey k_det
+ret cdetect
+end
+if iskey k_mods
+ret cmodels
+end
 emit k_help
 putb 10
 w = flush
@@ -731,6 +798,12 @@ end
 if ibis u_yes
 yes = true
 end
+end
+end
+if rhave
+r = crest
+if ne r 0
+ret r
 end
 end
 x = mopen

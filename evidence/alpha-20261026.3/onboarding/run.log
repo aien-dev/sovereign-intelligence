@@ -1,0 +1,18 @@
+container pid namespace: this script is pid 1; processes visible: 6
+container network: eth0
+PASS swap-connect
+PASS restore-roundtrip
+PASS restore-compare-control
+PASS restore-nothing-twice
+PASS unsupported-untouched
+PASS managed-refused
+PASS hf-bad-token
+PASS hf-tiny-download
+PASS hf-good-token
+PASS partial-resume
+PASS tampered-local
+PASS occupied-port
+PASS swap-fail-restores
+PASS wrong-arch
+PASS models-command
+AIENOS-ONBOARDING pass=15 fail=0 not_run=0

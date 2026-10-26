@@ -5,18 +5,8 @@ note screen, the uninstaller and the rollback.
 
 const PORT ulong 18100
 text e_bin "/bin/aien-serve-http"
-text e_eng "--engine"
-text e_omega "omega"
 text e_mdir "--model-dir"
 text e_port "--port"
-text e_ctx "--max-context"
-text e_ctxv "49152"
-text e_cap "--max-tokens-cap"
-text e_capv "16384"
-text e_thk "--thinking"
-text e_off "off"
-text e_slot "--batch-slots"
-text e_slotv "8"
 text e_log "/engine.log"
 text e_pid "/engine.pid"
 text e_null "/dev/null"
@@ -32,8 +22,15 @@ text f_skip1 "I am not starting the engine now: "
 text f_mem "another model is using this GB10's memory."
 text f_lock "another process holds the GB10 lock."
 text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
-text f_load1 "Starting the engine (Core ship/motor-l387 59b05a71) and loading the 35B onto the GB10."
-text f_load2 "The first load reads about 37.5 GB, so it can take a few minutes."
+text f_load1 "Starting the engine and loading "
+text f_load2 "The first load reads about "
+text f_load3 ", so it can take a few minutes."
+text f_dot "."
+text f_dec "decode "
+text f_tps " tokens/s ("
+text f_tps2 " tokens, counted by the server)"
+text f_eps " stream events/s ("
+text f_eps2 " content events; the server sent no token count)"
 text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
 text f_q "Say hello in one short sentence, and tell me what you are."
 text f_you "you    "
@@ -67,29 +64,22 @@ text r_new "/current.new"
 text r_pre "releases/"
 text r_none "There is no other release to roll back to."
 text r_ok "current now points to "
+text n_unread "unreadable (NOT_RUN)"
+text n_port "Port 18100 is already in use by another service. I left it untouched. Close that service yourself, then run aienos start."
+text n_nostrt "engine did not become ready; see ~/.local/share/aienos/engine.log"
+text n_err "request failed: "
 
-note The packed argument list of the live 35B server's command (same flags), on PORT.
+note The packed argument list: the selected model's engine and registry args, its folder, PORT.
 fn eargs to void
 pkclr
-pclr
-proot
-pstr e_bin
+peng
 pkpath
-pkstr e_eng
-pkstr e_omega
+pkargs
 pkstr e_mdir
 pmodel
 pkpath
 pkstr e_port
 pknum PORT
-pkstr e_ctx
-pkstr e_ctxv
-pkstr e_cap
-pkstr e_capv
-pkstr e_thk
-pkstr e_off
-pkstr e_slot
-pkstr e_slotv
 end
 
 note Start the engine in its own session, output appended to engine.log, pid in engine.pid.
@@ -131,7 +121,7 @@ r = spill k
 ret pid
 end
 
-note The pid in engine.pid when that process is still aien-serve-http, else 0.
+note The pid in engine.pid only when its executable is this release's engine, else 0.
 fn epid to ulong
 pbase
 pstr e_pid
@@ -152,13 +142,27 @@ if le n 0
 ret 0
 end
 put rbn 0 ulong n
-if lt ulong n len e_name
+pclr
+proot
+pstr e_bin
+note This release's engine is root/bin/aien-serve-http or a sibling named aien-serve-http-NAME.
+if lt ulong n get pbn 0
 ret 0
 end
-if rbat sub ulong n len e_name e_name
+for i ulong get pbn 0
+if ne get rb i get pb i
+ret 0
+end
+end
+if and gt ulong n get pbn 0 ne get rb get pbn 0 45
+ret 0
+end
+for i ulong sub ulong n get pbn 0
+if eq get rb add get pbn 0 i 47
+ret 0
+end
+end
 ret p
-end
-ret 0
 end
 
 note Stop the engine: SIGTERM, then wait up to 120 s for it to go. Returns true when it is gone.
@@ -246,11 +250,35 @@ end
 ret false
 end
 
+note Probe for any TCP listener without sending a prompt to an unknown service.
+fn portbusy to bool
+fd = tcp PORT
+if lt fd 0
+ret false
+end
+c = fclose int fd
+ret true
+end
+
 note The first-chat step. Returns false only when the engine failed to come up.
 fn stchat to bool
-enter 6
+enter 7
 pclear
 put ui 11 0
+if gt get swp 0 0
+if not swdo
+ret false
+end
+end
+if eq epid 0
+if portbusy
+pl n_port
+prompt t_close
+show
+r = ask
+ret false
+end
+end
 if ckskip
 pln
 pln
@@ -262,8 +290,12 @@ ret true
 end
 if not alive PORT
 pl f_load1
+pltitle
+pl f_dot
 pln
 pl f_load2
+plgb mbytes
+pl f_load3
 prompt t_wait
 put ui 6 0
 show
@@ -282,13 +314,15 @@ r = ask
 ret false
 end
 end
+if not firstq
+ret false
+end
 put ui 11 1
-firstq
 ret true
 end
 
 note Ask the first question and stream the answer under the picture, then show the evidence lines.
-fn firstq to void
+fn firstq to bool
 put hsn 0 0
 hstr j_user
 put ibn 0 len f_q
@@ -313,17 +347,29 @@ mv add get ui 1 4 10
 end
 r = chatreq PORT
 w = flush
+if ne r 0
+pclear
+pl n_err
+if lt r 0
+pc 45
+plnum ulong neg r
+else
+plnum ulong r
+end
+pln
+pl n_nostrt
+prompt t_close
+show
+x = ask
+ret false
+end
 ftail
+ret true
 end
 
 fn ftail to void
 pclear
-pc 3
-pl f_ttf
-plnum div get nt 1 1000000
-pl f_ms
-pc 2
-pln
+plperf
 p = epid
 if gt p 0
 pl f_cuda
@@ -333,7 +379,11 @@ c = ecuda p
 if eq c 0
 pc 3
 end
+if lt c 0
+pl n_unread
+else
 plnum ulong c
+end
 pc 2
 pln
 end
@@ -349,8 +399,45 @@ end
 r = rline
 end
 
+note TTFT and the decode rate of the last reply: (count - 1) over the time from the first to the
+note last content event, using the server's completion_tokens when it sent one.
+fn plperf to void
+pc 3
+pl f_ttf
+plnum div get nt 1 1000000
+pl f_ms
+pc 2
+n = get nt 0
+c = get nt 4
+if eq c 0
+c = n
+end
+d = ulong 0
+if gt get nt 3 get nt 1
+d = sub get nt 3 get nt 1
+end
+if and ge c 2 gt d 0
+pl k_gap
+pl f_dec
+x = div mul sub c 1 10000000000 d
+plnum div x 10
+pc 46
+plnum rem x 10
+if gt get nt 4 0
+pl f_tps
+plnum c
+pl f_tps2
+else
+pl f_eps
+plnum n
+pl f_eps2
+end
+end
+pln
+end
+
 fn stdone ready bool to void
-enter 7
+enter 8
 pclear
 pc 3
 if ready
@@ -372,6 +459,11 @@ pln
 pl d_l6
 pln
 pln
+if eq get ui 11 1
+plperf
+pldown
+pln
+end
 pc 5
 pl d_l7
 pc 2

@@ -1,0 +1,948 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note models.om: the model registry (share/aienos/models.registry), the model picker, weights that are
+note already on this machine (found, hashed and linked, never copied or changed) and the optional
+note Hugging Face token. The registry is one block per model:
+note   model ID / title T / repo ORG/NAME / manifest FILE / engine REL / args A... / memkb N / status S / end
+
+global rgy uchar 32768
+global rgyn ulong 1
+global rsel ulong 4
+global qsb uchar 512
+global qsbn ulong 1
+global lcd uchar 4096
+global lcdn ulong 1
+global lbd uchar 4096
+global lbdn ulong 1
+global lwt ulong 4
+global srv ulong 96
+global srvs uchar 16384
+global srvn ulong 2
+global swp ulong 8
+global swpd uchar 4096
+global swpdn ulong 1
+global avx ulong 256
+global avxn ulong 1
+global rcm uchar 131072
+global rcmn ulong 1
+global scb uchar 524288
+global scbn ulong 1
+text g_file "/share/aienos/models.registry"
+text g_shd "/share/aienos/"
+text g_sel "/selected"
+text g_model "model "
+text g_title "title "
+text g_repo "repo "
+text g_man "manifest "
+text g_eng "engine "
+text g_args "args "
+text g_mem "memkb "
+text g_stat "status "
+text g_end "end"
+text k_l1 "Which model should I set up? Type its number, or its Hugging Face name (org/model)."
+text k_l2 "Enter keeps the selected one. A model that is not listed is not supported yet: I never download it."
+text k_bad1 " is not supported yet. I downloaded nothing and changed nothing."
+text k_q "number or name"
+text k_qq "q"
+text k_cur "   <- selected"
+text k_ind "       "
+text k_sp2 "  "
+text k_gap "   "
+text l_mod "/models--"
+text l_snap "/snapshots/"
+text l_res "/resolve/"
+text l_hub "HF_HUB_CACHE"
+text l_hfh "HF_HOME"
+text l_hub2 "/hub"
+text l_cach "/.cache/huggingface/hub"
+text l_mdl "/models/"
+text l_self "/proc/self/cwd"
+text l_f1 "Found "
+text l_of " of "
+text l_f2 " files of "
+text l_in " here:"
+text l_f3 "Each one is checked by SHA-256 and linked into ~/.local/share/aienos/models. Nothing in that"
+text l_f3b "folder is changed, copied or deleted. Files that are missing or do not match get downloaded."
+text l_f4 "Press Enter to use them, type another folder, or type download to fetch every file instead."
+text l_n1 "No local copy found (Hugging Face cache, HF_HOME, HF_HUB_CACHE, ~/models)."
+text l_n2 "Type a folder that holds the weights, or press Enter to download them from Hugging Face."
+text l_bad "No file of this model, at its exact size, is in that folder."
+text l_q "Enter, a folder, or download"
+text l_dl "download"
+text h_l1 "Hugging Face token (optional). These weights are public, so Enter skips this."
+text h_l2 "A token you paste is stored only on this machine: ~/.local/share/aienos/keys/hf.header (0600)."
+text h_l3 "It is sent only to huggingface.co, as a header curl reads from that file, never on a command line."
+text h_l4 "What you type is not shown."
+text h_bad "Hugging Face refused that token (HTTP 401). Nothing was stored. Paste another, or press Enter."
+text h_net "I could not check the token with huggingface.co (HTTP "
+text h_net2 "). Nothing was stored; I download without it."
+text h_q "token, or Enter to skip"
+text h_keys "/keys"
+text h_hdr "/keys/hf.header"
+text h_new "/keys/hf.header.new"
+text h_auth "Authorization: Bearer "
+text h_api "AIENOS_HF_API"
+text h_dapi "https://huggingface.co"
+text h_who "/api/whoami-v2"
+text h_H "-H"
+text h_at "@"
+text h_w "-w"
+text h_code "%{http_code}"
+text h_s "-s"
+text h_mt "--max-time"
+text h_20 "20"
+text h_dnul "/dev/null"
+text h_stt "stty"
+text h_noec "-echo"
+text h_echo "echo"
+
+note ---------- registry lines ----------
+
+fn rgnl o ulong to ulong
+i = o
+while lt i get rgyn 0 bound 32769
+if eq get rgy i 10
+ret i
+end
+i = add i 1
+end
+ret get rgyn 0
+end
+
+fn rgat o ulong t view uchar * to bool
+if gt add o len t get rgyn 0
+ret false
+end
+for i ulong len t
+if ne get rgy add o i get t i
+ret false
+end
+end
+ret true
+end
+
+note Offset of the k-th "model " line, or the registry length when there are fewer blocks.
+fn rblk k ulong to ulong
+c = ulong 0
+o = ulong 0
+while lt o get rgyn 0 bound 32769
+if rgat o g_model
+if eq c k
+ret o
+end
+c = add c 1
+end
+o = add rgnl o 1
+end
+ret get rgyn 0
+end
+
+fn rcnt to ulong
+c = ulong 0
+o = ulong 0
+while lt o get rgyn 0 bound 32769
+if rgat o g_model
+c = add c 1
+end
+o = add rgnl o 1
+end
+ret c
+end
+
+note Offset of the value of key t in the block at b (up to its "end" line), or the registry length.
+fn rval b ulong t view uchar * to ulong
+o = b
+while lt o get rgyn 0 bound 4097
+if rgat o t
+ret add o len t
+end
+e = rgnl o
+if and rgat o g_end eq e add o 3
+ret get rgyn 0
+end
+o = add e 1
+end
+ret get rgyn 0
+end
+
+fn pval b ulong t view uchar * to void
+o = rval b t
+e = rgnl o
+for i ulong sub e o
+pbyte get rgy add o i
+end
+end
+
+fn plval b ulong t view uchar * to void
+o = rval b t
+e = rgnl o
+for i ulong sub e o
+pc get rgy add o i
+end
+end
+
+fn rnum b ulong t view uchar * to ulong
+o = rval b t
+x = ulong 0
+for i ulong 20
+k = add o i
+if ge k get rgyn 0
+ret x
+end
+c = get rgy k
+if or lt c 48 gt c 57
+ret x
+end
+x = add mul x 10 ulong sub c 48
+end
+ret x
+end
+
+note Offset where the repo name of block b starts after its last slash (the NAME of ORG/NAME).
+fn rbase b ulong to ulong
+o = rval b g_repo
+e = rgnl o
+s = o
+for i ulong sub e o
+if eq get rgy add o i 47
+s = add add o i 1
+end
+end
+ret s
+end
+
+fn lc c uchar to uchar
+if and ge c 65 le c 90
+ret add c 32
+end
+ret c
+end
+
+fn qsput c uchar to void
+n = get qsbn 0
+if lt n len qsb
+put qsb n c
+put qsbn 0 add n 1
+end
+end
+
+note Does qsb equal rgy[o .. e), ignoring case?
+fn qseq o ulong e ulong to bool
+if ne sub e o get qsbn 0
+ret false
+end
+for i ulong get qsbn 0
+if ne lc get rgy add o i lc get qsb i
+ret false
+end
+end
+ret true
+end
+
+note The block whose repo is qsb (ORG/NAME or NAME, any case), or the registry length.
+fn rrepo to ulong
+n = rcnt
+if eq get qsbn 0 0
+ret get rgyn 0
+end
+for k ulong n
+b = rblk k
+o = rval b g_repo
+e = rgnl o
+if or qseq o e qseq rbase b e
+ret b
+end
+end
+ret get rgyn 0
+end
+
+note Load the registry once and select the saved model (~/.local/share/aienos/selected), else the first.
+fn rsure to bool
+if eq get rsel 0 1
+ret lt get rsel 1 get rgyn 0
+end
+pclr
+proot
+pstr g_file
+n = slurp
+if or le n 0 gt get rbn 0 len rgy
+ret false
+end
+for i ulong get rbn 0
+put rgy i get rb i
+end
+put rgyn 0 get rbn 0
+put rsel 0 1
+put rsel 1 rblk 0
+pbase
+pstr g_sel
+n = slurp
+if gt n 0
+put qsbn 0 0
+for i ulong get rbn 0
+c = get rb i
+if or eq c 10 eq c 13
+break
+end
+qsput c
+end
+b = rrepo
+if lt b get rgyn 0
+put rsel 1 b
+end
+end
+ret lt get rsel 1 get rgyn 0
+end
+
+note Save the selection (after the user's yes).
+fn rsave to void
+if not rsure
+ret
+end
+pclr
+pval get rsel 1 g_repo
+n = get pbn 0
+for i ulong n
+put rb i get pb i
+end
+put rb n 10
+pbase
+pstr g_sel
+x = spill add n 1
+end
+
+note The selected block, and how many files were found locally (for steps.om, which comes before
+note these globals in build order).
+fn rselb to ulong
+ret get rsel 1
+end
+
+fn lhave to ulong
+ret get lwt 0
+end
+
+note Memory the selected model needs free, in kB (the registry's memkb).
+fn rmem to ulong
+if rsure
+v = rnum get rsel 1 g_mem
+if gt v 0
+ret v
+end
+end
+ret 62780416
+end
+
+note pb = root/share/aienos/MANIFEST of block b.
+fn pman b ulong to void
+pclr
+proot
+pstr g_shd
+pval b g_man
+end
+
+note pb = root/ENGINE of the selected block.
+fn peng to void
+pclr
+proot
+pbyte 47
+pval get rsel 1 g_eng
+end
+
+note The selected block's args, split on spaces, appended to the packed list pk.
+fn pkargs to void
+b = get rsel 1
+o = rval b g_args
+e = rgnl o
+pclr
+for i ulong sub e o
+c = get rgy add o i
+if eq c 32
+if gt get pbn 0 0
+pkpath
+end
+pclr
+else
+pbyte c
+end
+end
+if gt get pbn 0 0
+pkpath
+end
+end
+
+fn pltitle to void
+plval get rsel 1 g_title
+end
+
+note ---------- the picker ----------
+
+fn plpick k ulong to void
+b = rblk k
+pc 6
+pl k_sp2
+plnum add k 1
+pl k_sp2
+plval b g_title
+pc 2
+pman b
+n = mload
+if ge n 0
+pl k_gap
+plgb mbytes
+pl m_l3
+plnum mfiles
+pl t_files
+end
+if eq b get rsel 1
+pc 3
+pl k_cur
+pc 2
+end
+pln
+pc 5
+pl k_ind
+plval b g_stat
+pc 2
+pln
+end
+
+note The input as a number 1..n or a repo name; returns the block, or the registry length.
+fn pickin n ulong to ulong
+put qsbn 0 0
+for i ulong get ibn 0
+c = get ib i
+if and ne c 32 ne c 13
+qsput c
+end
+end
+v = ulong 0
+dig = gt get qsbn 0 0
+for i ulong get qsbn 0
+c = get qsb i
+if or lt c 48 gt c 57
+dig = false
+else
+v = add mul v 10 ulong sub c 48
+end
+end
+if dig
+if and ge v 1 le v n
+ret rblk sub v 1
+end
+ret get rgyn 0
+end
+ret rrepo
+end
+
+note The picker screen. Leaves the chosen model's manifest open (mopen). False to quit.
+fn stpick to bool
+if not rsure
+ret false
+end
+bad = false
+for t ulong 8
+pclear
+pl k_l1
+pln
+pln
+n = rcnt
+for k ulong n
+plpick k
+end
+pln
+pl k_l2
+pln
+if bad
+pln
+pc 4
+for i ulong get qsbn 0
+pc get qsb i
+end
+pl k_bad1
+pc 2
+pln
+end
+prompt k_q
+show
+r = ask
+if lt r 0
+ret false
+end
+if ibis k_qq
+ret false
+end
+if eq get ibn 0 0
+ret mopen
+end
+b = pickin n
+if lt b get rgyn 0
+put rsel 1 b
+ret mopen
+end
+bad = true
+end
+ret false
+end
+
+note ---------- weights already on this machine ----------
+
+fn pcd e ulong to void
+pclr
+for i ulong get lcdn 0
+pbyte get lcd i
+end
+pbyte 47
+for i ulong sub e get ui 11
+pbyte get mf add get ui 11 i
+end
+end
+
+fn pblf e ulong to void
+pclr
+for i ulong get lbdn 0
+pbyte get lbd i
+end
+pbyte 47
+for i ulong sub e get ui 11
+pbyte get mf add get ui 11 i
+end
+end
+
+note Count the manifest's files that are in lcd as regular files of the exact size (lwt 2 files,
+note lwt 3 bytes). A hash is not computed here: mall hashes every file before it is used.
+fn lcount to ulong
+put lwt 2 0
+put lwt 3 0
+if eq get lcdn 0 0
+ret 0
+end
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+sz = fline o e
+pcd e
+if eq pstat 0
+if and eq stype 8 eq ssize sz
+put lwt 2 add get lwt 2 1
+put lwt 3 add get lwt 3 sz
+end
+end
+end
+o = add e 1
+end
+ret get lwt 2
+end
+
+fn lkeep to void
+for i ulong get lcdn 0
+put lbd i get lcd i
+end
+put lbdn 0 get lcdn 0
+put lwt 0 get lwt 2
+put lwt 1 get lwt 3
+end
+
+note Try the folder in pb: keep it as the best when it holds more of the model than the best so far.
+fn ltry to void
+n = get pbn 0
+if gt n len lcd
+ret
+end
+for i ulong n
+put lcd i get pb i
+end
+put lcdn 0 n
+c = lcount
+if gt c get lwt 0
+lkeep
+end
+end
+
+note Append models--ORG--NAME/snapshots/REV (the Hugging Face cache layout) to pb.
+fn phfc to void
+pstr l_mod
+o = rval get rsel 1 g_repo
+e = rgnl o
+for i ulong sub e o
+c = get rgy add o i
+if eq c 47
+pbyte 45
+pbyte 45
+else
+pbyte c
+end
+end
+pstr l_snap
+u = mkey m_url
+ue = mfnl u
+s = ue
+for i ulong sub ue u
+if and eq s ue mfat add u i l_res
+s = add add u i len l_res
+end
+end
+while and lt s ue ne get mf s 47 bound 256
+pbyte get mf s
+s = add s 1
+end
+end
+
+fn penv k view uchar * to bool
+n = envget k
+if le n 0
+ret false
+end
+pclr
+for i ulong ulong n
+pbyte get eb add add len k 1 i
+end
+ret true
+end
+
+note Look for the selected model's files: the connected server's folder, the Hugging Face caches,
+note ~/models/NAME. Leaves the best folder in lbd and returns its file count (lwt 0, bytes lwt 1).
+fn lscan to ulong
+put lwt 0 0
+put lwt 1 0
+put lbdn 0 0
+if gt get swpdn 0 0
+pclr
+for i ulong get swpdn 0
+pbyte get swpd i
+end
+ltry
+end
+if penv l_hub
+phfc
+ltry
+end
+if penv l_hfh
+pstr l_hub2
+phfc
+ltry
+end
+pclr
+phome
+pstr l_cach
+phfc
+ltry
+pclr
+phome
+pstr l_mdl
+b = rbase get rsel 1
+e = rgnl b
+for i ulong sub e b
+pbyte get rgy add b i
+end
+ltry
+ret get lwt 0
+end
+
+note Link one file from lbd into the model folder when nothing is there yet and the size is right.
+fn lnk1 e ulong sz ulong to bool
+pmfile e
+r = lstat pb 0 get pbn 0 sb 0 128
+if eq r 0
+ret false
+end
+pblf e
+if ne pstat 0
+ret false
+end
+if or ne stype 8 ne ssize sz
+ret false
+end
+pkclr
+pkpath
+pmfile e
+pkpath
+r = symlnk pk 0 get pkn 0
+ret eq r 0
+end
+
+fn llink to ulong
+k = ulong 0
+if eq get lbdn 0 0
+ret 0
+end
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+sz = fline o e
+if lnk1 e sz
+k = add k 1
+end
+end
+o = add e 1
+end
+ret k
+end
+
+note The typed folder (ib) into lcd: a leading ~ is the home folder, a relative one starts at cwd.
+fn cdib to void
+pclr
+o = ulong 0
+if gt get ibn 0 0
+if eq get ib 0 126
+phome
+o = 1
+end
+if and ne get ib 0 47 ne get ib 0 126
+pstr l_self
+n = readlnk pb 0 get pbn 0 rb 0 4096
+pclr
+if gt n 0
+prb 0 ulong n
+pbyte 47
+end
+end
+end
+for i ulong sub get ibn 0 o
+pbyte get ib add o i
+end
+while and gt get pbn 0 1 eq get pb sub get pbn 0 1 47 bound 4096
+pdrop 1
+end
+for i ulong get pbn 0
+put lcd i get pb i
+end
+put lcdn 0 get pbn 0
+end
+
+fn plbest to void
+pl l_f1
+plnum get lwt 0
+pl l_of
+plnum mfiles
+pl l_f2
+pltitle
+pl l_in
+pln
+pc 6
+pl k_sp2
+for i ulong get lbdn 0
+pc get lbd i
+end
+pc 2
+pln
+pln
+pl l_f3
+pln
+pl l_f3b
+pln
+pln
+pl l_f4
+end
+
+note The local-weights screen, before any download. False to quit.
+fn stlocal to bool
+n = lscan
+bad = false
+for t ulong 8
+pclear
+if gt get lwt 0 0
+plbest
+else
+pl l_n1
+pln
+pl l_n2
+end
+if bad
+pln
+pln
+pc 4
+pl l_bad
+pc 2
+end
+prompt l_q
+show
+r = ask
+if lt r 0
+ret false
+end
+if eq get ibn 0 0
+k = llink
+ret true
+end
+if ibis l_dl
+put lwt 0 0
+ret true
+end
+cdib
+c = lcount
+bad = eq c 0
+if gt c 0
+lkeep
+end
+end
+ret true
+end
+
+note ---------- the optional Hugging Face token ----------
+
+fn phk t view uchar * to void
+pbase
+pstr t
+end
+
+note The token header for curl (-H @~/.local/share/aienos/keys/hf.header) when one is stored.
+fn pkauth to void
+phk h_hdr
+if not pexist
+ret
+end
+pkstr h_H
+pclr
+pstr h_at
+phome
+pstr t_base
+pstr h_hdr
+pkpath
+end
+
+note Ask huggingface.co who the header in hf.header.new belongs to. Returns the HTTP status or < 0.
+fn tkchk to long
+pkclr
+if not findbin h_curl
+ret -2
+end
+pkpath
+pkstr h_s
+pkstr h_mt
+pkstr h_20
+pkstr c_o
+pkstr h_dnul
+pkstr h_w
+pkstr h_code
+pkstr h_H
+pclr
+pstr h_at
+phome
+pstr t_base
+pstr h_new
+pkpath
+if not penv h_api
+pclr
+pstr h_dapi
+end
+pstr h_who
+pkpath
+r = runcap
+if ne r 0
+ret r
+end
+ret long rbnum 0
+end
+
+note Write the typed token as a header file (0600), check it, keep it only on HTTP 200.
+fn tkset to long
+phk h_keys
+r = makedir pb 0 get pbn 0 448
+n = ulong 0
+for i ulong len h_auth
+put rb n get h_auth i
+n = add n 1
+end
+for i ulong get ibn 0
+c = get ib i
+if and gt c 32 lt c 127
+put rb n c
+n = add n 1
+end
+end
+put rb n 10
+phk h_new
+x = spillm add n 1 1
+c = tkchk
+pkclr
+phk h_new
+pkpath
+if eq c 200
+phk h_hdr
+pkpath
+x = renames pk 0 get pkn 0 0
+ret c
+end
+phk h_new
+x = unlink pb 0 get pbn 0
+ret c
+end
+
+fn echo on bool to void
+if not istty 0
+ret
+end
+pkclr
+if not findbin h_stt
+ret
+end
+pkpath
+if on
+pkstr h_echo
+else
+pkstr h_noec
+end
+pclr
+r = runpk
+end
+
+note The token screen; shown only when something must be downloaded and no token is stored.
+fn sttok to bool
+phk h_hdr
+if pexist
+ret true
+end
+bad = false
+for t ulong 5
+pclear
+pl h_l1
+pln
+pl h_l2
+pln
+pl h_l3
+pln
+pl h_l4
+if bad
+pln
+pln
+pc 4
+pl h_bad
+pc 2
+end
+prompt h_q
+show
+echo false
+r = ask
+echo true
+if lt r 0
+ret false
+end
+if eq get ibn 0 0
+ret true
+end
+c = tkset
+for i ulong get ibn 0
+put ib i 0
+end
+if eq c 200
+ret true
+end
+bad = eq c 401
+if not bad
+pclear
+pl h_net
+if gt c 0
+plnum ulong c
+else
+plnum 0
+end
+pl h_net2
+prompt t_next
+show
+r = ask
+ret ge r 0
+end
+end
+ret true
+end

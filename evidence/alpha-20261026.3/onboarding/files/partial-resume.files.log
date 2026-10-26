@@ -1,0 +1,2 @@
+GET /model/config.json range=
+GET /model/weights.bin range=bytes=1000000-

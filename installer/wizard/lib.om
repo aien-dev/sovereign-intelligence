@@ -365,7 +365,23 @@ end
 
 note Write rb[0 .. n) to the file named by pb, created or truncated, mode 0644.
 fn spill n ulong to long
-fd = fopen pb 0 get pbn 0 525889 420
+ret spillm n 0
+end
+
+note Create or truncate pb with mode 0644 (m 0), 0600 (m 1) or 0700 (m 2).
+fn fopw m ulong to long
+if eq m 1
+ret fopen pb 0 get pbn 0 525889 384
+end
+if eq m 2
+ret fopen pb 0 get pbn 0 525889 448
+end
+ret fopen pb 0 get pbn 0 525889 420
+end
+
+note spill with the creation mode chosen by m (see fopw).
+fn spillm n ulong m ulong to long
+fd = fopw m
 if lt fd 0
 ret fd
 end

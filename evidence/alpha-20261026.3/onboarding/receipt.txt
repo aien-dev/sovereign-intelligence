@@ -1,0 +1,23 @@
+image ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac arm64
+host Linux 7.0.0-1019-nvidia aarch64, docker 29.2.1
+stage /tmp/so-out/stage, omc befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+base image aienos-onboard-base:alpha-20261026.3 = ubuntu:24.04 + curl openssl ca-certificates python3 procps + user tester
+container network mode bridge, pid mode ""
+container pid namespace: this script is pid 1; processes visible: 6
+container network: eth0
+PASS swap-connect
+PASS restore-roundtrip
+PASS restore-compare-control
+PASS restore-nothing-twice
+PASS unsupported-untouched
+PASS managed-refused
+PASS hf-bad-token
+PASS hf-tiny-download
+PASS hf-good-token
+PASS partial-resume
+PASS tampered-local
+PASS occupied-port
+PASS swap-fail-restores
+PASS wrong-arch
+PASS models-command
+AIENOS-ONBOARDING pass=15 fail=0 not_run=0

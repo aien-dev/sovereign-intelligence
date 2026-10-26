@@ -333,9 +333,10 @@ verdict 3 2
 dstr d_m4
 ret
 end
-note 35B load need (Core qwen36_batch at 59b05a71, live load log): 37254 MiB model + 8 rows x 1982.85 MiB
-note + 8192 MiB kept free = 61309 MiB = 62780416 kB (Wolfram: Ceiling[37254+8*1982.85+8192]*1024).
-if lt fr 62780416
+note The selected model's load need comes from its registry memkb (rmem). The 35B entry carries
+note 62780416 kB: 37254 MiB model + 8 rows x 1982.85 MiB + 8192 MiB kept free (Core qwen36_batch at
+note 59b05a71, live load log; Wolfram: Ceiling[37254+8*1982.85+8192]*1024).
+if lt fr rmem
 verdict 3 1
 dstr d_m3
 ret

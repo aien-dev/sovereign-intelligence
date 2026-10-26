@@ -16,7 +16,7 @@ top=$(cd "$here/.." && pwd)
 S=${1:-$(mktemp -d "${TMPDIR:-/tmp}/aienos-tests.XXXXXX")}
 mkdir -p "$S"
 S=$(cd "$S" && pwd)
-TAG=alpha-20261026.2
+TAG=alpha-20261026.3
 BUNDLE=aienos-$TAG-linux-arm64.tar.gz
 pass=0
 fail=0
@@ -25,9 +25,33 @@ no() { fail=$((fail + 1)); printf 'FAIL %s: %s\n' "$1" "$2"; }
 verdict() { if [ "$2" -eq 0 ]; then ok "$1"; else no "$1" "condition false (see $S)"; fi; }
 
 # ---- shared fixtures ----
+# The wizard reads /proc to find running model servers; here it reads an empty folder instead,
+# so no process of this machine is seen or contacted. Local-weight search sees only test homes.
+mkdir -p "$S/proc-empty"
+AIENOS_PROC_ROOT=$S/proc-empty
+export AIENOS_PROC_ROOT
+unset HF_HOME HF_HUB_CACHE AIENOS_HF_API
 PORT=${AIENOS_TEST_PORT:-18733}
 mkdir -p "$S/www/real" "$S/www/test" "$S/www/model" "$S/bin-darwin" "$S/bin-x86"
 cp "$DIST"/* "$S/www/real/"
+openssl genpkey -algorithm ed25519 -out "$S/test.key" 2>/dev/null
+openssl pkey -in "$S/test.key" -pubout -out "$S/test.pub.pem"
+testkey() { # install.sh with the test public key in place of the release key
+    awk -v pem="$S/test.pub.pem" '
+        /^RELEASE_PUB_PEM=/ { while ((getline l < pem) > 0) { out = out (out == "" ? "" : "\n") l }
+                              print "RELEASE_PUB_PEM='"'"'" out "'"'"'"; skip = 1; next }
+        skip && /^-----END PUBLIC KEY-----/ { skip = 0; next }
+        skip { next }
+        { print }' "$1"
+}
+if [ ! -f "$DIST/SHA256SUMS.sig" ]; then
+    # An unsigned candidate: section A runs against a test-key signature. Checking the release
+    # key's own signature is then NOT_RUN, and this line says so in the log.
+    testkey "$DIST/install.sh" > "$S/www/real/install.sh"
+    (cd "$S/www/real" && sha256sum "$BUNDLE" install.sh aienos.om release.pub release.pub.pem > SHA256SUMS \
+        && openssl pkeyutl -sign -inkey "$S/test.key" -rawin -in SHA256SUMS -out SHA256SUMS.sig)
+    printf 'NOTE DIST is unsigned: section A uses a test-key signature; the release-key signature check is NOT_RUN\n'
+fi
 python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$S/www" > "$S/http.log" 2>&1 &
 srv=$!
 trap 'kill $srv 2>/dev/null; pkill -f "$S/" 2>/dev/null' EXIT INT TERM
@@ -90,7 +114,7 @@ out=$(boot "$h" "$S/root-gb10" "http://127.0.0.1:$PORT/real" 2>&1); rc=$?
 
 # Tampered bundle: one byte changed, SHA256SUMS and its signature left as released.
 mkdir -p "$S/www/tamper" "$S/www/resign" "$S/www/nosig"
-cp "$DIST"/* "$S/www/tamper/"
+cp "$S/www/real"/* "$S/www/tamper/"
 python3 - "$S/www/tamper/$BUNDLE" <<'EOF'
 import sys
 p = sys.argv[1]
@@ -112,7 +136,7 @@ out=$(boot "$h" "$S/root-gb10" "http://127.0.0.1:$PORT/resign" 2>&1); rc=$?
 printf '%s\n' "$out" > "$S/a4.out"
 [ $rc -eq 1 ] && printf '%s' "$out" | grep -q "signature on SHA256SUMS does not match" \
     && [ ! -e "$h/.local/share/aienos/current" ]; verdict rewritten-sums-refused $?
-cp "$DIST"/* "$S/www/nosig/"; rm "$S/www/nosig/SHA256SUMS.sig"
+cp "$S/www/real"/* "$S/www/nosig/"; rm "$S/www/nosig/SHA256SUMS.sig"
 h=$(newhome a5)
 out=$(boot "$h" "$S/root-gb10" "http://127.0.0.1:$PORT/nosig" 2>&1); rc=$?
 [ $rc -eq 2 ] && [ ! -e "$h/.local/share/aienos/current" ]; verdict missing-signature-refused $?
@@ -140,14 +164,7 @@ install -m 755 "$S/fake-engine" "$tb/bin/aien-serve-http"
 } > "$tb/share/aienos/model.manifest"
 (cd "$tb" && find . -type f ! -name SHA256SUMS | sed 's|^\./||' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS)
 (cd "$tb" && tar -czf "$S/www/test/$BUNDLE" .)
-openssl genpkey -algorithm ed25519 -out "$S/test.key" 2>/dev/null
-openssl pkey -in "$S/test.key" -pubout -out "$S/test.pub.pem"
-awk -v pem="$S/test.pub.pem" '
-    /^RELEASE_PUB_PEM=/ { while ((getline l < pem) > 0) { out = out (out == "" ? "" : "\n") l }
-                          print "RELEASE_PUB_PEM='"'"'" out "'"'"'"; skip = 1; next }
-    skip && /^-----END PUBLIC KEY-----/ { skip = 0; next }
-    skip { next }
-    { print }' "$DIST/install.sh" > "$S/www/test/install.sh"
+testkey "$DIST/install.sh" > "$S/www/test/install.sh"
 (cd "$S/www/test" && sha256sum "$BUNDLE" install.sh > SHA256SUMS \
     && openssl pkeyutl -sign -inkey "$S/test.key" -rawin -in SHA256SUMS -out SHA256SUMS.sig)
 tboot() { env HOME="$1" AIENOS_PROBE_ROOT="$2" AIENOS_BASE_URL="http://127.0.0.1:$PORT/test" \
@@ -156,7 +173,8 @@ wiz() { # home probe-root input
     printf '%b' "$3" | env HOME="$1" AIENOS_PROBE_ROOT="$2" \
         timeout 300 "$1/.local/share/aienos/current/bin/aienos" wizard --plain
 }
-ALL='\n\n\nyes\n\n\n\n\n\n\n'
+# welcome, your model, doctor, plan, yes, install, local weights, token (skip), files, first chat, done
+ALL='\n\n\n\nyes\n\n\n\n\n\n\n\n\n'
 
 h=$(newhome b1)
 tboot "$h" "$S/root-gb10" > "$S/b1-boot.out" 2>&1
