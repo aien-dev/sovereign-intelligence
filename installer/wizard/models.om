@@ -600,8 +600,7 @@ ret true
 end
 
 note Look for the selected model's files: the connected server's folder, the Hugging Face caches,
-note ~/models/NAME (the repo name) and ~/models/MANIFEST-NAME (the open manifest's name line, such as
-note qwen3.8-27b-fp8-017b9c7a). Leaves the best folder in lbd and returns its file count (lwt 0, bytes lwt 1).
+note ~/models/NAME. Leaves the best folder in lbd and returns its file count (lwt 0, bytes lwt 1).
 fn lscan to ulong
 put lwt 0 0
 put lwt 1 0
@@ -636,15 +635,6 @@ for i ulong sub e b
 pbyte get rgy add b i
 end
 ltry
-if gt get mnn 0 0
-pclr
-phome
-pstr l_mdl
-for i ulong get mnn 0
-pbyte get mnm i
-end
-ltry
-end
 ret get lwt 0
 end
 
