@@ -30,7 +30,7 @@ On an NVIDIA DGX Spark (Linux arm64, GB10, kernel driver 580.173.02):
 curl -fsSL https://aienos.com/install.sh | sh
 ```
 
-It checks the machine first (anything else gets a friendly note and nothing changes), downloads release alpha-20261026.1 by exact tag, verifies the Ed25519 signature of SHA256SUMS (alpha key ff949504…f54a, see [KEYS](KEYS)) and every SHA-256 before unpacking, installs into ~/.local/share/aienos (no sudo), and opens the Omega wizard. Remove everything with `aienos uninstall`.
+It checks the machine first (anything else gets a friendly note and nothing changes), downloads release [alpha-20261026.2](https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2) by exact tag (model: Qwen3.6-35B-A3B-FP8, 37.5 GB; the 27B is to come), verifies the Ed25519 signature of SHA256SUMS (alpha key ff949504…f54a, see [KEYS](KEYS)) and every SHA-256 before unpacking, installs into ~/.local/share/aienos (no sudo), and opens the Omega wizard. Remove everything with `aienos uninstall`.
 
 Check a release by hand:
 
@@ -38,7 +38,7 @@ Check a release by hand:
 openssl pkeyutl -verify -pubin -inkey release.pub.pem -rawin -in SHA256SUMS -sigfile SHA256SUMS.sig && sha256sum -c SHA256SUMS
 ```
 
-**Evidence:** installer EXERCISED (host 33/33 under read-only root, container 6/6); engine commit cf239078 passed SC-GB10-SERVE-CHAT once; this binary on a GPU and a first token via the installer: NOT_RUN; the Aien experience is not in this release yet.
+**Evidence:** installer EXERCISED (host 33/33 under read-only root, container 6/6 with a canary control). The engine is byte-identical (sha256 19173f9e…3aeb) to the build serving the 35B on my Spark, rebuilt from Core commit 59b05a71 (branch ship/motor-l387) to the same hash: EXERCISED, not QUALIFIED. A fresh GB10 install and first token through the installer, and the 3x physical qualification: NOT_RUN. The Aien experience is not in this release yet.
 
 <br>
 
