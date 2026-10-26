@@ -202,7 +202,7 @@ The specs, decisions and protocols the layers agree on.
 ## How the index stays current
 
 - [index/gen/index.om](index/gen/index.om) is the generator, written in Omega and compiled with the pinned omc.
-- The [index-sync](.github/workflows/index-sync.yml) workflow runs hourly, on demand, and on a `repository_dispatch` of type `index-sync`. It opens one pull request labelled `automerge`, which merges only after the `index-check` job passes.
+- The [index-sync](.github/workflows/index-sync.yml) workflow runs hourly, on demand, and on a `repository_dispatch` of type `index-sync`. It opens one pull request labelled `automerge`, which merges only after the `index-check` job passes. Until the organization lets Actions open pull requests, it pushes the `bot/index-sync` branch and a person opens the pull request.
 - A public repository with no entry in [index/curated.yml](index/curated.yml) makes the generator fail with exit 1 and name it. Nothing goes missing silently.
 - **Rule for every change:** when a repository's purpose, status or links change, or a new repository appears, update its entry in index/curated.yml in the same piece of work.
 
