@@ -1,0 +1,29 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile wc1.om rc=0 (expected 0)
+compile wc2.om rc=0 (expected 0)
+
+inputs (_ is a space, | is the end of a line):
+one-space.txt    hello_world|
+two-spaces.txt   hello__world|
+empty.txt        (empty file)
+three-lines.txt  one_two|three|four_five|
+
+== wc1: real check, expected vs observed
+one-space.txt    expected=2 observed=2 MATCH
+two-spaces.txt   expected=2 observed=3 MISMATCH
+empty.txt        expected=0 observed=1 MISMATCH
+three-lines.txt  expected=5 observed=3 MISMATCH
+wc1: CHECK FAIL mismatches=3
+
+== wc2: real check, expected vs observed
+one-space.txt    expected=2 observed=2 MATCH
+two-spaces.txt   expected=2 observed=2 MATCH
+empty.txt        expected=0 observed=0 MATCH
+three-lines.txt  expected=5 observed=5 MATCH
+wc2: CHECK PASS
+
+== weak check: did it exit 0?
+wc1: exit 0, weak check says PASS (it cannot tell the two apart)
+wc2: exit 0, weak check says PASS (it cannot tell the two apart)
+
+ALL EXIT STATUSES AS EXPECTED

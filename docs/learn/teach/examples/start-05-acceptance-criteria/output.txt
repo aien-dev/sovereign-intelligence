@@ -1,0 +1,42 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile spec.om rc=0 (expected 0)
+
+--- input ready.txt
+Goal: refuse photo uploads larger than 10 MB with a clear message
+Acceptance: a 12 MB upload exits 1 and prints "too large"; a 2 MB upload exits 0
+Negative control: set the limit to 20 MB and confirm the 12 MB test now fails
+Out of scope: do not change the login page or settings.txt
+--- output
+Goal: ok
+Acceptance: ok
+Negative control: ok
+Out of scope: ok
+READY: an agent can start, and you can tell when it is done
+run rc=0 (expected 0)
+
+--- input vague.txt
+Goal: make uploads better
+Acceptance: it works and looks good
+Negative control: none needed
+Out of scope: nothing
+--- output
+Goal: ok
+Acceptance: ok
+Negative control: ok
+Out of scope: ok
+Acceptance: nothing you could observe (name an exit status, an output, or what it prints)
+NOT READY: tighten the spec before you hand it to an agent
+run rc=1 (expected 1)
+
+--- input no-control.txt
+Goal: refuse photo uploads larger than 10 MB with a clear message
+Acceptance: a 12 MB upload exits 1 and prints "too large"
+--- output
+Goal: ok
+Acceptance: ok
+Negative control: MISSING
+Out of scope: MISSING
+NOT READY: tighten the spec before you hand it to an agent
+run rc=1 (expected 1)
+
+ALL EXIT STATUSES AS EXPECTED

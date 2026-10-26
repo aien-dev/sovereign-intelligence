@@ -1,0 +1,246 @@
+note claims: compare the evidence word an agent used with the evidence it attached
+note exit 0 every claim backed, 1 at least one overclaim, 2 read error, 3 malformed line
+text KW "PROPOSED\nIMPLEMENTED\nEXERCISED\nQUALIFIED\n: claimed \n, evidence supports \n: OK\n: OVERCLAIM\n  gate NOT_RUN: NOT_RUN is not PASS\n  gate FAIL: a failed gate qualifies nothing\nREFUSE malformed line \n\nHONEST: every claim is backed by the evidence attached\nOVERCLAIMS=\n"
+note helpers: read all of stdin into inb, walk lines, compare a line prefix with the n-th
+note entry of the newline separated table KW, and write table entries, input bytes and numbers
+global inb uchar 65536
+global num uchar 24
+fn rdall to long
+t = ulong 0
+while lt t len inb bound 65536
+k = read 0 inb t sub len inb t
+if lt k 0
+ret k
+end
+if eq k 0
+ret long t
+end
+t = add t ulong k
+end
+ret neg long 27
+end
+fn eol s ulong n ulong to ulong
+i = s
+while lt i n bound 65536
+if eq get inb i 10
+ret i
+end
+i = add i 1
+end
+ret n
+end
+fn kstart k ulong to ulong
+p = ulong 0
+c = ulong 0
+while lt c k bound 4096
+if eq get KW p 10
+c = add c 1
+end
+p = add p 1
+end
+ret p
+end
+fn klen k ulong to ulong
+s = kstart k
+i = s
+while ne get KW i 10 bound 4096
+i = add i 1
+end
+ret sub i s
+end
+fn pmat at ulong e ulong k ulong to bool
+o = kstart k
+m = klen k
+if gt m sub e at
+ret false
+end
+for j ulong m
+if ne get inb add at j get KW add o j
+ret false
+end
+end
+ret true
+end
+fn emitk o ulong n ulong to void
+d = ulong 0
+while lt d n bound 4096
+w = write 1 KW add o d sub n d
+if le w 0
+trap 9
+end
+d = add d ulong w
+end
+end
+fn emiti o ulong n ulong to void
+d = ulong 0
+while lt d n bound 65536
+w = write 1 inb add o d sub n d
+if le w 0
+trap 9
+end
+d = add d ulong w
+end
+end
+fn emitn o ulong n ulong to void
+d = ulong 0
+while lt d n bound 24
+w = write 1 num add o d sub n d
+if le w 0
+trap 9
+end
+d = add d ulong w
+end
+end
+fn say k ulong to void
+emitk kstart k add klen k 1
+end
+fn word k ulong to void
+emitk kstart k klen k
+end
+fn emitu v ulong to void
+p = ulong 24
+x = v
+while true bound 21
+p = sub p 1
+put num p uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+emitn p sub 24 p
+end
+note a line is: C R O G WORD label
+note C a commit is named, R the command is given, O the observed output is given (each 0 or 1)
+note G the project gate: P passed, F failed, N not run, - no gate; WORD is the claimed level
+fn flag s ulong i ulong to ulong
+c = get inb add s mul i 2
+if eq c 48
+ret 0
+end
+if eq c 49
+ret 1
+end
+ret 9
+end
+fn gate s ulong to ulong
+c = get inb add s 6
+if eq c 45
+ret 0
+end
+if eq c 80
+ret 1
+end
+if eq c 70
+ret 2
+end
+if eq c 78
+ret 3
+end
+ret 9
+end
+fn shape s ulong e ulong to bool
+if lt sub e s 10
+ret false
+end
+for i ulong 3
+if eq flag s i 9
+ret false
+end
+end
+if eq gate s 9
+ret false
+end
+for i ulong 4
+if ne get inb add s add mul i 2 1 32
+ret false
+end
+end
+ret true
+end
+fn claimw s ulong e ulong to ulong
+for k ulong 4
+if pmat add s 8 e k
+w = add add s 8 klen k
+if lt w e
+if eq get inb w 32
+ret k
+end
+end
+end
+end
+ret 9
+end
+fn support s ulong to ulong
+if eq flag s 0 0
+ret 0
+end
+if eq flag s 1 0
+ret 1
+end
+if eq flag s 2 0
+ret 1
+end
+if eq gate s 1
+ret 3
+end
+ret 2
+end
+fn judge s ulong e ulong k ulong to ulong
+v = support s
+a = add add add s 8 klen k 1
+emiti a sub e a
+word 4
+word k
+word 5
+word v
+bad = ulong 0
+if gt k v
+say 7
+bad = ulong 1
+else
+say 6
+end
+g = gate s
+if eq g 3
+say 8
+end
+if eq g 2
+say 9
+end
+ret bad
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 2
+end
+n = ulong r
+s = ulong 0
+ln = ulong 0
+bad = ulong 0
+while lt s n bound 65536
+e = eol s n
+ln = add ln 1
+k = ulong 9
+if shape s e
+k = claimw s e
+end
+if eq k 9
+word 10
+emitu ln
+say 11
+ret 3
+end
+bad = add bad judge s e k
+s = add e 1
+end
+if eq bad 0
+say 12
+ret 0
+end
+word 13
+emitu bad
+say 11
+ret 1
+end

@@ -1,9 +1,10 @@
 # Learn: how I built it, so you can build it too
 
-I am teaching everything I used to build this stack, in four tracks, from the first step to the deep end. Every lesson has a goal, an explanation, an example you can run on an ordinary Linux AArch64 machine with no GPU, the real output it printed, the mistake people usually make, and links into the exact source on GitHub.
+I am teaching everything I used to build this stack, from the first step to the deep end. If you build by talking to an agent and have never written code by hand, you are already programming: start with the first track. Every lesson has a goal, an explanation, an example you can run on an ordinary Linux AArch64 machine with no GPU, the real output it printed, the mistake people usually make, and links into the exact source on GitHub.
 
 | Track | Lessons | Start here |
 | :--- | :---: | :--- |
+| You already program: from vibe coding to engineering | 5 | [teach/pages/start.md](teach/pages/start.md) |
 | Reverse-engineering CUDA, the CUDA++ way | 8 | [teach/pages/cuda.md](teach/pages/cuda.md) |
 | Omega: the seeded language | 9 | [teach/pages/omega.md](teach/pages/omega.md) |
 | Building a sovereign stack | 8 | [teach/pages/stack.md](teach/pages/stack.md) |

@@ -1,0 +1,4 @@
+0 0 0 - PROPOSED add a photo cache
+1 0 0 - IMPLEMENTED resize photos on upload
+1 1 1 - EXERCISED reject uploads over 10 MB
+1 1 1 P QUALIFIED login page on the release gate

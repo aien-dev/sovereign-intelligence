@@ -1,0 +1,26 @@
+omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)
+compile todo.om rc=0 (expected 0)
+
+--- input notes.txt
+buy milk
+TODO call the plumber
+TODO: back up the photos
+this line mentions TODO but does not start with it
+water the plants
+--- output
+TODO call the plumber
+TODO: back up the photos
+found 2 TODO line(s)
+run rc=0 (expected 0)
+
+--- the same idea written loosely
+note the same start, written loosely: the count begins as a bare 0
+note is that 0 a byte, an int or a 64-bit number? omc refuses to guess
+fn main to int
+c = 0
+ret int c
+end
+compile vague.om rc=11 (expected 11)
+omc: line 4: error 11
+
+ALL EXIT STATUSES AS EXPECTED

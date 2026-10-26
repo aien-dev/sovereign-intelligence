@@ -646,6 +646,97 @@
       ],
       "evidence_level": "EXERCISED",
       "page": "pages/stack-08-alpha-tags.md"
+    },
+    {
+      "id": "start-01-you-already-program",
+      "track": "start",
+      "lesson": 1,
+      "title": "You already program: what engineering adds",
+      "keywords": [
+        "vibe coding",
+        "beginner",
+        "programming",
+        "engineering",
+        "no code",
+        "what is programming",
+        "compiler",
+        "exit code"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/start-01-you-already-program.md"
+    },
+    {
+      "id": "start-02-your-first-check",
+      "track": "start",
+      "lesson": 2,
+      "title": "Your first check: expected vs observed",
+      "keywords": [
+        "test",
+        "check",
+        "expected",
+        "observed",
+        "negative control",
+        "edge case",
+        "word count",
+        "does it work"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/start-02-your-first-check.md"
+    },
+    {
+      "id": "start-03-reading-the-diff",
+      "track": "start",
+      "lesson": 3,
+      "title": "Reading what your agent changed",
+      "keywords": [
+        "git diff",
+        "diff",
+        "what changed",
+        "unrequested change",
+        "scope",
+        "review",
+        "commit",
+        "branch"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/start-03-reading-the-diff.md"
+    },
+    {
+      "id": "start-04-asking-for-evidence",
+      "track": "start",
+      "lesson": 4,
+      "title": "Asking for evidence",
+      "keywords": [
+        "evidence",
+        "done",
+        "PROPOSED",
+        "IMPLEMENTED",
+        "EXERCISED",
+        "QUALIFIED",
+        "NOT_RUN",
+        "gate",
+        "status"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/start-04-asking-for-evidence.md"
+    },
+    {
+      "id": "start-05-acceptance-criteria",
+      "track": "start",
+      "lesson": 5,
+      "title": "Steering with acceptance criteria",
+      "keywords": [
+        "acceptance criteria",
+        "task spec",
+        "prompt",
+        "steering",
+        "goal",
+        "negative control",
+        "scope",
+        "requirements"
+      ],
+      "evidence_level": "EXERCISED",
+      "page": "pages/start-05-acceptance-criteria.md"
     }
   ]
 }

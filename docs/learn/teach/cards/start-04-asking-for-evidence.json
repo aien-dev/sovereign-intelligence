@@ -1,0 +1,58 @@
+{
+  "id": "start-04-asking-for-evidence",
+  "track": "start",
+  "lesson": 4,
+  "title": "Asking for evidence",
+  "keywords": [
+    "evidence",
+    "done",
+    "PROPOSED",
+    "IMPLEMENTED",
+    "EXERCISED",
+    "QUALIFIED",
+    "NOT_RUN",
+    "gate",
+    "status"
+  ],
+  "summary": "'Done' means different things. Drake uses four words, each with its evidence: PROPOSED (a plan), IMPLEMENTED (a commit), EXERCISED (the command and its real output), QUALIFIED (the project's gate printed PASS). NOT_RUN is never a pass. When an agent says it works, ask for the evidence that goes with the word. I can run a small checker that spots overclaims in an agent's report.",
+  "goal": "Know the four evidence words, ask for the evidence behind each, and never accept NOT_RUN as a pass.",
+  "key_steps": [
+    "Ask which of the four words the claim really is",
+    "IMPLEMENTED needs a commit",
+    "EXERCISED needs the command and its real output",
+    "QUALIFIED needs the gate's PASS",
+    "Treat NOT_RUN as unfinished, never as passed"
+  ],
+  "example": {
+    "lang": "om",
+    "files": [
+      "examples/start-04-asking-for-evidence/claims.om",
+      "examples/start-04-asking-for-evidence/honest.txt",
+      "examples/start-04-asking-for-evidence/report.txt",
+      "examples/start-04-asking-for-evidence/malformed.txt",
+      "examples/start-04-asking-for-evidence/run.sh"
+    ],
+    "code": "note claims: compare the evidence word an agent used with the evidence it attached\nnote exit 0 every claim backed, 1 at least one overclaim, 2 read error, 3 malformed line\ntext KW \"PROPOSED\\nIMPLEMENTED\\nEXERCISED\\nQUALIFIED\\n: claimed \\n, evidence supports \\n: OK\\n: OVERCLAIM\\n  gate NOT_RUN: NOT_RUN is not PASS\\n  gate FAIL: a failed gate qualifies nothing\\nREFUSE malformed line \\n\\nHONEST: every claim is backed by the evidence attached\\nOVERCLAIMS=\\n\"\nnote helpers: read all of stdin into inb, walk lines, compare a line prefix with the n-th\nnote entry of the newline separated table KW, and write table entries, input bytes and numbers\nglobal inb uchar 65536\nglobal num uchar 24\nfn rdall to long\nt = ulong 0\nwhile lt t len inb bound 65536\nk = read 0 inb t sub len inb t\nif lt k 0\nret k\nend\nif eq k 0\nret long t\nend\nt = add t ulong k\nend\nret neg long 27\nend\nfn eol s ulong n ulong to ulong\ni = s\nwhile lt i n bound 65536\nif eq get inb i 10\nret i\nend\ni = add i 1\nend\nret n\nend\nfn kstart k ulong to ulong\np = ulong 0\nc = ulong 0\nwhile lt c k bound 4096\nif eq get KW p 10\nc = add c 1\nend\np = add p 1\nend\nret p\nend\nfn klen k ulong to ulong\ns = kstart k\ni = s\nwhile ne get KW i 10 bound 4096\ni = add i 1\nend\nret sub i s\nend\nfn pmat at ulong e ulong k ulong to bool\no = kstart k\nm = klen k\nif gt m sub e at\nret false\nend\nfor j ulong m\nif ne get inb add at j get KW add o j\nret false\nend\nend\nret true\nend\nfn emitk o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 4096\nw = write 1 KW add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emiti o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 65536\nw = write 1 inb add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn emitn o ulong n ulong to void\nd = ulong 0\nwhile lt d n bound 24\nw = write 1 num add o d sub n d\nif le w 0\ntrap 9\nend\nd = add d ulong w\nend\nend\nfn say k ulong to void\nemitk kstart k add klen k 1\nend\nfn word k ulong to void\nemitk kstart k klen k\nend\nfn emitu v ulong to void\np = ulong 24\nx = v\nwhile true bound 21\np = sub p 1\nput num p uchar add rem x 10 48\nx = div x 10\nif eq x 0\nbreak\nend\nend\nemitn p sub 24 p\nend\nnote a line is: C R O G WORD label\nnote C a commit is named, R the command is given, O the observed output is given (each 0 or 1)\nnote G the project gate: P passed, F failed, N not run, - no gate; WORD is the claimed level\nfn flag s ulong i ulong to ulong\nc = get inb add s mul i 2\nif eq c 48\nret 0\nend\nif eq c 49\nret 1\nend\nret 9\nend\nfn gate s ulong to ulong\nc = get inb add s 6\nif eq c 45\nret 0\nend\nif eq c 80\nret 1\nend\nif eq c 70\nret 2\nend\nif eq c 78\nret 3\nend\nret 9\nend\nfn shape s ulong e ulong to bool\nif lt sub e s 10\nret false\nend\nfor i ulong 3\nif eq flag s i 9\nret false\nend\nend\nif eq gate s 9\nret false\nend\nfor i ulong 4\nif ne get inb add s add mul i 2 1 32\nret false\nend\nend\nret true\nend\nfn claimw s ulong e ulong to ulong\nfor k ulong 4\nif pmat add s 8 e k\nw = add add s 8 klen k\nif lt w e\nif eq get inb w 32\nret k\nend\nend\nend\nend\nret 9\nend\nfn support s ulong to ulong\nif eq flag s 0 0\nret 0\nend\nif eq flag s 1 0\nret 1\nend\nif eq flag s 2 0\nret 1\nend\nif eq gate s 1\nret 3\nend\nret 2\nend\nfn judge s ulong e ulong k ulong to ulong\nv = support s\na = add add add s 8 klen k 1\nemiti a sub e a\nword 4\nword k\nword 5\nword v\nbad = ulong 0\nif gt k v\nsay 7\nbad = ulong 1\nelse\nsay 6\nend\ng = gate s\nif eq g 3\nsay 8\nend\nif eq g 2\nsay 9\nend\nret bad\nend\nfn main to int\nr = rdall\nif lt r 0\nret 2\nend\nn = ulong r\ns = ulong 0\nln = ulong 0\nbad = ulong 0\nwhile lt s n bound 65536\ne = eol s n\nln = add ln 1\nk = ulong 9\nif shape s e\nk = claimw s e\nend\nif eq k 9\nword 10\nemitu ln\nsay 11\nret 3\nend\nbad = add bad judge s e k\ns = add e 1\nend\nif eq bad 0\nsay 12\nret 0\nend\nword 13\nemitu bad\nsay 11\nret 1\nend\n",
+    "command": "sh examples/start-04-asking-for-evidence/run.sh",
+    "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (matches pin)\ncompile claims.om rc=0 (expected 0)\n\ncolumns: commit named, command given, output given (1 yes, 0 no), gate (P pass, F fail, N not run, - none), claimed word, what\n\n--- input honest.txt\n0 0 0 - PROPOSED add a photo cache\n1 0 0 - IMPLEMENTED resize photos on upload\n1 1 1 - EXERCISED reject uploads over 10 MB\n1 1 1 P QUALIFIED login page on the release gate\n--- output\nadd a photo cache: claimed PROPOSED, evidence supports PROPOSED: OK\nresize photos on upload: claimed IMPLEMENTED, evidence supports IMPLEMENTED: OK\nreject uploads over 10 MB: claimed EXERCISED, evidence supports EXERCISED: OK\nlogin page on the release gate: claimed QUALIFIED, evidence supports QUALIFIED: OK\nHONEST: every claim is backed by the evidence attached\nrun rc=0 (expected 0)\n\n--- input report.txt\n1 0 0 - IMPLEMENTED resize photos on upload\n0 0 0 - EXERCISED add a photo cache\n1 1 0 F EXERCISED reject uploads over 10 MB\n1 1 1 N QUALIFIED login page on the release gate\n--- output\nresize photos on upload: claimed IMPLEMENTED, evidence supports IMPLEMENTED: OK\nadd a photo cache: claimed EXERCISED, evidence supports PROPOSED: OVERCLAIM\nreject uploads over 10 MB: claimed EXERCISED, evidence supports IMPLEMENTED: OVERCLAIM\n  gate FAIL: a failed gate qualifies nothing\nlogin page on the release gate: claimed QUALIFIED, evidence supports EXERCISED: OVERCLAIM\n  gate NOT_RUN: NOT_RUN is not PASS\nOVERCLAIMS=3\nrun rc=1 (expected 1)\n\n--- input malformed.txt\n1 1 1 P DONE everything works\n--- output\nREFUSE malformed line 1\nrun rc=3 (expected 3)\n\nALL EXIT STATUSES AS EXPECTED\n"
+  },
+  "common_mistake": "Accepting 'done', 'works' or 'tested' without asking which word it is. Fix: ask 'what is the evidence?' and use the word the evidence supports; NOT_RUN anywhere means unfinished.",
+  "links": [
+    {
+      "title": "omega-communication skill (claim ladder, handoffs)",
+      "url": "https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-communication/SKILL.md"
+    },
+    {
+      "title": "Shared agent rules (public edition)",
+      "url": "https://www.aienos.com/agents/RULES.md"
+    }
+  ],
+  "evidence_level": "EXERCISED",
+  "evidence_note": "The example compiled and ran on a Linux ARM64 computer (no GPU) and its output is recorded byte for byte, including a negative control. Rests on the recorded run: the honest report passed (exit 0), the overclaiming report was flagged with 3 overclaims including a QUALIFIED claim whose gate was NOT_RUN (exit 1), and an unknown word was refused (exit 3). NOT done: the reports are made-up examples.",
+  "page": "pages/start-04-asking-for-evidence.md",
+  "steer_refs": [
+    "p07",
+    "p01",
+    "s03"
+  ]
+}
