@@ -107,6 +107,11 @@ repos:
     layer: omega
     evidence: EXERCISED
     purpose: "Security-critical network and crypto code rewritten in Omega"
+  - name: omtex
+    layer: omega
+    evidence: EXERCISED
+    purpose: "Write papers in Omega: an .om library emits escaped LaTeX and compiles its Omega listings; reproduces two published papers"
+    license: Apache-2.0 WITH LLVM-exception
   - name: aegis-runtime-mv
     layer: engine
     evidence: EXERCISED
