@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# The project index check, on GitHub-hosted arm64 runners only. It compiles index/gen/index.om
+# with the pinned omc (the same pin as AIEN Verification), checks that index/repos.json,
+# index/curated.yml and the README index section agree, and runs the negative control: a public
+# repository with no curated entry must make the generator fail with exit 1.
+# index-sync.yml dispatches this workflow on its own pull requests, because a pull request opened
+# with GITHUB_TOKEN does not trigger pull_request workflows.
+name: index
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  index-check:
+    name: index-check
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    env:
+      OMEGA_REV: 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9
+      OMC_PIN: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Pinned omega-mv
+        run: |
+          git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"
+          git -C "$RUNNER_TEMP/omega" checkout --quiet "$OMEGA_REV"
+          echo "$OMC_PIN  $RUNNER_TEMP/omega/seed/out/omc" | sha256sum -c -
+      - name: Compile the generator twice
+        run: |
+          set -eu
+          omc="$RUNNER_TEMP/omega/seed/out/omc"
+          "$omc" < index/gen/index.om > "$RUNNER_TEMP/index" 2> "$RUNNER_TEMP/e1"
+          "$omc" < index/gen/index.om > "$RUNNER_TEMP/index2" 2> "$RUNNER_TEMP/e2"
+          test ! -s "$RUNNER_TEMP/e1"
+          cmp "$RUNNER_TEMP/index" "$RUNNER_TEMP/index2"
+          chmod +x "$RUNNER_TEMP/index"
+          sha256sum index/gen/index.om "$RUNNER_TEMP/index"
+      - name: Index, curated entries and README agree
+        run: '"$RUNNER_TEMP/index" check'
+      - name: Negative control, an uncurated public repository fails
+        run: |
+          set -u
+          scratch="$RUNNER_TEMP/neg"
+          mkdir -p "$scratch/index"
+          cp README.md "$scratch/"
+          cp index/curated.yml index/repos.json "$scratch/index/"
+          rc=0
+          (cd "$scratch" && "$RUNNER_TEMP/index" fetch "$GITHUB_WORKSPACE/index/gen/fixtures/uncurated.json") > "$RUNNER_TEMP/neg.out" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/neg.out"
+          echo "negative control rc=$rc want=1"
+          [ "$rc" = 1 ] || exit 1
+          grep -qx '  - fake-uncurated-repo' "$RUNNER_TEMP/neg.out"
+          cmp README.md "$scratch/README.md"
+          cmp index/repos.json "$scratch/index/repos.json"

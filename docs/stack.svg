@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="834" viewBox="0 0 960 834" role="img" aria-labelledby="t d">
+<title id="t">Sovereign Intelligence: the stack, from the silicon up</title>
+<desc id="d">Ten layers from GB10 silicon and NVIDIA signed firmware at the bottom to apps at the top, each with its license and evidence level.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1020"/><stop offset="1" stop-color="#05070d"/></linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0" r="0.8"><stop offset="0" stop-color="#7c3aed" stop-opacity="0.35"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+<pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#374151" stroke-width="3"/></pattern>
+</defs>
+<rect width="960" height="834" rx="18" fill="url(#bg)"/>
+<rect width="960" height="834" rx="18" fill="url(#glow)"/>
+<text x="40" y="54" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#f8fafc">Sovereign Intelligence<tspan font-size="14" baseline-shift="super">™</tspan></text>
+<text x="40" y="84" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" fill="#94a3b8">The whole stack, from the silicon up. Every layer above the line is yours to read, build and change.</text>
+<rect x="40" y="118" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#f472b6" stroke-opacity="0.35"/>
+<rect x="40" y="118" width="6" height="56" rx="3" fill="#f472b6"/>
+<text x="64" y="142" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">Apps and tools</text>
+<text x="64" y="161" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">Installer, aienos.com, translate, readings window</text>
+<text x="760" y="151" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#f472b6">yours: Apache-2.0 / AGPL-3.0</text>
+<rect x="792" y="134" width="112" height="24" rx="12" fill="#1e3a8a"/>
+<text x="848.0" y="150" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#93c5fd">IMPLEMENTED</text>
+<rect x="40" y="184" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#e879f9" stroke-opacity="0.35"/>
+<rect x="40" y="184" width="6" height="56" rx="3" fill="#e879f9"/>
+<text x="64" y="208" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">Allen</text>
+<text x="64" y="227" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">One persistent identity, the guide you talk to</text>
+<text x="760" y="217" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#e879f9">yours: AGPL-3.0-or-later</text>
+<rect x="792" y="200" width="112" height="24" rx="12" fill="#3f3f46"/>
+<text x="848.0" y="216" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#e4e4e7">PROPOSED</text>
+<rect x="40" y="250" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#c084fc" stroke-opacity="0.35"/>
+<rect x="40" y="250" width="6" height="56" rx="3" fill="#c084fc"/>
+<text x="64" y="274" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">Cortex memory</text>
+<text x="64" y="293" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">Long-term memory on your own disk; Omega rewrite under way</text>
+<text x="760" y="283" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#c084fc">yours: Apache-2.0</text>
+<rect x="792" y="266" width="112" height="24" rx="12" fill="#1e3a8a"/>
+<text x="848.0" y="282" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#93c5fd">IMPLEMENTED</text>
+<rect x="40" y="316" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#a78bfa" stroke-opacity="0.35"/>
+<rect x="40" y="316" width="6" height="56" rx="3" fill="#a78bfa"/>
+<text x="64" y="340" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">The engine: Sovereign Core</text>
+<text x="64" y="359" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">Inference, paged KV cache, scheduler, HTTP server, judge</text>
+<text x="760" y="349" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#a78bfa">yours: Apache-2.0</text>
+<rect x="792" y="332" width="112" height="24" rx="12" fill="#064e3b"/>
+<text x="848.0" y="348" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#6ee7b7">EXERCISED</text>
+<rect x="40" y="382" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#818cf8" stroke-opacity="0.35"/>
+<rect x="40" y="382" width="6" height="56" rx="3" fill="#818cf8"/>
+<text x="64" y="406" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">Math engine</text>
+<text x="64" y="425" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">My own math engine, written in Omega</text>
+<text x="760" y="415" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">source not yet published</text>
+<rect x="792" y="398" width="112" height="24" rx="12" fill="#1f2937"/>
+<text x="848.0" y="414" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#9ca3af">NOT PUBLIC</text>
+<rect x="40" y="448" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#60a5fa" stroke-opacity="0.35"/>
+<rect x="40" y="448" width="6" height="56" rx="3" fill="#60a5fa"/>
+<text x="64" y="472" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">Omega language and compiler</text>
+<text x="64" y="491" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">omc, irwasm, irspirv (in review), omega-bridge</text>
+<text x="760" y="481" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#60a5fa">yours: Apache-2.0</text>
+<rect x="792" y="464" width="112" height="24" rx="12" fill="#064e3b"/>
+<text x="848.0" y="480" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#6ee7b7">EXERCISED</text>
+<rect x="40" y="514" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#38bdf8" stroke-opacity="0.35"/>
+<rect x="40" y="514" width="6" height="56" rx="3" fill="#38bdf8"/>
+<text x="64" y="538" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">CUDA++ runtime</text>
+<text x="64" y="557" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">GPU programs with no NVIDIA user-space software</text>
+<text x="760" y="547" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#38bdf8">yours: Apache-2.0</text>
+<rect x="792" y="530" width="112" height="24" rx="12" fill="#064e3b"/>
+<text x="848.0" y="546" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#6ee7b7">EXERCISED</text>
+<rect x="40" y="580" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#2dd4bf" stroke-opacity="0.35"/>
+<rect x="40" y="580" width="6" height="56" rx="3" fill="#2dd4bf"/>
+<text x="64" y="604" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">Aienux kernel and AienOS</text>
+<text x="64" y="623" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">Kernel in QEMU, Pi 5 and iMac; SI alpha runs on DGX OS today</text>
+<text x="760" y="613" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#2dd4bf">yours: Apache-2.0</text>
+<rect x="792" y="596" width="112" height="24" rx="12" fill="#064e3b"/>
+<text x="848.0" y="612" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#6ee7b7">EXERCISED</text>
+<rect x="40" y="646" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#34d399" stroke-opacity="0.35"/>
+<rect x="40" y="646" width="6" height="56" rx="3" fill="#34d399"/>
+<text x="64" y="670" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">GPU kernel driver</text>
+<text x="64" y="689" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">NVIDIA open module 580.173.02 today; my aien-gpu in progress</text>
+<text x="760" y="679" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#34d399">yours: MIT / GPL-2.0</text>
+<rect x="792" y="662" width="112" height="24" rx="12" fill="#3f3f46"/>
+<text x="848.0" y="678" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#e4e4e7">PROPOSED</text>
+<line x1="40" y1="707.0" x2="920" y2="707.0" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="920" y="701.0" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#f59e0b" letter-spacing="1">YOURS ABOVE THIS LINE</text>
+<rect x="40" y="716" width="880" height="56" rx="12" fill="url(#hatch)" stroke="#374151"/>
+<rect x="40" y="716" width="6" height="56" rx="3" fill="#6b7280"/>
+<text x="64" y="740" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">GB10 silicon and NVIDIA signed firmware</text>
+<text x="64" y="759" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">The honest boundary: signed, closed, not mine to change</text>
+<text x="760" y="749" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#9ca3af">not mine</text>
+<rect x="792" y="732" width="112" height="24" rx="12" fill="#1f2937"/>
+<text x="848.0" y="748" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#9ca3af">BOUNDARY</text>
+<text x="40" y="812" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#64748b">Evidence: PROPOSED (written down) · IMPLEMENTED (code exists) · EXERCISED (ran, receipts kept) · QUALIFIED (passed the hardware gate; nothing yet)</text>
+</svg>
