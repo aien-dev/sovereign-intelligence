@@ -1,0 +1,650 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note doctor.om: what this machine is, read only. Nothing here writes a file or loads a library.
+note Every absolute path goes through pprobe, so a test can point the doctor at a fake tree with
+note AIENOS_PROBE_ROOT; in normal use that prefix is empty.
+
+const NCHK ulong 8
+global dk ulong 8
+global dt uchar 1536
+global dtn ulong 8
+global dci ulong 1
+global db uchar 32768
+global dv ulong 8
+text c_arch "/proc/sys/kernel/arch"
+text c_a64 "aarch64"
+text c_pci "/sys/bus/pci/devices"
+text c_vend "/vendor"
+text c_dev "/device"
+text c_nvv "0x10de"
+text c_gb10 "0x2e12"
+text c_dctl "/dev/nvidiactl"
+text c_dn0 "/dev/nvidia0"
+text c_duvm "/dev/nvidia-uvm"
+text c_pdrv "/proc/driver/nvidia/version"
+text c_mver "/sys/module/nvidia/version"
+text c_good "580.173.02"
+text c_mem "/proc/meminfo"
+text c_mtot "MemTotal:"
+text c_mav "MemAvailable:"
+text c_mmap "Mapped:"
+text c_lock "/tmp/aien-gb10.lock"
+text c_plk "/proc/locks"
+text c_cuda "/usr/local/cuda"
+text c_lcu "/usr/lib/aarch64-linux-gnu/libcuda.so.1"
+text c_smi "/usr/bin/nvidia-smi"
+text t_gb " GB"
+text t_nl "\n"
+text n_arch "CPU"
+text n_gpu "GPU"
+text n_drv "Driver"
+text n_mem "Memory"
+text n_disk "Disk"
+text n_inst "AienOS"
+text n_busy "GPU lock"
+text n_nv "NVIDIA"
+text d_a1 "arm64 (aarch64), Linux"
+text d_a2 "not arm64: this alpha needs Linux arm64"
+text d_g1 "NVIDIA GB10 found (PCI 10de:2e12), device nodes present"
+text d_g2 "no NVIDIA GB10 found: this alpha runs only on a DGX Spark (GB10)"
+text d_g3 "GB10 found but /dev/nvidiactl, /dev/nvidia0 or /dev/nvidia-uvm is missing"
+text d_d1 "kernel driver "
+text d_d2 " (the version this alpha was built and tested against)"
+text d_d3 " found; this alpha only knows 580.173.02, so it stops here"
+text d_d4 "no NVIDIA kernel module loaded (/sys/module/nvidia/version missing)"
+text d_m1 " GB memory, "
+text d_m2 " GB free for a model"
+text d_m3 "; another model is using memory, so the first chat waits until it is free"
+text d_m4 "; this alpha needs a 128 GB GB10"
+text h_df "df"
+text h_b1 "-B1"
+text h_av "--output=avail"
+text d_k1 " free in your home"
+text d_k2 "; the model needs "
+text d_k3 "unknown free space (df not found); the model needs "
+text d_i1 "not installed yet"
+text d_i2 "installed: "
+text d_i3 ", model verified"
+text d_i4 ", model not downloaded yet"
+text t_cur "/.local/share/aienos/current"
+text d_b1 "the GB10 lock (/tmp/aien-gb10.lock) is not held right now"
+text d_b2 "busy: process "
+text d_b3 " holds the GB10 lock, so I start no second model"
+text d_n1 "found "
+text d_n2 "libcuda"
+text d_n3 "the CUDA toolkit"
+text d_n4 "nvidia-smi"
+text d_n5 ": they stay installed and untouched, and AienOS never loads them"
+text d_nc ", "
+text d_n6 "no NVIDIA user-space libraries found; AienOS does not need them"
+text k_ok "  ok  "
+text k_wn " note "
+text k_no "  no  "
+text k_in " info "
+
+note Detail line of check i, built with dstr/dnum/drb.
+fn dsel i ulong to void
+put dci 0 i
+put dtn i 0
+end
+
+fn dstr t view uchar * to void
+i = get dci 0
+n = get dtn i
+for j ulong len t
+if lt add n j 190
+put dt add mul i 192 add n j get t j
+end
+end
+m = add n len t
+if gt m 190
+m = 190
+end
+put dtn i m
+end
+
+fn dbyte b uchar to void
+i = get dci 0
+n = get dtn i
+if lt n 190
+put dt add mul i 192 n b
+put dtn i add n 1
+end
+end
+
+fn dnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for j ulong k
+dbyte get d sub sub k 1 j
+end
+end
+
+note Bytes of rb[o ..) up to the first newline or n bytes.
+fn drb o ulong n ulong to void
+for j ulong n
+if ge add o j get rbn 0
+ret
+end
+c = get rb add o j
+if eq c 10
+ret
+end
+dbyte c
+end
+end
+
+note Size in GB, rounded to one decimal, from a byte count (1 GB = 10^9 bytes).
+fn dgb v ulong to void
+r = add v 50000000
+dnum div r 1000000000
+dbyte 46
+dnum div rem r 1000000000 100000000
+dstr t_gb
+end
+
+fn verdict i ulong k ulong to void
+put dk i k
+end
+
+note 0 CPU architecture. The binary itself is aarch64 and static, so running at all proves the ISA;
+note the kernel's own word is shown when it has one.
+fn ckarch to void
+dsel 0
+pprobe c_arch
+n = slurp
+if lt n 0
+verdict 0 0
+dstr d_a1
+ret
+end
+if rbat 0 c_a64
+verdict 0 0
+dstr d_a1
+ret
+end
+verdict 0 2
+dstr d_a2
+end
+
+note Is pci device directory entry rb-name a GB10? Builds devices/NAME/vendor and /device.
+fn pcidev o ulong n ulong to bool
+pprobe c_pci
+pbyte 47
+for j ulong n
+pbyte get db add o j
+end
+k = get pbn 0
+pstr c_vend
+r = slurp
+if or lt r 0 not rbat 0 c_nvv
+ret false
+end
+put pbn 0 k
+pstr c_dev
+r = slurp
+if lt r 0
+ret false
+end
+ret rbat 0 c_gb10
+end
+
+fn dbu16 o ulong to ulong
+lo = ulong get db o
+hi = ulong get db add o 1
+ret or lo shl hi 8
+end
+
+note Length of the zero-terminated name at db[o].
+fn dname o ulong to ulong
+k = ulong 0
+while lt add o k len db bound 300
+if eq get db add o k 0
+ret k
+end
+k = add k 1
+end
+ret k
+end
+
+note Count GB10 devices (PCI 10de:2e12) under /sys/bus/pci/devices.
+fn gbcount to ulong
+pprobe c_pci
+fd = fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+ret 0
+end
+found = ulong 0
+while true bound 4096
+n = getdnts int fd db 0 len db
+if le n 0
+break
+end
+o = ulong 0
+while lt o ulong n bound 32768
+rl = dbu16 add o 16
+nl = dname add o 19
+if and gt nl 0 ne get db add o 19 46
+if pcidev add o 19 nl
+found = add found 1
+end
+end
+if eq rl 0
+break
+end
+o = add o rl
+end
+end
+c = fclose int fd
+ret found
+end
+
+fn chrdev t view uchar * to bool
+pprobe t
+if ne pstat 0
+ret false
+end
+ret eq stype 2
+end
+
+fn ckgpu to void
+dsel 1
+g = gbcount
+put dv 1 g
+if eq g 0
+verdict 1 2
+dstr d_g2
+ret
+end
+ok = and and chrdev c_dctl chrdev c_dn0 chrdev c_duvm
+pprobe c_pdrv
+if or not ok not pexist
+verdict 1 2
+dstr d_g3
+ret
+end
+verdict 1 0
+dstr d_g1
+end
+
+fn ckdrv to void
+dsel 2
+pprobe c_mver
+n = slurp
+if lt n 0
+verdict 2 2
+dstr d_d4
+ret
+end
+dstr d_d1
+drb 0 40
+if rbat 0 c_good
+verdict 2 0
+dstr d_d2
+ret
+end
+verdict 2 2
+dstr d_d3
+end
+
+note The kB value after key k in /proc/meminfo (rb), 0 when absent.
+fn memkb k view uchar * to ulong
+o = rbfind 0 k
+if ge o get rbn 0
+ret 0
+end
+o = add o len k
+while eq get rb o 32 bound 64
+o = add o 1
+end
+ret rbnum o
+end
+
+fn ckmem to void
+dsel 3
+pprobe c_mem
+n = slurp
+if lt n 0
+verdict 3 2
+ret
+end
+tot = memkb c_mtot
+av = memkb c_mav
+mp = memkb c_mmap
+fr = ulong 0
+if gt av mp
+fr = sub av mp
+end
+put dv 3 fr
+dgbk tot
+dstr d_m1
+dgbk fr
+dstr d_m2
+if lt tot 67108864
+verdict 3 2
+dstr d_m4
+ret
+end
+if lt fr 50684928
+verdict 3 1
+dstr d_m3
+ret
+end
+verdict 3 0
+end
+
+fn dgbk kb ulong to void
+dnum div mul kb 1024 1000000000
+end
+
+note Free bytes where the model will live, read with the host's df (Omega has no statfs word yet).
+fn dfree to ulong
+if not findbin h_df
+ret 0
+end
+pkclr
+pkpath
+pkstr h_b1
+pkstr h_av
+pclr
+phome
+pkpath
+r = runcap
+if ne r 0
+ret 0
+end
+o = rbfind 0 t_nl
+ret rbnum add o 1
+end
+
+fn ckdisk need ulong to void
+dsel 4
+f = dfree
+put dv 4 f
+if eq f 0
+verdict 4 1
+dstr d_k3
+dgb need
+ret
+end
+dgb f
+dstr d_k1
+if lt f need
+verdict 4 2
+dstr d_k2
+dgb need
+ret
+end
+verdict 4 0
+end
+
+fn ckinst to void
+dsel 5
+verdict 5 3
+pclr
+phome
+pstr t_cur
+n = readlnk pb 0 get pbn 0 rb 0 256
+if le n 0
+dstr d_i1
+ret
+end
+put rbn 0 ulong n
+dstr d_i2
+s = ulong 0
+for j ulong ulong n
+if eq get rb j 47
+s = add j 1
+end
+end
+drb s sub ulong n s
+if mdone
+dstr d_i3
+else
+dstr d_i4
+end
+end
+
+note Is the GB10 lock file held? Its inode is looked up in /proc/locks. Returns the holder pid or 0.
+fn lockpid to ulong
+pprobe c_lock
+if ne pstat 0
+ret 0
+end
+ino = sino
+pprobe c_plk
+n = slurp
+if lt n 0
+ret 0
+end
+o = ulong 0
+while lt o get rbn 0 bound 524289
+e = rbfind o t_nl
+p = lkline o e ino
+if gt p 0
+ret p
+end
+o = add e 1
+end
+ret 0
+end
+
+note One /proc/locks line in rb[o..e): "1: POSIX ADVISORY WRITE PID MAJ:MIN:INODE START END".
+note Returns PID when INODE equals ino.
+fn lkline o ulong e ulong ino ulong to ulong
+f = ulong 0
+i = o
+pid = ulong 0
+while lt i e bound 4096
+if eq get rb i 32
+while and lt i e eq get rb i 32 bound 4096
+i = add i 1
+end
+f = add f 1
+if eq f 4
+pid = rbnum i
+end
+if eq f 5
+ret lkino i e ino pid
+end
+else
+i = add i 1
+end
+end
+ret 0
+end
+
+fn lkino i ulong e ulong ino ulong pid ulong to ulong
+j = i
+c = ulong 0
+while and lt j e lt c 2 bound 64
+if eq get rb j 58
+c = add c 1
+end
+j = add j 1
+end
+if eq rbnum j ino
+ret pid
+end
+ret 0
+end
+
+fn ckbusy to void
+dsel 6
+p = lockpid
+put dv 6 p
+if eq p 0
+verdict 6 0
+dstr d_b1
+ret
+end
+verdict 6 1
+dstr d_b2
+dnum p
+dstr d_b3
+end
+
+fn cknv to void
+dsel 7
+verdict 7 3
+k = ulong 0
+pprobe c_lcu
+a = pexist
+pprobe c_cuda
+b = pexist
+pprobe c_smi
+c = pexist
+if not or or a b c
+dstr d_n6
+ret
+end
+dstr d_n1
+if a
+dstr d_n2
+end
+if and a or b c
+dstr d_nc
+end
+if b
+dstr d_n3
+end
+if and b c
+dstr d_nc
+end
+if c
+dstr d_n4
+end
+dstr d_n5
+end
+
+note Run every check. Returns true when the machine can take this alpha (no check failed).
+fn doctor need ulong to bool
+ckarch
+ckgpu
+ckdrv
+ckmem
+ckdisk need
+ckinst
+ckbusy
+cknv
+ok = true
+for i ulong NCHK
+if eq get dk i 2
+ok = false
+end
+end
+ret ok
+end
+
+fn cname i ulong to void
+if eq i 0
+emit n_arch
+end
+if eq i 1
+emit n_gpu
+end
+if eq i 2
+emit n_drv
+end
+if eq i 3
+emit n_mem
+end
+if eq i 4
+emit n_disk
+end
+if eq i 5
+emit n_inst
+end
+if eq i 6
+emit n_busy
+end
+if eq i 7
+emit n_nv
+end
+end
+
+fn ctag k ulong colour bool to void
+if colour
+if eq k 0
+fg 120 220 120
+end
+if eq k 1
+fg 250 200 80
+end
+if eq k 2
+fg 255 90 80
+end
+if eq k 3
+fg 140 170 255
+end
+end
+if eq k 0
+emit k_ok
+end
+if eq k 1
+emit k_wn
+end
+if eq k 2
+emit k_no
+end
+if eq k 3
+emit k_in
+end
+if colour
+sgr0
+end
+end
+
+note One check as one line: [tag] name padded to 8, then the detail.
+fn cline i ulong colour bool to void
+putb 91
+ctag get dk i colour
+putb 93
+putb 32
+cname i
+n = cnlen i
+while lt n 9 bound 16
+putb 32
+n = add n 1
+end
+dline i
+end
+
+fn dline i ulong to void
+for j ulong get dtn i
+putb get dt add mul i 192 j
+end
+end
+
+fn cnlen i ulong to ulong
+if eq i 0
+ret len n_arch
+end
+if eq i 1
+ret len n_gpu
+end
+if eq i 2
+ret len n_drv
+end
+if eq i 3
+ret len n_mem
+end
+if eq i 4
+ret len n_disk
+end
+if eq i 5
+ret len n_inst
+end
+if eq i 6
+ret len n_busy
+end
+ret len n_nv
+end

@@ -1,0 +1,3 @@
+suite rc=0 (AIENOS-TESTS pass=33 fail=0 scratch=/tmp/ai/evs/host/suite)
+writes refused outside scratch (EROFS): 0
+NVIDIA state identical before and after: yes (packages 162)

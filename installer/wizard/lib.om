@@ -1,0 +1,624 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note lib.om: the output buffer, numbers, ANSI escapes, paths, files, environment and child
+note processes shared by every screen of the AienOS wizard. Linux arm64 only; every kernel result is
+note a count or minus the Linux errno and is checked where it is used.
+
+global ob uchar 262144
+global obn ulong 1
+global pb uchar 4096
+global pbn ulong 1
+global rb uchar 524288
+global rbn ulong 1
+global hb uchar 1024
+global hbn ulong 1
+global rt uchar 1024
+global rtn ulong 1
+global pr uchar 512
+global prn ulong 1
+global ib uchar 4096
+global ibn ulong 1
+global eb uchar 4096
+global pk uchar 4096
+global pkn ulong 1
+global sb uchar 128
+global ws uchar 8
+global sn int 64
+text tslash "/"
+text t_yes "yes"
+text tusrbin "/usr/bin/"
+text tbin "/bin/"
+
+note Append t to the output buffer. A frame never comes near the 256 KiB cap; past it the
+note bytes are dropped rather than trapping, and the next flush starts clean.
+fn emit t view uchar * to void
+n = get obn 0
+if gt add n len t len ob
+ret
+end
+for i ulong len t
+put ob add n i get t i
+end
+put obn 0 add n len t
+end
+
+fn putb b uchar to void
+n = get obn 0
+if lt n len ob
+put ob n b
+put obn 0 add n 1
+end
+end
+
+note Decimal digits of v, most significant first.
+fn num v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+putb get d sub sub k 1 i
+end
+end
+
+fn snum v long to void
+if lt v 0
+putb 45
+num ulong neg v
+ret
+end
+num ulong v
+end
+
+fn numw v ulong w ulong to void
+x = v
+k = ulong 1
+while ge x 10 bound 21
+x = div x 10
+k = add k 1
+end
+while lt k w bound 64
+putb 32
+k = add k 1
+end
+num v
+end
+
+note Write the whole buffer to fd 1 with a partial-write loop, then empty it.
+fn flush to long
+n = get obn 0
+o = ulong 0
+while lt o n bound 262145
+w = write 1 ob o sub n o
+if le w 0
+put obn 0 0
+ret w
+end
+o = add o ulong w
+end
+put obn 0 0
+ret long n
+end
+
+fn csi to void
+putb 27
+putb 91
+end
+
+fn mv r ulong c ulong to void
+csi
+num r
+putb 59
+num c
+putb 72
+end
+
+fn fg r ulong g ulong b ulong to void
+csi
+putb 51
+putb 56
+putb 59
+putb 50
+putb 59
+num r
+putb 59
+num g
+putb 59
+num b
+putb 109
+end
+
+fn bg r ulong g ulong b ulong to void
+csi
+putb 52
+putb 56
+putb 59
+putb 50
+putb 59
+num r
+putb 59
+num g
+putb 59
+num b
+putb 109
+end
+
+fn sgr0 to void
+csi
+putb 48
+putb 109
+end
+
+fn bold to void
+csi
+putb 49
+putb 109
+end
+
+note Erase from the cursor to the end of the line.
+fn eol to void
+csi
+putb 75
+end
+
+fn cls to void
+csi
+putb 50
+putb 74
+end
+
+note Cursor home with no parameters: every animation frame starts with it.
+fn home to void
+csi
+putb 72
+end
+
+note Alternate screen and hidden cursor on (true) or the user's screen and cursor back (false).
+fn scrn on bool to void
+csi
+putb 63
+num 1049
+if on
+putb 104
+csi
+putb 63
+num 25
+putb 108
+else
+putb 108
+csi
+putb 63
+num 25
+putb 104
+end
+end
+
+note The 64-entry sine table, sin(2 pi k / 64) scaled by 1000, computed with Wolfram:
+note Table[Round[1000*Sin[2 Pi k/64]], {k, 0, 63}]. Only the first quadrant is stored by hand;
+note the rest follows from sin(pi - x) = sin x and sin(x + pi) = -sin x.
+fn sinit to void
+q = new int 17 0
+put q 1 98
+put q 2 195
+put q 3 290
+put q 4 383
+put q 5 471
+put q 6 556
+put q 7 634
+put q 8 707
+put q 9 773
+put q 10 831
+put q 11 882
+put q 12 924
+put q 13 957
+put q 14 981
+put q 15 995
+put q 16 1000
+for k ulong 17
+put sn k get q k
+put sn sub 32 k get q k
+end
+for k ulong 32
+put sn add k 32 neg get sn k
+end
+end
+
+fn isin k ulong to long
+ret long get sn and k 63
+end
+
+fn icos k ulong to long
+ret long get sn and add k 16 63
+end
+
+note Paths: pb is built piece by piece and handed to the host words with its length pbn.
+fn pclr to void
+put pbn 0 0
+end
+
+fn pstr t view uchar * to void
+n = get pbn 0
+if gt add n len t len pb
+trap 3
+end
+for i ulong len t
+put pb add n i get t i
+end
+put pbn 0 add n len t
+end
+
+fn pbyte b uchar to void
+n = get pbn 0
+put pb n b
+put pbn 0 add n 1
+end
+
+fn pnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+pbyte get d sub sub k 1 i
+end
+end
+
+fn phome to void
+for i ulong get hbn 0
+pbyte get hb i
+end
+end
+
+fn proot to void
+for i ulong get rtn 0
+pbyte get rt i
+end
+end
+
+note A probe path: the test-only prefix AIENOS_PROBE_ROOT (empty in normal use) then t.
+fn pprobe t view uchar * to void
+pclr
+for i ulong get prn 0
+pbyte get pr i
+end
+pstr t
+end
+
+note Append rb[o .. o+n) to the path.
+fn prb o ulong n ulong to void
+for i ulong n
+pbyte get rb add o i
+end
+end
+
+fn pdrop k ulong to void
+put pbn 0 sub get pbn 0 k
+end
+
+note Stat pb into sb. Returns 0 or minus errno.
+fn pstat to long
+ret stat pb 0 get pbn 0 sb 0 128
+end
+
+note File type bits of the last stat: 4 directory, 2 character device, 8 regular, 10 link.
+fn stype to ulong
+m = or or uint get sb 16 shl uint get sb 17 8 shl uint get sb 18 16
+ret ulong shr and m 61440 12
+end
+
+fn ssize to ulong
+x = ulong 0
+for i ulong 8
+x = or x shl ulong get sb add 48 i mul i 8
+end
+ret x
+end
+
+fn sino to ulong
+x = ulong 0
+for i ulong 8
+x = or x shl ulong get sb add 8 i mul i 8
+end
+ret x
+end
+
+fn pexist to bool
+ret eq pstat 0
+end
+
+note Read the whole file named by pb into rb (at most len rb bytes). Returns the count or -errno.
+fn slurp to long
+put rbn 0 0
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+n = ulong 0
+while lt n len rb bound 524289
+k = read int fd rb n sub len rb n
+if lt k 0
+c = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+put rbn 0 n
+ret long n
+end
+
+note Write rb[0 .. n) to the file named by pb, created or truncated, mode 0644.
+fn spill n ulong to long
+fd = fopen pb 0 get pbn 0 525889 420
+if lt fd 0
+ret fd
+end
+o = ulong 0
+while lt o n bound 524289
+k = write int fd rb o sub n o
+if le k 0
+c = fclose int fd
+ret -5
+end
+o = add o ulong k
+end
+c = fclose int fd
+ret 0
+end
+
+note Does rb start, at offset o, with the bytes of t?
+fn rbat o ulong t view uchar * to bool
+if gt add o len t get rbn 0
+ret false
+end
+for i ulong len t
+if ne get rb add o i get t i
+ret false
+end
+end
+ret true
+end
+
+note First offset at or after o where t occurs in rb, or the length of rb's content when absent.
+fn rbfind o ulong t view uchar * to ulong
+n = get rbn 0
+i = o
+while lt i n bound 524289
+if rbat i t
+ret i
+end
+i = add i 1
+end
+ret n
+end
+
+note Does t occur inside rb[o .. e)?
+fn rbin o ulong e ulong t view uchar * to bool
+if lt e len t
+ret false
+end
+i = o
+while le add i len t e bound 524289
+if rbat i t
+ret true
+end
+i = add i 1
+end
+ret false
+end
+
+note Decimal number in rb at o; stops at the first non-digit.
+fn rbnum o ulong to ulong
+x = ulong 0
+i = o
+while lt i get rbn 0 bound 21
+c = get rb i
+if or lt c 48 gt c 57
+break
+end
+x = add mul x 10 ulong sub c 48
+i = add i 1
+end
+ret x
+end
+
+note Copy the environment entry KEY=value whose key is k into eb; returns the value length, or
+note -1 when the key is absent. The value starts at eb[len k + 1].
+fn envget k view uchar * to long
+c = envcnt
+for i ulong ulong c
+n = envread i eb 0 len eb
+if gt n long len k
+m = true
+for j ulong len k
+if ne get eb j get k j
+m = false
+end
+end
+if and m eq get eb len k 61
+ret sub n add long len k 1
+end
+end
+end
+ret -1
+end
+
+note Read one line from fd 0 into ib (without its newline). Returns its length, or -1 at end of input.
+fn rline to long
+n = ulong 0
+put ibn 0 0
+while lt n sub len ib 1 bound 4096
+k = read 0 ib n 1
+if le k 0
+if eq n 0
+ret -1
+end
+break
+end
+if eq get ib n 10
+break
+end
+n = add n 1
+end
+put ibn 0 n
+ret long n
+end
+
+fn ibis t view uchar * to bool
+if ne get ibn 0 len t
+ret false
+end
+for i ulong len t
+if ne get ib i get t i
+ret false
+end
+end
+ret true
+end
+
+note Packed argument lists for execprog: a little-endian u16 count, then u16 length + bytes records.
+fn pkclr to void
+put pk 0 0
+put pk 1 0
+put pkn 0 2
+end
+
+fn pkrec n ulong to ulong
+c = add or uint get pk 0 shl uint get pk 1 8 1
+put pk 0 uchar and c 255
+put pk 1 uchar shr c 8
+o = get pkn 0
+put pk o uchar and n 255
+put pk add o 1 uchar shr n 8
+put pkn 0 add add o 2 n
+ret add o 2
+end
+
+fn pkstr t view uchar * to void
+o = pkrec len t
+for i ulong len t
+put pk add o i get t i
+end
+end
+
+note The current path pb as one argument.
+fn pkpath to void
+o = pkrec get pbn 0
+for i ulong get pbn 0
+put pk add o i get pb i
+end
+end
+
+fn pknum v ulong to void
+pclr
+pnum v
+pkpath
+end
+
+note Exit status from the 4-byte wait status in ws: the exit code, or 128 + signal.
+fn wcode to long
+s = uint get ws 0
+if ne and s 127 0
+ret long add and s 127 128
+end
+ret long uint get ws 1
+end
+
+note Run the packed program in pk with fd 1 and 2 sent to the file named by pb (appended) or, when
+note pb is empty, inherited. Returns the exit status or a negative errno from fork.
+fn runpk to long
+lfd = long -1
+if gt get pbn 0 0
+lfd = fopen pb 0 get pbn 0 525377 420
+if lt lfd 0
+ret lfd
+end
+end
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+if ge lfd 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+end
+r = execprog pk 0 get pkn 0
+exit 127
+end
+if ge lfd 0
+c = fclose int lfd
+end
+r = waitpid int pid ws 0 4 0
+if ne r pid
+ret -10
+end
+ret wcode
+end
+
+note Run pk with its stdout captured into rb (at most len rb bytes); stdin and stderr are inherited.
+note Returns the exit status; rbn holds the captured length.
+fn runcap to long
+put rbn 0 0
+r = pipefds ws 0 8 524288
+if ne r 0
+ret r
+end
+rd = or or uint get ws 0 shl uint get ws 1 8 shl uint get ws 2 16
+wr = or or uint get ws 4 shl uint get ws 5 8 shl uint get ws 6 16
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+d = dupfd int wr 1 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int wr
+n = ulong 0
+while lt n len rb bound 524289
+k = read int rd rb n sub len rb n
+if le k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int rd
+put rbn 0 n
+r = waitpid int pid ws 0 4 0
+if ne r pid
+ret -10
+end
+ret wcode
+end
+
+note Find a host helper by name in /usr/bin then /bin; leaves its path in pb. False when absent.
+fn findbin t view uchar * to bool
+pclr
+pstr tusrbin
+pstr t
+if eq faccess pb 0 get pbn 0 1 0
+ret true
+end
+pclr
+pstr tbin
+pstr t
+ret eq faccess pb 0 get pbn 0 1 0
+end
