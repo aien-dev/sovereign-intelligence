@@ -22,6 +22,6 @@ native/nvrm/context.om:6:text nvuvm "/dev/nvidia-uvm"
    2 headers in src/nvidia/arch/nvalloc/unix/include
    67 headers listed in SHA256SUMS
 == 5. what still belongs to NVIDIA below the line (ROADMAP.md)
- `nvidia.ko` | Aien's own GB10 driver (L332) | BUILDING 
+ `nvidia.ko` | AIEN's own GB10 driver (L332) | BUILDING 
  `nvidia-uvm.ko` | same driver: GPU page tables, allocator, channels (L193 cut D, L332) | BUILDING 
  GSP firmware (`gsp_*.bin`) | stays NVIDIA's: the chip checks its signature | not replaceable 
