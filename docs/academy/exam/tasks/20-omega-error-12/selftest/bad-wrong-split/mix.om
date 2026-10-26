@@ -1,0 +1,17 @@
+note mix.om: the error 12 fix. Same value from two helpers with few live names each
+note mix = p + q + r + xor p q + xor q r + 2 * (a + b + c + d + e + f), p = a*d, q = b*e, r = c*f
+fn prods a ulong b ulong c ulong d ulong e ulong f ulong to ulong
+p = mul a d
+q = mul b e
+r = mul c f
+ret add add add p q r add xor p q and q r
+end
+fn mix a ulong b ulong c ulong d ulong e ulong f ulong to ulong
+m = prods a b c d e f
+s = add add add a b add c d add e f
+ret add m add s s
+end
+fn main to int
+k = mix 3 5 7 11 13 17
+ret int rem k 251
+end

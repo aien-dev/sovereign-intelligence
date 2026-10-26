@@ -1,0 +1,19 @@
+Evidence levels. Give each scenario the narrowest level that is true.
+
+PROPOSED     A plan, issue or design exists. No code that does it.
+IMPLEMENTED  Code exists at a named revision. Compiling is not evidence that it works.
+EXERCISED    The path ran, with a stated command and an observed result kept as a receipt.
+QUALIFIED    The project's named gate passed on the stated platform; for physical hardware,
+             three passing runs on that hardware, each with a receipt.
+
+Scenarios
+
+1. A design document describes a new cache layer. No code for it has been written.
+2. The parser rewrite is committed at revision a1b2c3d and compiles cleanly. Nobody has run it.
+3. `sh test.sh` was run on the parser rewrite on a laptop; the saved output receipts/parser.txt
+   shows 14 of 14 tests passed.
+4. The new board driver passed its full test suite three times in QEMU emulation, each run with a
+   receipt. The project's gate for the driver requires three passing runs on the physical board.
+5. The project's named gate for the board driver passed three times on the physical board, each
+   run with a receipt.
+6. CI builds the exporter on every commit and the build is green. No test runs the exporter.

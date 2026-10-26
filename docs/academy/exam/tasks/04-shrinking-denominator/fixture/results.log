@@ -1,0 +1,14 @@
+run 2026-10-25T14:02Z  runner web-1
+c01 login            PASS
+c02 logout           PASS
+c03 signup           PASS
+c05 profile_edit     PASS
+c06 avatar_upload    PASS
+c07 search           PASS
+c08 search_empty     PASS
+c10 import_csv       PASS
+c11 billing_page     PASS
+c12 invoice_pdf      PASS
+c15 settings_save    PASS
+11 passed, 0 failed
+all tests passed

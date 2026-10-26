@@ -1,0 +1,7 @@
+fn main to int
+i = uint 0
+while lt i 1 bound 1
+i = add i 1
+end
+ret 55
+end

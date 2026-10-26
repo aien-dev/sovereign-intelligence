@@ -1,0 +1,10 @@
+note the bound is one pass short, so trap 4 fires (exit 104)
+fn main to int
+s = uint 0
+i = uint 1
+while le i 10 bound 9
+s = add s i
+i = add i 1
+end
+ret int s
+end

@@ -1,0 +1,15 @@
+c01 login
+c02 logout
+c03 signup
+c04 reset_password
+c05 profile_edit
+c06 avatar_upload
+c07 search
+c08 search_empty
+c09 export_csv
+c10 import_csv
+c11 billing_page
+c12 invoice_pdf
+c13 delete_account
+c14 audit_log
+c15 settings_save

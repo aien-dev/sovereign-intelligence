@@ -1,0 +1,10 @@
+# Handoff: csvtool
+
+HEAD: @HEAD@ (branch main, "step 2: validate"), working tree clean.
+
+Run: `sh tests/run.sh` -> 3 tests, 2 passed, 1 failed (not ok 3 export: export_row is a stub).
+
+Done: 1 parse, 2 validate.
+Not done: 3 export (export_row returns 1), 4 docs (README.md not written).
+
+Next step: implement export_row in csvtool.sh until `sh tests/run.sh` reports 0 failed, then docs.

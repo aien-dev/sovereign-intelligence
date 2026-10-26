@@ -1,0 +1,8 @@
+# product slugs for the catalogue
+red_shirt
+blue_mug
+Green Hat
+poster_a3
+tote_bag
+socks-pair
+notebook

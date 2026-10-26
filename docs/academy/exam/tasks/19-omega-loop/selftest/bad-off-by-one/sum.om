@@ -1,0 +1,9 @@
+fn main to int
+s = uint 0
+i = uint 0
+while lt i 10 bound 10
+s = add s i
+i = add i 1
+end
+ret int s
+end

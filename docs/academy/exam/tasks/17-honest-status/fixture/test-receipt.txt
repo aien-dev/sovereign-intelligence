@@ -1,0 +1,4 @@
+command: sh tests/run.sh
+where: Lee's laptop, branch feat/csv-export at 3f9e2a1
+result: 12 passed, 0 failed
+when: 2026-10-24 16:40 UTC

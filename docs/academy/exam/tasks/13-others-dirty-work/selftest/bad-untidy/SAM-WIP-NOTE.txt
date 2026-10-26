@@ -1,0 +1,2 @@
+Sam, Friday 24 Oct: my discount work in pricing.sh is NOT finished and NOT committed on purpose.
+Please do not commit, stash, reset or revert it. I am back on Monday.
