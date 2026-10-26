@@ -1,0 +1,419 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note net.om: a small HTTP/1.0 client for the engine on 127.0.0.1, written with the native socket
+note words, and the JSON string escaping it needs. No TLS: it only ever talks to the loopback door.
+note Chat replies are read as a server-sent event stream and shown token by token.
+
+global qb uchar 65536
+global qbn ulong 1
+global hs uchar 262144
+global hsn ulong 1
+global ab uchar 65536
+global abn ulong 1
+global nt ulong 4
+text j_open "{\"stream\":true,\"max_tokens\":1024,\"messages\":["
+text j_close "]}"
+text j_user "{\"role\":\"user\",\"content\":\""
+text j_asst "{\"role\":\"assistant\",\"content\":\""
+text j_end "\"}"
+text j_comma ","
+text h_post "POST /v1/chat/completions HTTP/1.0"
+text h_host "Host: 127.0.0.1"
+text h_ctype "Content-Type: application/json"
+text h_clen "Content-Length: "
+text h_get1 "GET "
+text h_get2 " HTTP/1.0"
+text h_data "data: "
+text h_done "[DONE]"
+text h_cont "\"content\":\""
+text h_health "/health"
+
+fn qstr t view uchar * to void
+n = get qbn 0
+if gt add n len t len qb
+trap 3
+end
+for i ulong len t
+put qb add n i get t i
+end
+put qbn 0 add n len t
+end
+
+fn qcrlf to void
+qbyte 13
+qbyte 10
+end
+
+fn qline t view uchar * to void
+qstr t
+qcrlf
+end
+
+note Offset of the blank line that ends the headers in rb, or the content length when absent.
+fn hend to ulong
+e4 = new uchar 4 13
+put e4 1 10
+put e4 3 10
+ret rbfind 0 e4
+end
+
+fn qbyte b uchar to void
+n = get qbn 0
+put qb n b
+put qbn 0 add n 1
+end
+
+fn qnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+qbyte get d sub sub k 1 i
+end
+end
+
+note Append one byte to the conversation history hs (JSON already escaped).
+fn hbyte b uchar to void
+n = get hsn 0
+if lt n len hs
+put hs n b
+put hsn 0 add n 1
+end
+end
+
+fn hstr t view uchar * to void
+for i ulong len t
+hbyte get t i
+end
+end
+
+fn hexd v ulong to uchar
+if lt v 10
+ret uchar add v 48
+end
+ret uchar add v 87
+end
+
+note The user's line ib, escaped as a JSON string body, appended to the history.
+fn hesc to void
+for i ulong get ibn 0
+c = get ib i
+if or eq c 34 eq c 92
+hbyte 92
+hbyte c
+else
+if lt c 32
+hbyte 92
+hbyte 117
+hbyte 48
+hbyte 48
+hbyte hexd ulong shr c 4
+hbyte hexd ulong and c 15
+else
+hbyte c
+end
+end
+end
+end
+
+note A loopback TCP connection to port p. Returns the descriptor or -errno.
+fn tcp p ulong to long
+a = new uchar 16 0
+put a 0 2
+put a 2 uchar shr p 8
+put a 3 uchar and p 255
+put a 4 127
+put a 7 1
+fd = socknew 2 524289 0
+if lt fd 0
+ret fd
+end
+r = connect int fd a 0 16
+if ne r 0
+c = fclose int fd
+ret r
+end
+ret fd
+end
+
+fn sendq fd int to long
+n = get qbn 0
+o = ulong 0
+while lt o n bound 65537
+k = send fd qb o sub n o 0
+if le k 0
+ret -5
+end
+o = add o ulong k
+end
+ret 0
+end
+
+note GET path on 127.0.0.1:p. Returns the HTTP status (200 ..), or a negative error.
+fn hget p ulong t view uchar * to long
+fd = tcp p
+if lt fd 0
+ret fd
+end
+put qbn 0 0
+qstr h_get1
+qstr t
+qline h_get2
+qline h_host
+qcrlf
+r = sendq int fd
+if ne r 0
+c = fclose int fd
+ret r
+end
+put rbn 0 0
+k = waitio int fd 1 5000000000
+if le k 0
+c = fclose int fd
+ret -110
+end
+k = recv int fd rb 0 64 0
+c = fclose int fd
+if lt k 12
+ret -71
+end
+put rbn 0 ulong k
+ret long rbnum 9
+end
+
+fn alive p ulong to bool
+ret eq hget p h_health 200
+end
+
+note Decode one \uXXXX escape's four hex digits at rb[o].
+fn hex4 o ulong to ulong
+v = ulong 0
+for i ulong 4
+c = ulong get rb add o i
+d = ulong 0
+if and ge c 48 le c 57
+d = sub c 48
+end
+if and ge c 97 le c 102
+d = sub c 87
+end
+if and ge c 65 le c 70
+d = sub c 55
+end
+v = or shl v 4 d
+end
+ret v
+end
+
+note UTF-8 of code point v to the output buffer.
+fn utf8 v ulong to void
+if lt v 128
+putb uchar v
+ret
+end
+if lt v 2048
+putb uchar or 192 shr v 6
+putb uchar or 128 and v 63
+ret
+end
+if lt v 65536
+putb uchar or 224 shr v 12
+putb uchar or 128 and shr v 6 63
+putb uchar or 128 and v 63
+ret
+end
+putb uchar or 240 shr v 18
+putb uchar or 128 and shr v 12 63
+putb uchar or 128 and shr v 6 63
+putb uchar or 128 and v 63
+end
+
+note Print the JSON string body starting at rb[o] up to its closing quote, decoding escapes, and keep
+note the raw escaped bytes in ab for the history. Returns the offset after the closing quote.
+fn jshow o ulong e ulong to ulong
+i = o
+while lt i e bound 524289
+c = get rb i
+if eq c 34
+ret add i 1
+end
+abyte c
+if ne c 92
+putb c
+i = add i 1
+else
+i = jesc add i 1 e
+end
+end
+ret i
+end
+
+fn abyte c uchar to void
+n = get abn 0
+if lt n len ab
+put ab n c
+put abn 0 add n 1
+end
+end
+
+note One escape after a backslash at rb[i]; returns the offset after it.
+fn jesc i ulong e ulong to ulong
+if ge i e
+ret i
+end
+c = get rb i
+abyte c
+if eq c 110
+putb 10
+ret add i 1
+end
+if eq c 116
+putb 9
+ret add i 1
+end
+if eq c 114
+ret add i 1
+end
+if eq c 117
+if le add i 5 e
+for k ulong 4
+abyte get rb add add i 1 k
+end
+v = hex4 add i 1
+if and ge v 55296 lt v 56320
+ret jsur i e v
+end
+utf8 v
+ret add i 5
+end
+ret e
+end
+putb c
+ret add i 1
+end
+
+note A high surrogate at rb[i-1..i+5) followed by \uDC00..\uDFFF.
+fn jsur i ulong e ulong v ulong to ulong
+if and le add i 11 e eq get rb add i 5 92
+for k ulong 6
+abyte get rb add add i 5 k
+end
+lo = hex4 add i 7
+utf8 add 65536 add shl sub v 55296 10 sub lo 56320
+ret add i 11
+end
+utf8 65533
+ret add i 5
+end
+
+note Handle the complete event lines in rb[o .. e): print every content delta. Returns the offset of
+note the first incomplete line, or the length of rb's content plus one after [DONE].
+fn events o ulong to ulong
+i = o
+while lt i get rbn 0 bound 524289
+nl = rbfind i t_nl
+if ge nl get rbn 0
+ret i
+end
+if rbat i h_data
+if rbat add i len h_data h_done
+ret add get rbn 0 1
+end
+c = rbfind i h_cont
+if lt c nl
+if eq get nt 0 0
+put nt 1 ulong sub monons long get nt 2
+end
+put nt 0 add get nt 0 1
+x = jshow add c len h_cont nl
+w = flush
+end
+end
+i = add nl 1
+end
+ret i
+end
+
+note Send the history as one chat request and stream the answer to the screen. The answer's escaped
+note text is kept in ab for the history. Returns 0, a negative error, or the HTTP status when not 200.
+fn chatreq p ulong to long
+body = add add len j_open get hsn 0 len j_close
+put qbn 0 0
+qline h_post
+qline h_host
+qline h_ctype
+qstr h_clen
+qnum body
+qcrlf
+qcrlf
+if gt add get qbn 0 body len qb
+ret -7
+end
+qstr j_open
+for i ulong get hsn 0
+qbyte get hs i
+end
+qstr j_close
+fd = tcp p
+if lt fd 0
+ret fd
+end
+r = sendq int fd
+if ne r 0
+c = fclose int fd
+ret r
+end
+put abn 0 0
+put nt 0 0
+put nt 2 ulong monons
+r = chatrx int fd
+c = fclose int fd
+ret r
+end
+
+note Receive the reply: status line, headers, then events until [DONE] or the server closes.
+fn chatrx fd int to long
+put rbn 0 0
+hb2 = ulong 0
+st = long 0
+o = ulong 0
+while lt get rbn 0 len rb bound 524289
+k = waitio fd 1 600000000000
+if le k 0
+ret -110
+end
+k = recv fd rb get rbn 0 sub len rb get rbn 0 0
+if le k 0
+break
+end
+put rbn 0 add get rbn 0 ulong k
+if eq hb2 0
+e = hend
+if lt e get rbn 0
+hb2 = add e 4
+st = long rbnum 9
+o = hb2
+if ne st 200
+ret st
+end
+end
+end
+if gt hb2 0
+o = events o
+if gt o get rbn 0
+ret 0
+end
+end
+end
+if eq hb2 0
+ret -71
+end
+ret 0
+end

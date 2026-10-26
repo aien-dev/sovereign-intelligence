@@ -1,0 +1,738 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note main.om: the aienos command. With no argument (or "wizard") it runs the full-screen wizard;
+note "doctor", "chat", "start", "stop", "verify", "source", "about", "uninstall" and "rollback" are the
+note small commands beside it. Build: concatenate sha256.om lib.om hole.om doctor.om net.om steps.om
+note engine.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
+
+text v_tag "alpha-20261026.1"
+text a_l1 "Sovereign Intelligence alpha-20261026.1: the installer and the aienos command"
+text a_l2 "written in Omega (.om), compiled by omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d"
+text a_l3 "  (aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, seed/out/omc)"
+text a_l4 "engine: aien-serve-http, aien-dev/aien-sovereign-core-mv tag alpha/20261025.1 = cf239078d05a47d84353c1508a08663273f00c3e"
+text a_l5 "  receipt: aien-dev/aien-receipts aien-sovereign-core/cf239078d05a47d84353c1508a08663273f00c3e/bundle.json"
+text a_l6 "  (bundle sha256 44edcc9aa10cb7669093d8dfed3399374a6aaa312fc89beace8e39f934938687: 35 checks PASS,"
+text a_l7 "   including SC-GB10-SERVE-CHAT on a GB10 and SC-ZERO-CUDA)"
+text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega-mv 18f8fdd9) talks to"
+text a_l9 "  /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. There is no separate CUDA++ runtime."
+text a_l10 "model: Qwen/Qwen3.8-27B-FP8 revision 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a (30.9 GB)"
+text a_l11 "  The Qwen3.6-35B the Spark serves is not offered yet: it runs on an engine branch that is not merged."
+text a_l12 "evidence: GB10 serve and chat EXERCISED by the Core receipt above; this installer's full GPU run"
+text a_l13 "  and first token on a GB10, and the 3x physical qualification: NOT_RUN."
+text a_l14 "signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a"
+text a_l15 "  (an alpha key; it is rotated to a ceremony key before beta)"
+text s_l1 "My Omega source ships with this release:"
+text s_l2 "/share/aienos/wizard/"
+text s_l3 "  sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om"
+text s_l4 "/share/aienos/aienos.om"
+text s_l5 "  the same files concatenated in build order: one unit, one compile"
+text s_l6 "Also online: https://www.aienos.com/alpha/ and https://github.com/aien-dev/sovereign-intelligence"
+text w_l1 "Welcome. I am Drake, and this is Sovereign Intelligence, the AienOS alpha."
+text w_l2 "This installer is written in Omega, my own language. It sets up a local model on"
+text w_l3 "your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS."
+text w_l4 "NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused."
+text w_l5 "Next: doctor, plan, your yes, install, model, first chat. Nothing changes before your yes."
+text w_l6 "Type about for versions and evidence, source for my .om source, q to quit."
+text w_go "Press Enter to run the doctor"
+text x_l1 "This alpha runs on Linux arm64 with an NVIDIA GB10 (DGX Spark) only."
+text x_l2 "Here is what is coming: https://www.aienos.com/alpha/"
+text x_l3 "I changed nothing. The files the installer unpacked go away with:  aienos uninstall"
+text p_l1 "Here is exactly what changes, all inside your home folder:"
+text p_l2 "/releases/"
+text p_l3 "   this release, already unpacked and checked"
+text p_l4 "/models/"
+text p_l5 "~/.local/bin/aienos, the menu entry and the desktop icon (already there)"
+text p_l6 "/engine.log   the engine's log, when it runs"
+text p_l7 "Not touched: NVIDIA's driver, the CUDA toolkit, libcuda, cuBLAS, /usr, /etc. No sudo."
+text p_l8 "Undo everything at any time:  aienos uninstall"
+text p_l9 "   the model: "
+text p_ok "Press Enter for the last question"
+text c_l1 "Type yes to begin. Anything else stops here, and nothing changes."
+text c_q "yes or no"
+text c_stop "Stopped. Nothing was changed."
+text c_fail "Stopped. Run aienos again once the problem above is fixed; it picks up where it left off."
+text t_q "q"
+text t_about "about"
+text t_source "source"
+text t_probe "AIENOS_PROBE_ROOT"
+text t_home "HOME"
+text t_plain "--plain"
+text t_exe "/proc/self/exe"
+text h_stty "stty"
+text h_size "size"
+text k_wiz "wizard"
+text k_doc "doctor"
+text k_chat "chat"
+text k_start "start"
+text k_stop "stop"
+text k_vfy "verify"
+text k_unin "uninstall"
+text k_roll "rollback"
+text k_help "usage: aienos [wizard [--plain] | doctor | chat | start | stop | verify | source | about | uninstall [--keep-model] [--yes] | rollback]"
+text n_nohome "HOME is not set; I cannot tell where to install."
+text n_badrt "I cannot find my own folder (/proc/self/exe)."
+text n_vok " files match SHA256SUMS"
+text n_vbad "a file does not match SHA256SUMS"
+text n_start "engine started, pid "
+text n_ready "engine ready on http://127.0.0.1:18100/v1"
+text n_nostrt "engine did not become ready; see ~/.local/share/aienos/engine.log"
+text n_stopd "engine stopped"
+text n_chat1 "aienos chat: type a message and press Enter. /bye leaves."
+text n_bye "/bye"
+text n_you "you> "
+text n_ai "model> "
+text n_err "request failed: "
+text t_sp " "
+
+note argument i into ib; returns its length or -1.
+fn arg i ulong to long
+if ge i ulong argcnt
+ret -1
+end
+n = argread i ib 0 len ib
+if lt n 0
+ret -1
+end
+put ibn 0 ulong n
+ret n
+end
+
+note HOME, the probe prefix and this release's folder (the parent of bin/aienos).
+fn setup to bool
+sinit
+n = envget t_home
+if le n 0
+ret false
+end
+for i ulong ulong n
+put hb i get eb add len t_home add i 1
+end
+put hbn 0 ulong n
+n = envget t_probe
+if gt n 0
+for i ulong ulong n
+put pr i get eb add len t_probe add i 1
+end
+put prn 0 ulong n
+end
+ret selfdir
+end
+
+fn selfdir to bool
+n = readlnk t_exe 0 len t_exe rt 0 len rt
+if or le n 0 ge n long len rt
+ret false
+end
+k = ulong n
+s = ulong 0
+for pass ulong 2
+while and gt k 0 ne get rt sub k 1 47 bound 1024
+k = sub k 1
+end
+if gt k 0
+k = sub k 1
+end
+end
+put rtn 0 k
+ret gt k 0
+end
+
+note Terminal: animate when stdin and stdout are character devices and stty reports at least
+note 64 columns and 22 rows; the picture takes what the 12-line panel leaves. The size comes from the host's stty (Omega has no window-size word yet).
+fn term plain bool to void
+put ui 0 0
+put tw 0 80
+put th 0 24
+if plain
+ret
+end
+r = fstat 0 sb 0 128
+if or ne r 0 ne stype 2
+ret
+end
+r = fstat 1 sb 0 128
+if or ne r 0 ne stype 2
+ret
+end
+if not findbin h_stty
+ret
+end
+pkclr
+pkpath
+pkstr h_size
+r = runcap
+if ne r 0
+ret
+end
+rows = rbnum 0
+sp = rbfind 0 t_sp
+cols = rbnum add sp 1
+if or lt cols 64 lt rows 22
+ret
+end
+if gt cols 400
+cols = 400
+end
+put tw 0 cols
+put th 0 rows
+note The panel under the picture keeps 12 lines: the plan and the doctor must fit whole.
+sh = ulong 6
+if gt rows 22
+sh = sub rows 16
+end
+if gt sh 30
+sh = 30
+end
+put ui 1 sh
+put ui 0 1
+end
+
+fn plines to void
+pl w_l1
+pln
+pln
+pl w_l2
+pln
+pl w_l3
+pln
+pl w_l4
+pln
+pln
+pl w_l5
+pln
+pc 5
+pl w_l6
+pc 2
+end
+
+fn about to void
+pl a_l1
+pln
+pl a_l2
+pln
+pl a_l3
+pln
+pl a_l4
+pln
+pl a_l5
+pln
+pl a_l6
+pln
+pl a_l7
+pln
+pl a_l8
+pln
+pl a_l9
+pln
+pl a_l10
+pln
+pl a_l11
+pln
+pl a_l12
+pln
+pl a_l13
+pln
+pl a_l14
+pln
+pl a_l15
+end
+
+fn source to void
+pl s_l1
+pln
+pc 6
+plroot
+pl s_l2
+pc 2
+pln
+pl s_l3
+pln
+pc 6
+plroot
+pl s_l4
+pc 2
+pln
+pl s_l5
+pln
+pln
+pl s_l6
+end
+
+fn plroot to void
+for i ulong get rtn 0
+pc get rt i
+end
+end
+
+note Welcome; loops on about and source. Returns false to quit.
+fn stwel to bool
+while true bound 1000
+enter 0
+pclear
+plines
+prompt w_go
+show
+r = ask
+if lt r 0
+ret false
+end
+if ibis t_q
+ret false
+end
+if ibis t_about
+sub1 true
+end
+if ibis t_source
+sub1 false
+end
+if not or ibis t_about ibis t_source
+ret true
+end
+end
+ret false
+end
+
+fn sub1 isab bool to void
+pclear
+if isab
+about
+else
+source
+end
+prompt t_next
+show
+r = ask
+end
+
+note Doctor screen. Returns true when the machine can take this alpha.
+fn stdoc to bool
+enter 1
+pclear
+need = mneed
+ok = doctor need
+for i ulong NCHK
+dpanel i
+end
+if not ok
+pln
+pc 4
+pl x_l1
+pc 2
+pln
+pl x_l2
+pln
+pl x_l3
+prompt t_close
+show
+r = ask
+ret false
+end
+prompt t_next
+show
+r = ask
+ret ge r 0
+end
+
+note Bytes the model still needs on disk: none when verified, else its size plus 1 GB.
+fn mneed to ulong
+if not mopen
+ret 0
+end
+if mdone
+ret 0
+end
+ret add mbytes 1000000000
+end
+
+fn dpanel i ulong to void
+k = get dk i
+if eq k 0
+pc 3
+pl k_ok
+end
+if eq k 1
+pc 1
+pl k_wn
+end
+if eq k 2
+pc 4
+pl k_no
+end
+if eq k 3
+pc 5
+pl k_in
+end
+pc 2
+pc 32
+n = get ptn 0
+dnm i
+while lt sub get ptn 0 n 9 bound 16
+pc 32
+end
+for j ulong get dtn i
+pc get dt add mul i 192 j
+end
+pln
+end
+
+fn dnm i ulong to void
+if eq i 0
+pl n_arch
+end
+if eq i 1
+pl n_gpu
+end
+if eq i 2
+pl n_drv
+end
+if eq i 3
+pl n_mem
+end
+if eq i 4
+pl n_disk
+end
+if eq i 5
+pl n_inst
+end
+if eq i 6
+pl n_busy
+end
+if eq i 7
+pl n_nv
+end
+end
+
+fn stplan to bool
+enter 2
+pclear
+pl p_l1
+pln
+pln
+pc 6
+plbase
+pl p_l2
+pl v_tag
+pc 2
+pl p_l3
+pln
+pc 6
+plbase
+pl p_l4
+for i ulong get mnn 0
+pc get mnm i
+end
+pc 2
+pln
+pl p_l9
+plgb mbytes
+pl m_l3
+plnum mfiles
+pl m_l4
+pln
+pc 6
+plbase
+pc 2
+pl p_l6
+pln
+pl p_l5
+pln
+pln
+pl p_l7
+pln
+pc 1
+pl p_l8
+pc 2
+prompt p_ok
+show
+r = ask
+ret ge r 0
+end
+
+fn styes to bool
+enter 3
+pclear
+pc 6
+pl c_l1
+pc 2
+prompt c_q
+show
+r = ask
+ret and ge r 0 ibis t_yes
+end
+
+fn bye t view uchar * to void
+if eq get ui 0 1
+scrn false
+end
+sgr0
+putb 10
+emit t
+putb 10
+w = flush
+end
+
+note The full wizard. Exit 0 for a finished run and for a friendly refusal; 1 when a step failed.
+fn wizard plain bool to int
+term plain
+if not mopen
+ret 3
+end
+if eq get ui 0 1
+scrn true
+w = flush
+end
+if not stwel
+bye c_stop
+ret 0
+end
+if not stdoc
+bye x_l3
+ret 0
+end
+if not stplan
+bye c_stop
+ret 0
+end
+if not styes
+bye c_stop
+ret 0
+end
+if not stinst
+bye c_fail
+ret 1
+end
+if not mstep
+bye c_fail
+ret 1
+end
+if not stchat
+bye c_fail
+ret 1
+end
+stdone eq get ui 11 1
+if eq get ui 11 1
+bye d_l1
+else
+bye d_l0
+end
+ret 0
+end
+
+fn istty fd int to bool
+r = fstat fd sb 0 128
+ret and eq r 0 eq stype 2
+end
+
+fn cdoctor to int
+need = mneed
+ok = doctor need
+col = istty 1
+for i ulong NCHK
+cline i col
+putb 10
+end
+w = flush
+if ok
+ret 0
+end
+emit x_l1
+putb 10
+emit x_l2
+putb 10
+w = flush
+ret 1
+end
+
+fn cverify to int
+x = mopen
+k = sums
+if lt k 0
+emit n_vbad
+putb 10
+w = flush
+ret 1
+end
+num ulong k
+emit n_vok
+putb 10
+w = flush
+ret 0
+end
+
+note Start the engine when the doctor allows it and wait until it answers.
+fn cstart to int
+x = mopen
+if alive PORT
+emit n_ready
+putb 10
+w = flush
+ret 0
+end
+ok = doctor 0
+pclear
+if ckskip
+for i ulong get ptn 0
+putb get pt i
+end
+putb 10
+w = flush
+ret 2
+end
+p = estart
+if lt p 0
+ret 1
+end
+emit n_start
+num ulong p
+putb 10
+w = flush
+if not ewait 2400
+emit n_nostrt
+putb 10
+w = flush
+ret 1
+end
+emit n_ready
+putb 10
+w = flush
+ret 0
+end
+
+fn cstop to int
+if estop
+emit n_stopd
+putb 10
+w = flush
+ret 0
+end
+ret 1
+end
+
+fn cchat to int
+r = cstart
+if ne r 0
+ret r
+end
+emit n_chat1
+putb 10
+put hsn 0 0
+while true bound 100000
+emit n_you
+w = flush
+n = rline
+if or lt n 0 ibis n_bye
+ret 0
+end
+if gt get hsn 0 0
+hstr j_comma
+end
+hstr j_user
+hesc
+hstr j_end
+emit n_ai
+w = flush
+q = chatreq PORT
+putb 10
+w = flush
+if ne q 0
+emit n_err
+snum q
+putb 10
+w = flush
+else
+hstr j_comma
+hstr j_asst
+for i ulong get abn 0
+hbyte get ab i
+end
+hstr j_end
+end
+end
+ret 0
+end
+
+fn cprint to int
+for i ulong get ptn 0
+b = get pt i
+if or ge b 7 eq b 10
+putb b
+end
+end
+putb 10
+w = flush
+ret 0
+end
+
+fn iskey t view uchar * to bool
+ret ibis t
+end
+
+fn main to int
+if not setup
+emit n_nohome
+putb 10
+w = flush
+ret 2
+end
+if lt arg 1 0
+ret wizard false
+end
+if iskey k_wiz
+plain = false
+if ge arg 2 0
+plain = ibis t_plain
+end
+ret wizard plain
+end
+if iskey k_doc
+ret cdoctor
+end
+if iskey k_chat
+ret cchat
+end
+if iskey k_start
+ret cstart
+end
+if iskey k_stop
+ret cstop
+end
+if iskey k_vfy
+ret cverify
+end
+if iskey t_source
+pclear
+source
+ret cprint
+end
+if iskey t_about
+pclear
+about
+ret cprint
+end
+if iskey k_unin
+ret cunin
+end
+if iskey k_roll
+ret rollbk
+end
+emit k_help
+putb 10
+w = flush
+ret 2
+end
+
+fn cunin to int
+keep = false
+yes = false
+for i ulong 2
+if ge arg add i 2 0
+if ibis u_keep
+keep = true
+end
+if ibis u_yes
+yes = true
+end
+end
+end
+x = mopen
+ret uninst keep yes
+end

@@ -1,0 +1,1065 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note steps.om: the screens of the wizard (welcome, doctor, plan, consent, install, model, first chat,
+note done), the panel under the black hole, the progress bar, file hashing with the Omega SHA-256 unit,
+note the model download and the engine's start and stop.
+note
+note Panel markup: byte 1 gold, 2 plain, 3 green, 4 red, 5 dim, 6 bright. A line ends at byte 10.
+
+global ui ulong 12
+global pt uchar 8192
+global ptn ulong 1
+global pp uchar 256
+global ppn ulong 1
+global mf uchar 65536
+global mfn ulong 1
+global mnm uchar 128
+global mnn ulong 1
+global dg uchar 32
+global bs uchar 1024
+global bsn ulong 1
+global pidb uchar 32
+global ppt uchar 4096
+global pptn ulong 1
+text s_title " Sovereign Intelligence alpha "
+text s_step "  step "
+text s_of " of 8  "
+text s_n0 "welcome"
+text s_n1 "doctor"
+text s_n2 "plan"
+text s_n3 "your yes"
+text s_n4 "install"
+text s_n5 "model"
+text s_n6 "first chat"
+text s_n7 "done"
+text s_omega "  written in Omega (.om)"
+text t_tbase "~/.local/share/aienos"
+text t_files " files"
+text t_slash " / "
+text m_name "name "
+text m_url "url "
+text m_bytes "bytes "
+text m_files "files "
+text t_share "/share/aienos/model.manifest"
+text t_base "/.local/share/aienos"
+text t_models "/models/"
+text t_vfy "/.aienos-verified"
+text t_sums "/SHA256SUMS"
+text i_l1 "Checking every file of this release with SHA-256."
+text i_l2 "The hash runs in Omega (the sha256.om unit shipped beside me)."
+text i_ok " files match SHA256SUMS."
+text i_bad "A file does not match SHA256SUMS: "
+text i_bad2 "This copy is damaged or was changed. Install again with the curl command."
+text i_cut "Meanwhile the user-space stack falls into the hole: libcuda, cuBLAS, nvcc."
+text i_cut2 "That is the picture only. On disk those stay installed; AienOS just never loads them."
+text i_md1 "Created "
+text i_md2 " for the model."
+text t_mkfail "I could not create the model folder in ~/.local/share/aienos."
+text t_wait "working, please wait"
+text t_next "Press Enter to continue"
+text t_close "Press Enter to close"
+text h_curl "curl"
+text c_f "-fL"
+text c_s "-sS"
+text c_r "--retry"
+text c_5 "5"
+text c_c "-C"
+text c_dash "-"
+text c_o "-o"
+text c_ua "--user-agent"
+text c_uav "aienos-wizard/alpha"
+text t_part ".part"
+text t_curlog "/download.log"
+text m_have "The model is already here and verified. Nothing to download."
+text m_l1 "Downloading "
+text m_l2 "from Hugging Face: "
+text m_l3 " in "
+text m_l4 " files."
+text m_l5 "Every file is checked against its SHA-256 before it is used."
+text m_l6 "A cut connection resumes where it stopped. q is not read here; Ctrl+C stops."
+text m_fail "The download or a hash check failed. Nothing broken was kept."
+text m_fail2 "Run aienos again to resume. The log is ~/.local/share/aienos/download.log."
+text m_done "Every model file is downloaded and matches its SHA-256."
+text t_dlocal "/.local"
+text t_dshare "/share"
+
+note ui: 0 animate, 1 scene rows, 2 step, 3 last frame ns, 4 bytes done, 5 bytes total,
+note 6 bar shown, 7 files done, 8 files total, 9 engine pid, 10 frames since step entry.
+
+fn pclear to void
+put ptn 0 0
+end
+
+fn pl t view uchar * to void
+n = get ptn 0
+for i ulong len t
+if lt add n i len pt
+put pt add n i get t i
+end
+end
+m = add n len t
+if gt m len pt
+m = len pt
+end
+put ptn 0 m
+end
+
+fn pc b uchar to void
+n = get ptn 0
+if lt n len pt
+put pt n b
+put ptn 0 add n 1
+end
+end
+
+fn pln to void
+pc 10
+end
+
+fn plnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+pc get d sub sub k 1 i
+end
+end
+
+note Gigabytes (10^9 bytes) rounded to one decimal.
+fn plgb v ulong to void
+r = add v 50000000
+plnum div r 1000000000
+pc 46
+plnum div rem r 1000000000 100000000
+pl t_gb
+end
+
+note The base folder ~/.local/share/aienos as text in the panel, spelled with a tilde.
+fn plbase to void
+pl t_tbase
+end
+
+fn prompt t view uchar * to void
+put ppn 0 0
+for i ulong len t
+if lt i len pp
+put pp i get t i
+end
+end
+put ppn 0 len t
+end
+
+fn mark b uchar to void
+if eq b 1
+fg 255 196 90
+end
+if eq b 2
+sgr0
+end
+if eq b 3
+fg 120 220 120
+end
+if eq b 4
+fg 255 100 90
+end
+if eq b 5
+fg 140 140 165
+end
+if eq b 6
+bold
+fg 245 245 255
+end
+end
+
+fn sname i ulong to void
+if eq i 0
+emit s_n0
+end
+if eq i 1
+emit s_n1
+end
+if eq i 2
+emit s_n2
+end
+if eq i 3
+emit s_n3
+end
+if eq i 4
+emit s_n4
+end
+if eq i 5
+emit s_n5
+end
+if eq i 6
+emit s_n6
+end
+if eq i 7
+emit s_n7
+end
+end
+
+fn header row ulong to void
+mv row 1
+bg 18 16 28
+fg 255 196 90
+bold
+emit s_title
+sgr0
+bg 18 16 28
+fg 200 200 220
+emit s_step
+num add get ui 2 1
+emit s_of
+sname get ui 2
+fg 120 120 150
+emit s_omega
+eol
+sgr0
+end
+
+note Draw the panel lines from row r0 on, at most rows lines, each cleared to the end of the line.
+note Put one panel byte at column col (counted from 3); bytes past the terminal's width are
+note dropped so a long line never wraps into the next one. Returns the new column.
+fn pput b uchar col ulong to ulong
+if ge col sub get tw 0 1
+ret col
+end
+putb b
+if eq and b 192 128
+ret col
+end
+ret add col 1
+end
+
+fn pdraw r0 ulong rows ulong colour bool to void
+row = r0
+col = ulong 3
+i = ulong 0
+n = get ptn 0
+mv row 3
+eol
+while lt i n bound 8193
+b = get pt i
+if eq b 10
+row = add row 1
+if ge row add r0 rows
+ret
+end
+if colour
+sgr0
+end
+mv row 1
+eol
+mv row 3
+col = 3
+else
+if lt b 7
+if colour
+mark b
+end
+else
+col = pput b col
+end
+end
+i = add i 1
+end
+if colour
+sgr0
+end
+row = add row 1
+while lt row add r0 rows bound 256
+mv row 1
+eol
+row = add row 1
+end
+end
+
+note The progress bar: done/total bytes as a gold bar, the percentage and the file count.
+fn pbar row ulong to void
+mv row 3
+eol
+if eq get ui 6 0
+ret
+end
+w = ulong 40
+tot = get ui 5
+if eq tot 0
+tot = 1
+end
+dn = get ui 4
+if gt dn tot
+dn = tot
+end
+f = div mul dn w tot
+fg 255 196 90
+for i ulong w
+if lt i f
+bg 255 170 60
+else
+bg 50 44 70
+end
+putb 32
+end
+sgr0
+putb 32
+numw div mul dn 100 tot 3
+putb 37
+putb 32
+putb 32
+num get ui 7
+emit t_slash
+num get ui 8
+emit t_files
+end
+
+fn pprompt row ulong colour bool to void
+mv row 3
+eol
+if colour
+fg 255 196 90
+bold
+end
+putb 62
+putb 32
+for i ulong get ppn 0
+putb get pp i
+end
+if colour
+sgr0
+end
+end
+
+note One animation frame: the scene, the header, the panel, the bar and the prompt.
+fn frame to void
+if eq get ui 0 0
+ret
+end
+sh = get ui 1
+t = get th 0
+home
+hframe sh
+header add sh 1
+pdraw add sh 2 sub sub t sh 4 true
+pbar sub t 1
+pprompt t true
+w = flush
+put ui 3 ulong monons
+put ui 10 add get ui 10 1
+end
+
+note Draw a frame only when 80 ms have passed since the last one; used inside long loops.
+fn tickui to void
+if eq get ui 0 0
+ret
+end
+if gt sub ulong monons get ui 3 80000000
+frame
+end
+end
+
+note Plain mode (no terminal or too small): print the panel once, without colour or animation.
+fn plainout to void
+putb 10
+emit s_title
+emit s_step
+num add get ui 2 1
+emit s_of
+sname get ui 2
+putb 10
+for i ulong get ptn 0
+b = get pt i
+if or ge b 7 eq b 10
+putb b
+end
+end
+putb 10
+if gt get ui 6 0
+pbarp
+end
+w = flush
+end
+
+fn pbarp to void
+tot = get ui 5
+if eq tot 0
+tot = 1
+end
+num div mul get ui 4 100 tot
+putb 37
+putb 32
+num get ui 7
+emit t_slash
+num get ui 8
+emit t_files
+putb 10
+end
+
+fn enter i ulong to void
+put ui 2 i
+put ui 6 0
+put ui 10 0
+if eq get ui 0 1
+cls
+end
+end
+
+note Show the step: a frame, or in plain mode the panel text.
+fn show to void
+if eq get ui 0 1
+frame
+else
+plainout
+end
+end
+
+note Wait for one line of input while the hole keeps turning. Returns its length or -1 at end of input.
+fn ask to long
+if eq get ui 0 1
+while true bound 999999
+frame
+k = waitio 0 1 80000000
+if ne k 0
+break
+end
+end
+else
+for i ulong get ppn 0
+putb get pp i
+end
+putb 58
+putb 32
+w = flush
+end
+ret rline
+end
+
+note Keep animating for about ms milliseconds (plain mode returns at once).
+fn hold ms ulong to void
+if eq get ui 0 0
+ret
+end
+st = ulong monons
+while lt sub ulong monons st mul ms 1000000 bound 100000
+frame
+s = sleepns 60000000
+end
+end
+
+note ---------- SHA-256 of a file, with the Omega unit in sha256.om ----------
+
+note Hash the file named by pb into dg, adding its bytes to ui 4 as it goes. Returns the size or -errno.
+fn fhash to long
+c = new uchar 104 0
+buf = new uchar 1048576 0
+o = new uchar 32 0
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+sha256_init c
+tot = ulong 0
+while true bound 999999
+k = read int fd buf 0 len buf
+if lt k 0
+x = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+sha256_update c part buf 0 ulong k
+tot = add tot ulong k
+put ui 4 add get ui 4 ulong k
+tickui
+end
+x = fclose int fd
+sha256_final c o
+for i ulong 32
+put dg i get o i
+end
+ret long tot
+end
+
+note Does dg equal the 64 lowercase hex digits at mf[o]?
+fn dgis o ulong to bool
+for i ulong 32
+b = get dg i
+if ne get mf add o mul i 2 hexd ulong shr b 4
+ret false
+end
+if ne get mf add add o mul i 2 1 hexd ulong and b 15
+ret false
+end
+end
+ret true
+end
+
+note ---------- manifests ----------
+
+note Load the file named by pb into mf. Returns its length or -errno.
+fn mload to long
+n = slurp
+if lt n 0
+ret n
+end
+if gt get rbn 0 len mf
+ret -27
+end
+for i ulong get rbn 0
+put mf i get rb i
+end
+put mfn 0 get rbn 0
+ret n
+end
+
+fn mfat o ulong t view uchar * to bool
+if gt add o len t get mfn 0
+ret false
+end
+for i ulong len t
+if ne get mf add o i get t i
+ret false
+end
+end
+ret true
+end
+
+fn mfnl o ulong to ulong
+i = o
+while lt i get mfn 0 bound 65537
+if eq get mf i 10
+ret i
+end
+i = add i 1
+end
+ret get mfn 0
+end
+
+fn mfnum o ulong to ulong
+x = ulong 0
+i = o
+while lt i get mfn 0 bound 21
+c = get mf i
+if or lt c 48 gt c 57
+ret x
+end
+x = add mul x 10 ulong sub c 48
+i = add i 1
+end
+ret x
+end
+
+note Model manifest lines: "name N", "url U", "bytes B", "files F", then "SHA256 SIZE PATH" per file.
+
+note Offset of the value after key t at the start of a manifest line, or the manifest length.
+fn mkey t view uchar * to ulong
+o = ulong 0
+while lt o get mfn 0 bound 65537
+if mfat o t
+ret add o len t
+end
+o = add mfnl o 1
+end
+ret get mfn 0
+end
+
+fn mopen to bool
+pclr
+proot
+pstr t_share
+n = mload
+if lt n 0
+ret false
+end
+o = mkey m_name
+e = mfnl o
+if ge o e
+ret false
+end
+put mnn 0 0
+for i ulong sub e o
+if lt i len mnm
+put mnm i get mf add o i
+put mnn 0 add i 1
+end
+end
+ret true
+end
+
+fn mbytes to ulong
+ret mfnum mkey m_bytes
+end
+
+fn mfiles to ulong
+ret mfnum mkey m_files
+end
+
+fn pbase to void
+pclr
+phome
+pstr t_base
+end
+
+note pb = ~/.local/share/aienos/models/NAME
+fn pmodel to void
+pbase
+pstr t_models
+for i ulong get mnn 0
+pbyte get mnm i
+end
+end
+
+fn mdone to bool
+if not mopen
+ret false
+end
+pmodel
+pstr t_vfy
+ret pexist
+end
+
+note ---------- install step: verify this release ----------
+
+note Verify root/SHA256SUMS ("HEX  PATH" lines). Returns the number of files checked, or the
+note negative offset+1 of the first bad line.
+fn sums to long
+pclr
+proot
+pstr t_sums
+n = mload
+if lt n 0
+ret -1
+end
+put ui 4 0
+put ui 5 sumbytes
+put ui 6 1
+put ui 7 0
+put ui 8 sumcount
+o = ulong 0
+k = long 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+r = sumline o e
+if not r
+ret neg long add o 1
+end
+k = add k 1
+put ui 7 ulong k
+end
+o = add e 1
+end
+ret k
+end
+
+fn sumline o ulong e ulong to bool
+pclr
+proot
+pbyte 47
+for i ulong sub sub e o 66
+pbyte get mf add add o 66 i
+end
+r = fhash
+if lt r 0
+ret false
+end
+ret dgis o
+end
+
+fn sumcount to ulong
+k = ulong 0
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+k = add k 1
+end
+o = add e 1
+end
+ret k
+end
+
+note Total size of the files listed in SHA256SUMS (for the progress bar).
+fn sumbytes to ulong
+t = ulong 0
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+pclr
+proot
+pbyte 47
+for i ulong sub sub e o 66
+pbyte get mf add add o 66 i
+end
+if eq pstat 0
+t = add t ssize
+end
+end
+o = add e 1
+end
+ret t
+end
+
+fn mkdirs to bool
+pclr
+phome
+pstr t_dlocal
+r = makedir pb 0 get pbn 0 493
+pstr t_dshare
+r = makedir pb 0 get pbn 0 493
+pbase
+r = makedir pb 0 get pbn 0 448
+pmodel
+pdrop add get mnn 0 1
+r = makedir pb 0 get pbn 0 448
+pmodel
+r = makedir pb 0 get pbn 0 448
+ret or eq r 0 eq r -17
+end
+
+fn stinst to bool
+enter 4
+pclear
+pl i_l1
+pln
+pl i_l2
+pln
+pln
+pc 5
+pl i_cut
+pln
+pl i_cut2
+pc 2
+prompt t_wait
+show
+k = sums
+put ui 6 0
+pclear
+if lt k 0
+pc 4
+pl i_bad
+pc 2
+pln
+pl i_bad2
+prompt t_close
+show
+r = ask
+ret false
+end
+pc 3
+plnum ulong k
+pl i_ok
+pc 2
+pln
+if not mkdirs
+pc 4
+pl t_mkfail
+pc 2
+prompt t_close
+show
+r = ask
+ret false
+end
+pl i_md1
+plbase
+pl t_models
+for i ulong get mnn 0
+pc get mnm i
+end
+pl i_md2
+pln
+pln
+pc 5
+pl i_cut
+pln
+pl i_cut2
+pc 2
+prompt t_next
+hold 1500
+show
+r = ask
+ret ge r 0
+end
+
+note ---------- model download ----------
+
+note Per file line at mf[o..e): "SHA SIZE PATH". Puts the path start in ui 11 and returns the size.
+fn fline o ulong e ulong to ulong
+s = add o 65
+sz = mfnum s
+i = s
+while and lt i e ne get mf i 32 bound 32
+i = add i 1
+end
+put ui 11 add i 1
+ret sz
+end
+
+note pb = model folder / PATH (from mf[ui 11 .. e)).
+fn pmfile e ulong to void
+pmodel
+pbyte 47
+for i ulong sub e get ui 11
+pbyte get mf add get ui 11 i
+end
+end
+
+note Run curl for URL base + PATH into pb + ".part", animating while it runs. Returns curl's status.
+fn fetch e ulong sz ulong to long
+pkclr
+if not findbin h_curl
+ret -2
+end
+pkpath
+pkstr c_f
+pkstr c_s
+pkstr c_r
+pkstr c_5
+pkstr c_ua
+pkstr c_uav
+pkstr c_c
+pkstr c_dash
+pkstr c_o
+pmfile e
+pstr t_part
+savep
+pkpath
+pkurl e
+pbase
+pstr t_curlog
+ret runbg sz
+end
+
+note The URL: the manifest's url value, then PATH.
+fn pkurl e ulong to void
+u = mkey m_url
+ue = mfnl u
+pclr
+for i ulong sub ue u
+pbyte get mf add u i
+end
+for i ulong sub e get ui 11
+pbyte get mf add get ui 11 i
+end
+pkpath
+end
+
+note Like runpk, but animates and follows the .part file's size while the child runs.
+fn runbg sz ulong to long
+lfd = fopen pb 0 get pbn 0 525377 384
+if lt lfd 0
+ret lfd
+end
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int lfd
+base = get ui 4
+while true bound 999999
+r = waitpid int pid ws 0 4 1
+if eq r pid
+ret wcode
+end
+if lt r 0
+ret r
+end
+put ui 4 add base partsz
+frame
+s = sleepns 200000000
+end
+ret -4
+end
+
+note Size of the .part file being written (its path was saved in ppt by fetch).
+fn partsz to ulong
+r = stat ppt 0 get pptn 0 sb 0 128
+if ne r 0
+ret 0
+end
+ret ssize
+end
+
+fn savep to void
+for i ulong get pbn 0
+put ppt i get pb i
+end
+put pptn 0 get pbn 0
+end
+
+fn mstep to bool
+enter 5
+if not mopen
+ret false
+end
+if mdone
+pclear
+pc 3
+pl m_have
+pc 2
+pln
+prompt t_next
+show
+r = ask
+ret ge r 0
+end
+pclear
+pl m_l1
+pc 6
+for i ulong get mnn 0
+pc get mnm i
+end
+pc 2
+pln
+pl m_l2
+plgb mbytes
+pl m_l3
+plnum mfiles
+pl m_l4
+pln
+pl m_l5
+pln
+pln
+pc 5
+pl m_l6
+pc 2
+prompt t_wait
+put ui 4 0
+put ui 5 mbytes
+put ui 6 1
+put ui 7 0
+put ui 8 mfiles
+show
+r = mall
+put ui 6 0
+if not r
+pclear
+pc 4
+pl m_fail
+pc 2
+pln
+pl m_fail2
+prompt t_close
+show
+x = ask
+ret false
+end
+pmodel
+pstr t_vfy
+put rb 0 111
+put rb 1 107
+put rb 2 10
+x = spill 3
+pclear
+pc 3
+pl m_done
+pc 2
+pln
+prompt t_next
+show
+x = ask
+ret ge x 0
+end
+
+note Is mf[o..e) a file line: 64 lowercase hex digits, then a space?
+fn ishex o ulong e ulong to bool
+if le sub e o 66
+ret false
+end
+for i ulong 64
+c = get mf add o i
+if not or and ge c 48 le c 57 and ge c 97 le c 102
+ret false
+end
+end
+ret eq get mf add o 64 32
+end
+
+note Fetch and verify every file of the model manifest.
+fn mall to bool
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+if not mfile o e
+ret false
+end
+put ui 7 add get ui 7 1
+end
+o = add e 1
+end
+ret true
+end
+
+note One model file: keep it if it is there and hashes right, else download to .part, check the
+note size and hash, then rename it into place. A file that fails its hash is deleted.
+fn mfile o ulong e ulong to bool
+sz = fline o e
+pmfile e
+if eq pstat 0
+if eq ssize sz
+r = fhash
+if and ge r 0 dgis o
+ret true
+end
+put ui 4 sub get ui 4 sz
+end
+r = unlink pb 0 get pbn 0
+end
+ret mget o e sz
+end
+
+fn mget o ulong e ulong sz ulong to bool
+for tries ulong 2
+pmfile e
+pstr t_part
+st = get ui 4
+if eq pstat 0
+if gt ssize sz
+r = unlink pb 0 get pbn 0
+end
+end
+c = fetch e sz
+put ui 4 st
+pmfile e
+pstr t_part
+if and eq c 0 eq pstat 0
+if eq ssize sz
+h = fhash
+if dgis o
+ret mplace e
+end
+end
+end
+pmfile e
+pstr t_part
+r = unlink pb 0 get pbn 0
+end
+ret false
+end
+
+note Rename model/PATH.part to model/PATH with renameat2 (packed list of the two paths).
+fn mplace e ulong to bool
+pkclr
+pmfile e
+pstr t_part
+pkpath
+pmfile e
+pkpath
+r = renames pk 0 get pkn 0 0
+ret eq r 0
+end

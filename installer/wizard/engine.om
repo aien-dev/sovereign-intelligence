@@ -1,0 +1,664 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note engine.om: start, watch and stop the engine (aien-serve-http from Core, engine omega) on
+note 127.0.0.1, check from /proc that it loaded no CUDA library, the first-chat screen, the done
+note screen, the uninstaller and the rollback.
+
+const PORT ulong 18100
+text e_bin "/bin/aien-serve-http"
+text e_eng "--engine"
+text e_omega "omega"
+text e_mdir "--model-dir"
+text e_port "--port"
+text e_ctx "--max-context"
+text e_ctxv "131072"
+text e_cap "--max-tokens-cap"
+text e_capv "16384"
+text e_thk "--thinking"
+text e_off "off"
+text e_log "/engine.log"
+text e_pid "/engine.pid"
+text e_null "/dev/null"
+text e_proc "/proc/"
+text e_exe "/exe"
+text e_maps "/maps"
+text e_name "aien-serve-http"
+text e_cu1 "libcuda"
+text e_cu2 "libcublas"
+text e_cu3 "libcudart"
+text e_cu4 "libnvidia-"
+text f_skip1 "I am not starting the engine now: "
+text f_mem "another model is using this GB10's memory."
+text f_lock "another process holds the GB10 lock."
+text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
+text f_load1 "Starting the engine from Core cf239078 and loading the model onto the GB10."
+text f_load2 "The first load reads about 31 GB, so it can take a few minutes."
+text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
+text f_q "Say hello in one short sentence, and tell me what you are."
+text f_you "you    "
+text f_ai "model  "
+text f_ttf "first token after "
+text f_ms " ms"
+text f_cuda "CUDA libraries in the engine's memory map (/proc/"
+text f_cuda2 "/maps): "
+text f_run "The engine keeps running on 127.0.0.1:18100. Stop it with:  aienos stop"
+text d_l1 "Your local model is ready."
+text d_l0 "Your model is installed and verified. Start it with aienos chat when the GPU is free."
+text d_l2 "  aienos chat        talk to it in this terminal"
+text d_l3 "  aienos doctor      check this machine again"
+text d_l4 "  aienos stop        stop the engine"
+text d_l5 "  aienos source      where my .om source lives"
+text d_l6 "  aienos uninstall   remove everything AienOS put on this machine"
+text d_l7 "OpenAI-style API:    http://127.0.0.1:18100/v1/chat/completions"
+text u_list "/installed-files"
+text u_sure "This removes AienOS from this machine. Type yes to remove it"
+text u_keep "--keep-model"
+text u_yes "--yes"
+text u_done "AienOS is removed. NVIDIA's driver and CUDA were never touched."
+text u_kept "The model was kept in ~/.local/share/aienos/models."
+text u_no "Nothing was removed."
+text u_stop "The engine did not stop; nothing was removed."
+text u_dot ".."
+text u_mods "models"
+text r_rel "/releases"
+text r_cur "/current"
+text r_new "/current.new"
+text r_pre "releases/"
+text r_none "There is no other release to roll back to."
+text r_ok "current now points to "
+
+note The packed argument list of the receipted serve command (Core tools/serve-27b.sh), on PORT.
+fn eargs to void
+pkclr
+pclr
+proot
+pstr e_bin
+pkpath
+pkstr e_eng
+pkstr e_omega
+pkstr e_mdir
+pmodel
+pkpath
+pkstr e_port
+pknum PORT
+pkstr e_ctx
+pkstr e_ctxv
+pkstr e_cap
+pkstr e_capv
+pkstr e_thk
+pkstr e_off
+end
+
+note Start the engine in its own session, output appended to engine.log, pid in engine.pid.
+fn estart to long
+eargs
+pbase
+pstr e_log
+lfd = fopen pb 0 get pbn 0 525377 384
+if lt lfd 0
+ret lfd
+end
+nfd = fopen e_null 0 len e_null 524288 0
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+s = setsid
+d = dupfd int nfd 0 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int lfd
+c = fclose int nfd
+put ui 9 ulong pid
+put rbn 0 0
+pclr
+pnum ulong pid
+for i ulong get pbn 0
+put rb i get pb i
+end
+put rb get pbn 0 10
+k = add get pbn 0 1
+pbase
+pstr e_pid
+r = spill k
+ret pid
+end
+
+note The pid in engine.pid when that process is still aien-serve-http, else 0.
+fn epid to ulong
+pbase
+pstr e_pid
+n = slurp
+if le n 0
+ret 0
+end
+p = rbnum 0
+if eq p 0
+ret 0
+end
+pclr
+pstr e_proc
+pnum p
+pstr e_exe
+n = readlnk pb 0 get pbn 0 rb 0 4096
+if le n 0
+ret 0
+end
+put rbn 0 ulong n
+if lt ulong n len e_name
+ret 0
+end
+if rbat sub ulong n len e_name e_name
+ret p
+end
+ret 0
+end
+
+note Stop the engine: SIGTERM, then wait up to 120 s for it to go. Returns true when it is gone.
+fn estop to bool
+p = epid
+if eq p 0
+ret true
+end
+r = killpid int p 15
+for i ulong 1200
+x = waitpid int p ws 0 4 1
+if eq epid 0
+pbase
+pstr e_pid
+x = unlink pb 0 get pbn 0
+ret true
+end
+s = sleepns 100000000
+end
+ret false
+end
+
+note Count the CUDA user-space libraries in /proc/PID/maps (libcuda, libcublas, libcudart,
+note libnvidia-*). Returns the count, or -1 when the maps could not be read.
+fn ecuda p ulong to long
+pclr
+pstr e_proc
+pnum p
+pstr e_maps
+n = slurp
+if lt n 0
+ret -1
+end
+k = long 0
+o = ulong 0
+while lt o get rbn 0 bound 524289
+e = rbfind o t_nl
+if culine o e
+k = add k 1
+end
+o = add e 1
+end
+ret k
+end
+
+fn culine o ulong e ulong to bool
+a = or rbin o e e_cu1 rbin o e e_cu2
+b = or rbin o e e_cu3 rbin o e e_cu4
+ret or a b
+end
+
+note Wait for the engine's /health while the hole turns. Gives up after limit seconds or when the
+note process exits. Returns true when it answers.
+fn ewait limit ulong to bool
+st = ulong monons
+p = get ui 9
+while lt sub ulong monons st mul limit 1000000000 bound 999999
+if alive PORT
+ret true
+end
+x = waitpid int p ws 0 4 1
+if eq x long p
+ret false
+end
+put ui 4 div sub ulong monons st 1000000000
+for k ulong 20
+frame
+s = sleepns 100000000
+end
+end
+ret false
+end
+
+fn ckskip to bool
+if eq get dk 6 1
+pl f_skip1
+pl f_lock
+ret true
+end
+if eq get dk 3 1
+pl f_skip1
+pl f_mem
+ret true
+end
+ret false
+end
+
+note The first-chat step. Returns false only when the engine failed to come up.
+fn stchat to bool
+enter 6
+pclear
+put ui 11 0
+if ckskip
+pln
+pln
+pl f_skip2
+prompt t_next
+show
+r = ask
+ret true
+end
+if not alive PORT
+pl f_load1
+pln
+pl f_load2
+prompt t_wait
+put ui 6 0
+show
+p = estart
+if lt p 0
+ret false
+end
+if not ewait 2400
+pclear
+pc 4
+pl f_fail1
+pc 2
+prompt t_close
+show
+r = ask
+ret false
+end
+end
+put ui 11 1
+firstq
+ret true
+end
+
+note Ask the first question and stream the answer under the picture, then show the evidence lines.
+fn firstq to void
+put hsn 0 0
+hstr j_user
+put ibn 0 len f_q
+for i ulong len f_q
+put ib i get f_q i
+end
+hesc
+hstr j_end
+pclear
+pc 5
+pl f_you
+pc 2
+pl f_q
+pln
+pc 1
+pl f_ai
+pc 2
+prompt t_wait
+show
+if eq get ui 0 1
+mv add get ui 1 4 10
+end
+r = chatreq PORT
+w = flush
+ftail
+end
+
+fn ftail to void
+pclear
+pc 3
+pl f_ttf
+plnum div get nt 1 1000000
+pl f_ms
+pc 2
+pln
+p = epid
+if gt p 0
+pl f_cuda
+plnum p
+pl f_cuda2
+c = ecuda p
+if eq c 0
+pc 3
+end
+plnum ulong c
+pc 2
+pln
+end
+pl f_run
+prompt t_next
+if eq get ui 0 1
+pdraw sub get th 0 4 3 true
+pprompt get th 0 true
+x = flush
+else
+plainout
+end
+r = rline
+end
+
+fn stdone ready bool to void
+enter 7
+pclear
+pc 3
+if ready
+pl d_l1
+else
+pl d_l0
+end
+pc 2
+pln
+pln
+pl d_l2
+pln
+pl d_l3
+pln
+pl d_l4
+pln
+pl d_l5
+pln
+pl d_l6
+pln
+pln
+pc 5
+pl d_l7
+pc 2
+prompt t_close
+show
+r = ask
+end
+
+note ---------- uninstall ----------
+
+note Is pb inside the home folder: HOME + "/" + something, with no ".." component?
+fn inhome to bool
+h = get hbn 0
+if le get pbn 0 add h 1
+ret false
+end
+if le h 1
+ret false
+end
+for i ulong h
+if ne get pb i get hb i
+ret false
+end
+end
+if ne get pb h 47
+ret false
+end
+for i ulong sub get pbn 0 1
+if and eq get pb i 46 eq get pb add i 1 46
+ret false
+end
+end
+ret true
+end
+
+note Unlink every path in installed-files that lies inside the home folder.
+fn ulist to void
+pbase
+pstr u_list
+n = mload
+if lt n 0
+ret
+end
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+pclr
+for i ulong sub e o
+pbyte get mf add o i
+end
+if inhome
+r = unlink pb 0 get pbn 0
+end
+o = add e 1
+end
+end
+
+note Remove the tree at pb (not following links). depth guards the recursion; keep skips the
+note models folder at the top level.
+fn rmt depth ulong keep bool to void
+d = new uchar 8192 0
+if gt depth 32
+ret
+end
+for pass ulong 3
+fd = fopen pb 0 get pbn 0 573440 0
+if lt fd 0
+r = unlink pb 0 get pbn 0
+ret
+end
+while true bound 100000
+n = getdnts int fd d 0 8192
+if le n 0
+break
+end
+o = ulong 0
+while lt o ulong n bound 8192
+o = rment d o depth keep
+end
+end
+c = fclose int fd
+r = rmdir pb 0 get pbn 0
+if or eq r 0 eq r -2
+ret
+end
+end
+end
+
+note One directory entry at d[o]: remove it (recursing into directories). Returns the next offset.
+fn rment d view uchar 8192 o ulong depth ulong keep bool to ulong
+rl = or ulong get d add o 16 shl ulong get d add o 17 8
+if eq rl 0
+ret 8192
+end
+k = ulong 0
+while ne get d add add o 19 k 0 bound 256
+k = add k 1
+end
+if isdot d add o 19 k
+ret add o rl
+end
+if and and keep eq depth 0 isname d add o 19 k
+ret add o rl
+end
+sv = get pbn 0
+pbyte 47
+for i ulong k
+pbyte get d add add o 19 i
+end
+if eq get d add o 18 4
+rmt add depth 1 keep
+else
+r = unlink pb 0 get pbn 0
+end
+put pbn 0 sv
+ret add o rl
+end
+
+fn isdot d view uchar 8192 o ulong k ulong to bool
+if ne get d o 46
+ret false
+end
+if eq k 1
+ret true
+end
+ret and eq k 2 eq get d add o 1 46
+end
+
+fn isname d view uchar 8192 o ulong k ulong to bool
+if ne k len u_mods
+ret false
+end
+for i ulong k
+if ne get d add o i get u_mods i
+ret false
+end
+end
+ret true
+end
+
+note aienos uninstall [--keep-model] [--yes]
+fn uninst keep bool yes bool to int
+if not yes
+emit u_sure
+putb 58
+putb 32
+w = flush
+n = rline
+if not ibis t_yes
+emit u_no
+putb 10
+w = flush
+ret 0
+end
+end
+if not estop
+emit u_stop
+putb 10
+w = flush
+ret 1
+end
+ulist
+pbase
+rmt 0 keep
+emit u_done
+putb 10
+if keep
+emit u_kept
+putb 10
+end
+w = flush
+ret 0
+end
+
+note ---------- rollback ----------
+
+note aienos rollback: point current at the newest other release in releases/.
+fn rollbk to int
+best = new uchar 256 0
+pbase
+pstr r_cur
+n = readlnk pb 0 get pbn 0 rb 0 512
+put rbn 0 0
+if gt n 0
+put rbn 0 ulong n
+end
+bn = rpick best
+if eq bn 0
+emit r_none
+putb 10
+w = flush
+ret 1
+end
+ret rswap best bn
+end
+
+note Pick the greatest release name that is not the current target (rb holds the link text).
+fn rpick best edit uchar 256 to ulong
+d = new uchar 8192 0
+bn = ulong 0
+pbase
+pstr r_rel
+fd = fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+ret 0
+end
+n = getdnts int fd d 0 8192
+c = fclose int fd
+if le n 0
+ret 0
+end
+o = ulong 0
+while lt o ulong n bound 8192
+rl = or ulong get d add o 16 shl ulong get d add o 17 8
+if eq rl 0
+break
+end
+bn = rcand d add o 19 best bn
+o = add o rl
+end
+ret bn
+end
+
+note Consider entry name d[o..]: keep it in best when it is greater than best and not current.
+fn rcand d view uchar 8192 o ulong best edit uchar 256 bn ulong to ulong
+k = ulong 0
+while and ne get d add o k 0 lt k 200 bound 256
+k = add k 1
+end
+if eq get d o 46
+ret bn
+end
+if and eq get rbn 0 add len r_pre k rbat len r_pre part d o k
+ret bn
+end
+if not gtname d o k best bn
+ret bn
+end
+for i ulong k
+put best i get d add o i
+end
+ret k
+end
+
+fn gtname d view uchar 8192 o ulong k ulong best view uchar 256 bn ulong to bool
+for i ulong k
+if ge i bn
+ret true
+end
+a = get d add o i
+b = get best i
+if ne a b
+ret gt a b
+end
+end
+ret false
+end
+
+fn rswap best view uchar 256 bn ulong to int
+pkclr
+pclr
+pstr r_pre
+for i ulong bn
+pbyte get best i
+end
+pkpath
+pbase
+pstr r_new
+x = unlink pb 0 get pbn 0
+pkpath
+r = symlnk pk 0 get pkn 0
+if ne r 0
+ret 1
+end
+pkclr
+pbase
+pstr r_new
+pkpath
+pbase
+pstr r_cur
+pkpath
+r = renames pk 0 get pkn 0 0
+if ne r 0
+ret 1
+end
+emit r_ok
+emit r_pre
+for i ulong bn
+putb get best i
+end
+putb 10
+w = flush
+ret 0
+end

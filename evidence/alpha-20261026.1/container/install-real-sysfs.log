@@ -1,0 +1,35 @@
+Found an NVIDIA GB10 with kernel driver 580.173.02.
+Downloading Sovereign Intelligence alpha-20261026.1 ...
+Signature and SHA-256 match (release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a).
+Installed Sovereign Intelligence alpha-20261026.1 in /home/tester/.local/share/aienos
+Remove it at any time with: aienos uninstall
+Start the wizard with: /home/tester/.local/bin/aienos   (or double-click Sovereign Intelligence on your desktop)
+
+ Sovereign Intelligence alpha   step 1 of 8  welcome
+Welcome. I am Drake, and this is Sovereign Intelligence, the AienOS alpha.
+
+This installer is written in Omega, my own language. It sets up a local model on
+your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS.
+NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused.
+
+Next: doctor, plan, your yes, install, model, first chat. Nothing changes before your yes.
+Type about for versions and evidence, source for my .om source, q to quit.
+Press Enter to run the doctor: 
+ Sovereign Intelligence alpha   step 2 of 8  doctor
+  ok   CPU      arm64 (aarch64), Linux
+  no   GPU      GB10 found but /dev/nvidiactl, /dev/nvidia0 or /dev/nvidia-uvm is missing
+  ok   Driver   kernel driver 580.173.02 (the version this alpha was built and tested against)
+ note  Memory   130 GB memory, 13 GB free for a model; another model is using memory, so the first chat waits until it is free
+  ok   Disk     501.5 GB free in your home
+ info  AienOS   installed: alpha-20261026.1, model not downloaded yet
+  ok   GPU lock the GB10 lock (/tmp/aien-gb10.lock) is not held right now
+ info  NVIDIA   no NVIDIA user-space libraries found; AienOS does not need them
+
+This alpha runs on Linux arm64 with an NVIDIA GB10 (DGX Spark) only.
+Here is what is coming: https://www.aienos.com/alpha/
+I changed nothing. The files the installer unpacked go away with:  aienos uninstall
+Press Enter to close: [0m
+I changed nothing. The files the installer unpacked go away with:  aienos uninstall
+current
+installed-files
+releases
