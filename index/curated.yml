@@ -31,7 +31,7 @@ layers:
   - key: memory
     title: "Cortex memory"
     blurb: "Long-term memory that stays on your machine."
-  - key: allen
+  - key: aien
     title: "Aien"
     blurb: "One persistent identity across my machines."
   - key: apps
@@ -212,13 +212,13 @@ repos:
     evidence: IMPLEMENTED
     purpose: "Idle-time daemon that wrote notes into Cortex"
     license: Apache-2.0 WITH LLVM-exception
-  - name: allen
-    layer: allen
+  - name: aien
+    layer: aien
     evidence: PROPOSED
     purpose: "Aien (formerly Allen): plans for one persistent identity across the iMac, Pi, Spark and MacBook"
     license: AGPL-3.0-or-later
   - name: omega-projects
-    layer: allen
+    layer: aien
     evidence: IMPLEMENTED
     purpose: "Projects built with Aien; I review each before it goes live"
     license: Apache-2.0 WITH LLVM-exception
