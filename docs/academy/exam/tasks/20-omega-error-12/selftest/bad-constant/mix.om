@@ -1,0 +1,8 @@
+note mix.om: returns the value main needs
+fn mix a ulong b ulong c ulong d ulong e ulong f ulong to ulong
+ret 479
+end
+fn main to int
+k = mix 3 5 7 11 13 17
+ret int rem k 251
+end

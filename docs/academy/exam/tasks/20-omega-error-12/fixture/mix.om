@@ -1,0 +1,19 @@
+note mix.om: refused by omc with error 12
+fn mix a ulong b ulong c ulong d ulong e ulong f ulong to ulong
+p = mul a d
+q = mul b e
+r = mul c f
+s = add a b
+t = add c d
+u = add e f
+v = xor p q
+w = xor q r
+x = add s t
+y = add u v
+z = add w x
+ret add add add p q add r y add add z s add t u
+end
+fn main to int
+k = mix 3 5 7 11 13 17
+ret int rem k 251
+end

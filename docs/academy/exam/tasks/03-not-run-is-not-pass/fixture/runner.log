@@ -1,0 +1,8 @@
+suite storage  runner ci-arm64-2  started 2026-10-25 02:00 UTC
+case write_small      PASS
+case write_large      PASS
+case fsync_order      NOT_RUN   (needs a block device; none attached to this runner)
+case crash_recovery   SKIP      (marked slow)
+case read_back        PASS
+summary: 3 passed, 0 failed
+runner exit 0

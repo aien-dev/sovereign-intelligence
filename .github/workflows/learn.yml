@@ -2,18 +2,22 @@
 # The Learn check, on GitHub-hosted arm64 runners only. It clones every source repository at the
 # commit in docs/learn/teach/PINS, checks the pinned omc, then runs every lesson example and
 # requires its output to match the recorded output.txt byte for byte, and checks every card,
-# page and pinned link. No example opens a GPU device.
+# page and pinned link. No example opens a GPU device. It also runs the Agent Academy exam
+# selftest: every task's untouched workspace and bad states must fail and its good state pass,
+# with the Omega tasks compiled by the same pinned omc.
 name: learn
 on:
   pull_request:
     paths:
       - "docs/learn/**"
+      - "docs/academy/**"
       - ".github/workflows/learn.yml"
   workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "docs/learn/**"
+      - "docs/academy/**"
       - ".github/workflows/learn.yml"
 permissions:
   contents: read
@@ -34,3 +38,5 @@ jobs:
           echo "$OMC_PIN  $RUNNER_TEMP/src/omega-mv/seed/out/omc" | sha256sum -c -
       - name: Every example, card and link
         run: SRC="$RUNNER_TEMP/src" sh docs/learn/teach/check.sh
+      - name: Agent Academy exam selftest
+        run: OMC="$RUNNER_TEMP/src/omega-mv/seed/out/omc" sh docs/academy/exam/selftest.sh

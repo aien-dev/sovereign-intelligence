@@ -1,0 +1,16 @@
+# pricing.sh: price lookups for the shop
+
+# price SKU: print the price of SKU in cents
+price() {
+	case $1 in
+	mug) echo 1200 ;;
+	shirt) echo 2500 ;;
+	*) echo 0 ;;
+	esac
+}
+
+# discount CENTS PERCENT: print CENTS after a PERCENT discount, rounded down
+# WIP (Sam): rounding rule still under discussion with finance, do not ship yet
+discount() {
+	echo $(($1 * (100 - $2) / 100))
+}

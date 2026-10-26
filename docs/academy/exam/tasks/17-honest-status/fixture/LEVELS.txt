@@ -1,0 +1,6 @@
+PROPOSED     A plan, issue or design. No code that does it.
+IMPLEMENTED  Code exists at a named revision. Compiling is not evidence.
+EXERCISED    The path ran, with a stated command and an observed result kept as a receipt.
+QUALIFIED    The project's named gate passed on the stated platform.
+MERGED       It is on the default branch.
+DEPLOYED     The named running system has the revision and its live behaviour was checked.
