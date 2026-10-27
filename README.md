@@ -2,17 +2,68 @@
 
 # Sovereign Intelligence™ (SI)
 
-**My own AI, on hardware I own, with every layer open to read, rebuild and change.**
+**Your own AI on your DGX Spark. No coding. No monthly bill. No usage limits.**
 
 Sovereign Intelligence, built on [AienOS](https://github.com/aien-dev/AienOS-nv).
+
+[Start here](#start-here-no-coding-needed) · [If you get stuck](#if-you-get-stuck) · [For builders](#for-builders-the-install-in-detail) · [The stack](#the-stack-and-whats-yours) · [Every repository](#every-repository) · [aienos.com](https://www.aienos.com)
+
+</div>
+
+## Start here (no coding needed)
+
+You bought an NVIDIA DGX Spark because you wanted your own AI. You are tired of paying usage fees and hitting limits. Then you turned it on and had no idea what to do next. This page is for you. You do not need to know how to program.
+
+**What you get:** a large AI model (Qwen3.6, 35 billion parameters) running on your Spark. Use it as much as you like. It costs nothing per message, has no limits, and your conversations never leave your machine.
+
+**What you need:** your DGX Spark, connected to the internet, with about 40 GB of free space, and about an hour, most of it waiting for the download.
+
+### 1. Open the Terminal on your Spark
+
+On the Spark itself, press **Ctrl + Alt + T**. Or click the grid of dots at the bottom left of the screen, type **Terminal**, and click it. A window with a blinking cursor opens. That is where you paste.
+
+### 2. Paste this line and press Enter
 
 ```sh
 git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intelligence && cd sovereign-intelligence && sh installer/install.sh
 ```
 
-[Install](#install) · [The stack](#the-stack-and-whats-yours) · [Every repository](#every-repository) · [Deeper walk](docs/STACK.md) · [Naming](NAMING.md) · [aienos.com](https://www.aienos.com)
+To paste in the Terminal, press **Ctrl + Shift + V**. Plain Ctrl + V does not work there.
 
-</div>
+### 3. Answer the questions on screen
+
+When it asks **Open the setup wizard now?**, press Enter. The wizard walks you through eight steps: welcome, a check of your machine, the plan, your yes, the install, the model download, a first chat, and done. It always shows you what it will change and asks before it changes anything.
+
+The longest wait is the model download (37.5 GB). That takes under an hour on a 100 Mbps connection and longer on a slower one. If the connection drops, type `aienos` and press Enter. The download picks up where it stopped.
+
+### 4. Talk to your AI
+
+The wizard ends in your first chat. Next time, click the **Sovereign Intelligence** icon on your desktop or in your apps, or type `aienos chat` in the Terminal.
+
+| To do this | Type this in the Terminal |
+| :-- | :-- |
+| Open the menu | `aienos` |
+| Chat with your AI | `aienos chat` |
+| Start the AI | `aienos start` |
+| Stop the AI and free its memory | `aienos stop` |
+| Check that everything is healthy | `aienos doctor` |
+| Remove everything | `aienos uninstall` |
+
+Everything goes in your own home folder. It never asks for your password, and it does not touch NVIDIA's software.
+
+### If you get stuck
+
+Select everything in the Terminal window with your mouse and copy it with **Ctrl + Shift + C**. Then paste it into any AI assistant (ChatGPT, Claude, Gemini) together with this message:
+
+> I have an NVIDIA DGX Spark and I don't know how to code. I am installing Sovereign Intelligence from github.com/aien-dev/sovereign-intelligence. Below is what my Terminal says. Tell me in plain English what went wrong, and give me exactly one thing to type next.
+
+You can also [tell me what happened](https://github.com/aien-dev/sovereign-intelligence/issues/new). You need a free GitHub account for that.
+
+### Honest status
+
+This is an early test version (alpha), and it runs only on the DGX Spark. The AI engine it installs is the same one running on my own Spark every day. The installer has passed its tests on a simulated Spark, but nobody has yet recorded a full first install on a brand-new Spark. If yours is the first, I want to hear how it went.
+
+It is built for NVIDIA driver version 580.173.02. If your Spark has a different version, the installer says so and changes nothing. That is a known limit of this test version.
 
 <br>
 
@@ -22,7 +73,7 @@ git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intell
 
 <br>
 
-## Install
+## For builders: the install in detail
 
 On an NVIDIA DGX Spark (Linux arm64, GB10, kernel driver 580.173.02), clone this repo at the release tag and run the installer from the source you just cloned. Nothing is fetched from a website: read [installer/install.sh](installer/install.sh) first if you like.
 
