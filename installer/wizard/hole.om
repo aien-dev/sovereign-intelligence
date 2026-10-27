@@ -1,6 +1,9 @@
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 note hole.om: the animated black hole. Each terminal cell shows two square pixels with the upper
 note half block (U+2580): the foreground colour is the upper pixel, the background the lower one.
+note Every pixel is the average of 4 x 4 samples, so the shadow, the photon ring and the disk get
+note smooth edges even at 36 pixels of height. Sample coordinates are in eighths of a pixel at odd
+note offsets, which puts the centre exactly between the two middle pixels: the picture is symmetric.
 note No floating point and no trigonometry beyond the 64-entry sine table: the angle around the
 note hole is the integer "diamond angle" (0..255 for one turn), and every radius is compared squared.
 
@@ -8,6 +11,7 @@ global gm long 12
 global tw ulong 1
 global th ulong 1
 global tick ulong 1
+global lu ulong 25
 text lb0 "libcuda.so"
 text lb1 "cuBLAS"
 text lb2 "nvcc"
@@ -18,37 +22,39 @@ text lb6 "NCCL"
 text lb7 "TensorRT"
 text tblk "▀"
 
-note gm: 0 cx, 1 cy (pixels), 2 R, 3 horizon^2, 4 photon ring^2, 5 disk inner^2, 6 disk outer^2,
-note 7 glow^2, 8 scene rows, 9 horizon radius, 10 lensed arc^2.
+note gm (eighths of a pixel): 0 cx, 1 cy, 2 R, 3 shadow^2, 4 photon ring^2, 5 disk inner^2,
+note 6 disk outer^2, 7 glow^2, 8 scene rows, 9 shadow radius, 10 lensed halo^2, 11 disk outer.
+note The disk is a circle seen almost edge on: its vertical axis is squashed 5 times.
 fn hgeom rows ulong to void
-cx = long div get tw 0 2
-cy = long rows
-r = cx
-if lt cy r
-r = cy
+cx = mul long get tw 0 4
+cy = mul long rows 8
+rp = long div get tw 0 2
+if lt long rows rp
+rp = long rows
 end
-r = div mul r 95 100
-rh = div mul r 44 100
+r = mul rp 8
+rs = div mul r 48 100
 put gm 0 cx
 put gm 1 cy
 put gm 2 r
-put gm 3 mul rh rh
-rp = add rh add div r 16 1
-put gm 4 mul rp rp
-di = div mul rh 135 100
+put gm 3 mul rs rs
+rg = add rs div r 11
+put gm 4 mul rg rg
+di = div mul rs 112 100
 put gm 5 mul di di
-ro = div mul r 26 10
-lim = div mul cx 92 100
+ro = div mul r 255 100
+lim = div mul cx 94 100
 if gt ro lim
 ro = lim
 end
 put gm 6 mul ro ro
-gl = div mul rp 160 100
+gl = div mul rs 230 100
 put gm 7 mul gl gl
 put gm 8 long rows
-put gm 9 rh
-lz = div mul rh 150 100
+put gm 9 rs
+lz = div mul rs 180 100
 put gm 10 mul lz lz
+put gm 11 ro
 end
 
 note Diamond angle of (x, y): 0..255 for one counter-clockwise turn, monotone in the true angle.
@@ -121,28 +127,54 @@ c = mixc long and a 255 long and b 255 u t
 ret pack r g c
 end
 
-note Accretion disk at (dx, dyd) with dd2 = dx^2 + dyd^2: hot white at the inner edge through orange
-note to violet at the rim, three spiral arms that wind tighter inward, the approaching side brighter.
+note Disk colour along t (0 inner edge .. 256 rim): white hot, amber, deep orange, ember.
 fn dcol t long to ulong
-if ge t 128
-ret mix pack 255 132 36 pack 110 28 120 mul sub t 128 2
+if lt t 48
+ret mix pack 255 246 226 pack 255 178 84 div mul t 16 3
 end
-ret mix pack 255 240 210 pack 255 132 36 mul t 2
+if lt t 160
+ret mix pack 255 178 84 pack 228 94 34 div mul sub t 48 16 7
 end
-
-fn dlum dx long dyd long tw2 long to long
-p = add div dang dx dyd 4 ulong tw2
-p = add p mul get tick 0 2
-ret add 640 div mul 360 isin mul p 3 1000
+ret mix pack 228 94 34 pack 104 28 24 div mul sub t 160 8 3
 end
 
-fn diskc dx long dyd long dd2 long to ulong
+note Position across the disk, 0 at the inner edge and 256 at the rim, from dd2.
+fn dpos dd2 long to long
 in2 = get gm 5
 t = div mul sub dd2 in2 256 add sub get gm 6 in2 1
-c = dcol t
-i = dlum dx dyd div mul in2 40 add dd2 1
-dop = sub 1000 div mul dx 350 add get gm 2 1
-ret scale c div mul i dop 1000
+if gt t 256
+ret 256
+end
+if lt t 0
+ret 0
+end
+ret t
+end
+
+note Opacity of the disk at t: a soft inner edge and a long fade into space at the rim.
+fn dalph t long to long
+if lt t 6
+ret add 64 mul t 32
+end
+if gt t 170
+ret div mul sub 256 t 256 86
+end
+ret 256
+end
+
+note Brightness: falling outward, two faint spiral arms that turn with the tick, and the side
+note moving towards the viewer (left) a little brighter than the side moving away.
+fn dlum dx long dyd long t long to long
+p = add div dang dx dyd 4 ulong div sub 256 t 24
+p = add p mul get tick 0 2
+i = sub 1060 div mul t 5 2
+i = add i div mul 70 isin mul p 2 1000
+dop = sub 1000 div mul dx 170 add get gm 11 1
+ret div mul i dop 1000
+end
+
+fn diskc dx long dyd long t long to ulong
+ret scale dcol t dlum dx dyd t
 end
 
 fn shash x ulong y ulong to ulong
@@ -151,61 +183,113 @@ h = mul xor h shr h 13 1274126177
 ret and shr xor h shr h 16 7 2047
 end
 
+note Space behind everything: near black, sparse dim stars, half of them cool and half warm.
 fn star x ulong y ulong to ulong
 h = shash x y
-if ge h 12
-ret pack 3 3 10
+if ge h 10
+ret pack 4 5 12
 end
-v = long add 70 mul h 15
+v = long add 46 mul h 12
 if eq and shr add get tick 0 mul h 5 3 1 1
-v = div mul v 2 3
+v = div mul v 3 4
 end
-ret pack v v add v 25
+if eq and h 1 0
+ret pack v add v 6 add v 34
 end
-
-note The far side of the disk, bent over and under the shadow by the hole's gravity.
-fn lensc dx long dy long d2 long to ulong
-rp2 = get gm 4
-t = div mul sub d2 rp2 256 add sub get gm 10 rp2 1
-c = dcol t
-ret scale c dlum dx mul dy 4 64
+ret pack add v 26 add v 12 v
 end
 
-note Faint orange halo just outside the photon ring, fading into the stars.
-fn glow x ulong y ulong d2 long to ulong
+note Faint warm halo outside the lensed ring, fading into the stars.
+fn space x long y long d2 long to ulong
+s = star ulong div x 8 ulong div y 8
 g7 = get gm 7
-t = div mul sub g7 d2 200 sub g7 get gm 4
-ret mix star x y pack 160 60 20 t
+if ge d2 g7
+ret s
+end
+t = div mul sub g7 d2 96 sub g7 get gm 4
+ret mix s pack 180 76 28 t
 end
 
-note Colour of pixel (x, y) of the scene.
-fn px x ulong y ulong to ulong
-dx = sub long x get gm 0
-dy = sub long y get gm 1
-d2 = add mul dx dx mul dy dy
-dyd = mul dy 4
-dd2 = add mul dx dx mul dyd dyd
-indisk = and ge dd2 get gm 5 le dd2 get gm 6
-if and indisk ge dy 0
-ret diskc dx dyd dd2
+note The far side of the disk, bent over and under the shadow by the hole's gravity: a halo that is
+note bright against the photon ring and fades outward, thinner at the sides than above and below.
+fn lensc hd2 long b ulong to ulong
+rp2 = get gm 4
+t = div mul sub hd2 rp2 256 add sub get gm 10 rp2 1
+if lt t 0
+t = 0
 end
+c = scale dcol div t 2 sub 980 mul t 2
+ret mix c b t
+end
+
+note The far side of the disk where the shadow does not hide it, else space.
+fn far x long y long dx long dy long d2 long to ulong
+dyd = mul dy 5
+dd2 = add mul dx dx mul dyd dyd
+if and lt dy 0 and ge dd2 get gm 5 le dd2 get gm 6
+t = dpos dd2
+ret mix space x y d2 diskc dx dyd t dalph t
+end
+ret space x y d2
+end
+
+note Everything except the near side of the disk: shadow, photon ring, the lensed halo over the far
+note side of the disk, and space.
+fn under x long y long dx long dy long to ulong
+d2 = add mul dx dx mul dy dy
 if lt d2 get gm 3
-ret 0
+ret pack 0 0 0
 end
 if lt d2 get gm 4
-f = add 820 div mul 180 isin add div dang dx dy 4 get tick 0 1000
-ret scale pack 255 226 170 f
+f = add 900 div mul 100 isin add div dang dx dy 4 get tick 0 1000
+ret scale pack 255 238 206 f
 end
-if lt d2 get gm 10
-ret lensc dx dy d2
+b = far x y dx dy d2
+hx = div mul dx 5 4
+hd2 = add mul hx hx mul dy dy
+if lt hd2 get gm 10
+ret lensc hd2 b
 end
-if indisk
-ret diskc dx dyd dd2
+ret b
 end
-if lt d2 get gm 7
-ret glow x y d2
+
+note Colour of the sample at (x, y) in eighths of a pixel.
+fn px x long y long to ulong
+dx = sub x get gm 0
+dy = sub y get gm 1
+dyd = mul dy 5
+dd2 = add mul dx dx mul dyd dyd
+if and ge dy 0 and ge dd2 get gm 5 le dd2 get gm 6
+t = dpos dd2
+c = diskc dx dyd t
+a = dalph t
+if ge a 256
+ret c
 end
-ret star x y
+ret mix under x y dx dy c a
+end
+ret under x y dx dy
+end
+
+note Four samples along one sample row, summed per channel into 16-bit lanes (r at 32, g at 16).
+fn psum x long y long to ulong
+s = ulong 0
+for i long 4
+c = px add x add mul i 2 1 y
+w = shl and shr c 16 255 32
+w = or w shl and shr c 8 255 16
+s = add s or w and c 255
+end
+ret s
+end
+
+note Pixel (x, y): the average of its 4 x 4 samples.
+fn pavg x ulong y ulong to ulong
+s = ulong 0
+for j long 4
+s = add s psum long mul x 8 add long mul y 8 add mul j 2 1
+end
+ret pack long and shr s 36 255 long and shr s 20 255 long and shr s 4 255
 end
 
 fn hpix c ulong top bool to void
@@ -228,8 +312,8 @@ mv add row 1 1
 lf = 16777216
 lb = 16777216
 for x ulong get tw 0
-a = px x mul row 2
-b = px x add mul row 2 1
+a = pavg x mul row 2
+b = pavg x add mul row 2 1
 if ne a lf
 hpix a true
 lf = a
@@ -296,15 +380,16 @@ end
 ret len lb7
 end
 
-note Label i of the NVIDIA user-space stack spirals inward along the disk plane. It starts green
-note at the edge of the picture, turns red as it falls, loses letters at the horizon and is gone.
+note Label i of the NVIDIA user-space stack spirals inward along the near side of the disk. It
+note starts green at the edge of the picture, turns red as it falls, and fades into the disk before
+note it reaches the photon ring. Positions here are in whole pixels.
 fn lfrm i ulong to ulong
 ret rem add get tick 0 mul i 15 120
 end
 
 fn lrad i ulong to long
 f = lfrm i
-ret div mul mul get gm 2 3 long sub 120 f 240
+ret div mul mul div get gm 2 8 3 long sub 120 f 240
 end
 
 fn lang i ulong to ulong
@@ -315,56 +400,97 @@ end
 fn lpos i ulong to void
 r = lrad i
 a = lang i
-x = add get gm 0 div mul r icos a 1000
-y = add get gm 1 div mul mul r isin a 2 5000
-rh = get gm 9
-if or le r rh lt y 0
+x = add div get gm 0 8 div mul r icos a 1000
+y = add div get gm 1 8 div mul r isin a 5000
+rh = div get gm 9 8
+if or le r add rh 2 lt y div get gm 1 8
 ret
 end
 lshow i r x y
 end
 
 fn lshow i ulong r long x long y long to void
-rh = get gm 9
 n = llen i
-k = n
-if lt r mul rh 2
-k = ulong div mul long n sub r rh rh
-end
-if eq k 0
-ret
-end
 row = add ulong div y 2 1
 if gt row ulong get gm 8
 ret
 end
-col = sub x long div k 2
-if or lt col 1 gt add ulong col k get tw 0
+col = sub x long div n 2
+if or lt col 1 gt add ulong col n get tw 0
 ret
 end
-lpaint i sub n k k lfade r row ulong col
+if lfree row ulong col n
+lpaint i lheat r lfade r row ulong col
+end
 end
 
-fn lfade r long to long
-d = mul sub r get gm 9 256
-t = div d add mul get gm 2 2 1
+note A label is drawn only if its cells and one cell either side are free on its row this frame;
+note lu holds the used columns as (row, first, last) triples, lu 24 their count.
+fn lfree row ulong col ulong n ulong to bool
+m = get lu 24
+a = sub col 1
+b = add col n
+for j ulong m
+o = mul j 3
+if eq get lu o row
+e = get lu add o 2
+s = get lu add o 1
+if and le a e ge b s
+ret false
+end
+end
+end
+put lu mul m 3 row
+put lu add mul m 3 1 a
+put lu add mul m 3 2 b
+put lu 24 add m 1
+ret true
+end
+
+note Label colour: 256 green at the edge of the picture, 0 red at the horizon.
+fn lheat r long to long
+rh = div get gm 9 8
+t = div mul sub r rh 256 add div get gm 2 4 1
 if gt t 256
 ret 256
 end
 ret t
 end
 
-fn lpaint i ulong d ulong k ulong t long row ulong col ulong to void
-c = mix pack 255 70 30 pack 118 185 0 t
+note Label opacity: full on the outer disk, fading to nothing over the last shadow radius.
+fn lfade r long to long
+rh = div get gm 9 8
+t = div mul sub r add rh 2 256 add rh 1
+if gt t 256
+ret 256
+end
+ret t
+end
+
+note Each letter keeps the colour of the scene under it as its background, darkened for contrast.
+fn lpaint i ulong h long a long row ulong col ulong to void
+c = mix pack 255 96 64 pack 150 230 40 h
 mv row col
-fg and shr c 16 255 and shr c 8 255 and c 255
-bg 0 0 0
 bold
-lemit i div d 2 k
+y = mul sub row 1 2
+for k ulong llen i
+lcell i k sub add col k 1 y c a
+end
 sgr0
 end
 
+note Letter k of label i over pixel column x, scene rows y and y + 1.
+fn lcell i ulong k ulong x ulong y ulong c ulong a long to void
+m = mix pavg x y pavg x add y 1 128
+u = mix m scale m 220 a
+v = mix u c a
+hpix v true
+hpix u false
+lemit i k 1
+end
+
 fn hlabels to void
+put lu 24 0
 for i ulong 8
 lpos i
 end
