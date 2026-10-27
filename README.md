@@ -7,7 +7,7 @@
 Sovereign Intelligence, built on [AienOS](https://github.com/aien-dev/AienOS-nv).
 
 ```sh
-curl -fsSL https://aienos.com/install.sh | sh
+git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intelligence && cd sovereign-intelligence && sh installer/install.sh
 ```
 
 [Install](#install) · [The stack](#the-stack-and-whats-yours) · [Every repository](#every-repository) · [Deeper walk](docs/STACK.md) · [Naming](NAMING.md) · [aienos.com](https://www.aienos.com)
@@ -24,10 +24,10 @@ curl -fsSL https://aienos.com/install.sh | sh
 
 ## Install
 
-On an NVIDIA DGX Spark (Linux arm64, GB10, kernel driver 580.173.02):
+On an NVIDIA DGX Spark (Linux arm64, GB10, kernel driver 580.173.02), clone this repo at the release tag and run the installer from the source you just cloned. Nothing is fetched from a website: read [installer/install.sh](installer/install.sh) first if you like.
 
 ```sh
-curl -fsSL https://aienos.com/install.sh | sh
+git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intelligence && cd sovereign-intelligence && sh installer/install.sh
 ```
 
 It checks the machine first (anything else gets a friendly note and nothing changes), downloads release [alpha-20261026.2](https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2) by exact tag (model: Qwen3.6-35B-A3B-FP8, 37.5 GB; the 27B is to come), verifies the Ed25519 signature of SHA256SUMS (alpha key ff949504…f54a, see [KEYS](KEYS)) and every SHA-256 before unpacking, installs into ~/.local/share/aienos (no sudo), and opens the Omega wizard. Remove everything with `aienos uninstall`.
