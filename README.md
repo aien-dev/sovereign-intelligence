@@ -55,7 +55,8 @@ Every layer above the silicon is source you can read, build and change. The bott
 | 6 | **Math engine** | My own engine, written in Omega. Source not yet published. | Nothing yet; it will be yours when it is published. |
 | 5 | **Omega language and compiler** | Apache-2.0: [omega-mv](https://github.com/aien-dev/omega-mv), [omega-bridge](https://github.com/aien-dev/omega-bridge) | The language itself: omc, irwasm, irspirv (merged, CPU-exercised; not run on GPU / DPC++). |
 | 4 | **CUDA++ runtime** | Apache-2.0: [CUDApp](https://github.com/aien-dev/CUDApp) | Instruction encoder, runtime and kernels, with no NVIDIA user-space software. |
-| 3 | **Aienux kernel and AienOS** | Apache-2.0: [aienux](https://github.com/aien-dev/aienux), [AienOS-nv](https://github.com/aien-dev/AienOS-nv) | The kernel and the OS. SI alpha still runs on the Spark's own Linux. |
+| | **AienOS** | Apache-2.0 WITH LLVM-exception: [AienOS-nv](https://github.com/aien-dev/AienOS-nv) | The operating system around the kernel. SI alpha still runs on the Spark's own Linux. |
+| 3 | **Aienux kernel** | Apache-2.0: [aienux](https://github.com/aien-dev/aienux) | The kernel: boot, scheduling, IPC and capability boundaries. Pre-alpha; physical runs on iMac and Pi 5. |
 | 2 | **GPU kernel driver** | Today NVIDIA's open kernel module 580.173.02 (Dual MIT/GPL). Mine, aien-gpu, is being written in [CUDApp](https://github.com/aien-dev/CUDApp/blob/main/omega/slices/kmod.osc) (Dual MIT/GPL-2.0). | NVIDIA's module source is open; aien-gpu will replace it. |
 | 1 | **GB10 silicon and NVIDIA signed firmware** | Not mine. | Nothing. This is the boundary, stated plainly. |
 

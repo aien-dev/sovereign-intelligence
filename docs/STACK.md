@@ -94,11 +94,18 @@ driver client over the kernel module's device files, and matmul, attention and M
 - **Evidence:** EXERCISED (33 host test targets, on-chip logs, a zero-CUDA gate). Replacements for
   libcuda, cudart and cuBLAS are partial; cuFFT, cuRAND and NVML are missing.
 
-## 3. Aienux kernel and AienOS
+## 3b. AienOS
+
+AienOS is the operating system around the kernel, with its own home in
+[AienOS-nv](https://github.com/aien-dev/AienOS-nv). SI alpha still runs on the Spark's own Linux today.
+
+- **Yours:** Apache-2.0 WITH LLVM-exception.
+- **Evidence:** n/a.
+
+## 3a. Aienux kernel
 
 [Aienux](https://github.com/aien-dev/aienux) is the kernel: boot, scheduling, IPC and capability
-boundaries. AienOS is the operating system around it, with its own home in
-[AienOS-nv](https://github.com/aien-dev/AienOS-nv).
+boundaries.
 
 - **Yours:** Apache-2.0.
 - **Evidence:** EXERCISED in QEMU, on a Pi 5 and on an iMac. The kernel has not booted on the
