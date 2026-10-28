@@ -1,6 +1,6 @@
 <div align="center">
 
-# Sovereign Intelligence (SI)
+# Sovereign Intelligence™ (SI)
 
 **My own AI, on hardware I own, with every layer open to read, rebuild and change.**
 
