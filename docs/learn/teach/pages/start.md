@@ -8,6 +8,8 @@ If you build things by describing them to an AI agent and steering it until they
 
 This track is about the next level: engineering. Not learning to type the letters. Learning to know, with evidence, that what your agent built does what you asked and nothing else. That is what turns "it seemed to work when I tried it" into something you can hand to other people and trust.
 
+The development method used here is Human-Directed Agentic Engineering (HDAE). Humans define goals, architecture, constraints, acceptance criteria, and stopping points. Agents implement, execute checks, diagnose failures, and revise within those boundaries; human review owns claims, acceptance, and release decisions. See the [method citation to Gregory M. Kurtzer's Ginux report (2026)](../../../../README.md#human-directed-agentic-engineering). This names the current method, not a claim that earlier examples followed that report's exact protocol.
+
 ## Who it is for
 
 People who build with AI agents and never learned to write code by hand. You do not need to read code to follow these lessons. Every example is a short script you run with one command, and every page shows the real output it printed, so you can compare yours with mine.
