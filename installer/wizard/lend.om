@@ -1,0 +1,482 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note lend.om: the optional Open Humanity lending step of the wizard and the aienos lend command.
+note The lending program is oh-infer-volunteer (Rust, aien-dev/open-humanity crates/oh-infer); this
+note unit only shows the disclosure, makes the key, and starts, pauses and stops that program.
+note Files: ~/.local/share/aienos/lend/key (0600, made by the program), lend.pid, lend.log, paused.
+
+text o_bin "/bin/oh-infer-volunteer"
+text o_conf "/share/aienos/lend.conf"
+text o_dir "/lend"
+text o_key "/key"
+text o_pidf "/lend.pid"
+text o_logf "/lend.log"
+text o_paus "/paused"
+text o_name "oh-infer-volunteer"
+text o_init "init"
+text o_prkey "print-key"
+text o_run "run"
+text o_kf "--key-file"
+text o_cf "--config"
+text o_mf "--manifest"
+text o_eaddr "127.0.0.1:18100"
+text o_ebin "--engine-bin"
+text o_pf "--pause-file"
+text o_vkey "volunteer key "
+text o_lend "lend"
+text o_startw "start"
+text o_pause "pause"
+text o_resume "resume"
+text o_quitw "quit"
+text o_status "status"
+text o_a0 "Lend this Spark to Allen (Open Humanity). Optional, off unless you say yes."
+text o_a1 "What runs: a small program, oh-infer-volunteer, that connects out to"
+text o_a2 "aienos.com. It opens no ports on your network."
+text o_a3 "What it does: when my Spark is answering its maximum number of visitors,"
+text o_a4 "a visitor who chose to let a volunteer answer may be sent to your Spark."
+text o_a5 "Your Spark then processes that stranger's chat text and streams Allen's"
+text o_a6 "reply back."
+text o_a7 "What a visitor's message carries: Allen's public instructions and the text"
+text o_a8 "of their anonymous conversation. Nothing about them is added (no key,"
+text o_a9 "memories, contact record or address); what they typed is sent as typed."
+text o_b0 "When: only while the program runs and is not paused, and only when my"
+text o_b1 "Spark is busy."
+text o_b2 "Load: one reply at a time, at most 60 an hour, each at most 1,024 tokens."
+text o_b3 "While it answers, the GPU is fully busy: the GB10 is rated at 140 W, the"
+text o_b4 "whole Spark at most 240 W. Your own chats with Allen may be slower then."
+text o_b5 "Network: about 1 MB per reply at most, about 64 MB an hour at most."
+text o_b6 "Checks: before it serves, your model files are checked against the release."
+text o_b7 "Some of your replies are repeated on my Spark. If one differs, your Spark"
+text o_b8 "is suspended until I review it."
+text o_b9 "Pause: aienos lend pause. Resume: aienos lend resume."
+text o_b10 "Quit for good: aienos lend quit."
+text o_more "Press Enter to read the rest"
+text o_ask "Type yes to lend this Spark, or press Enter to skip."
+text o_none "This release does not include the lending program yet. Nothing changed."
+text o_kfail "I could not make this Spark's lending key. Nothing else changed."
+text o_kis "This Spark's volunteer key:"
+text o_reg1 "To register this Spark, email this key to drake@aienos.com with the"
+text o_reg2 "subject Open Humanity Spark. Lending starts when you run: aienos lend start"
+text o_nokey "There is no lending key yet. Run aienos wizard and type yes at the lending step."
+text o_runs "lending is already running, pid "
+text o_start "lending started, pid "
+text o_log "Its log: ~/.local/share/aienos/lend/lend.log. Stop it with: aienos lend quit"
+text o_died "The lending program stopped at once. Its log: ~/.local/share/aienos/lend/lend.log"
+text o_sfail "I could not start the lending program."
+text o_nostop "The lending program did not stop; nothing was removed."
+text o_quit "Lending stopped and this Spark's key was deleted. Nothing else changed."
+text o_srun "lending: running, pid "
+text o_snot "lending: not running"
+text o_spy "paused: yes"
+text o_spn "paused: no"
+text o_snok "no lending key"
+text o_help "usage: aienos lend start | pause | resume | quit | status"
+
+fn pvol to void
+pclr
+proot
+pstr o_bin
+end
+
+fn pconf to void
+pclr
+proot
+pstr o_conf
+end
+
+fn plend to void
+pbase
+pstr o_dir
+end
+
+fn pkeyf to void
+plend
+pstr o_key
+end
+
+fn lhave to bool
+pvol
+a = pexist
+pconf
+b = pexist
+ret and a b
+end
+
+fn lkey to bool
+pkeyf
+ret pexist
+end
+
+fn lsay t view uchar * to void
+emit t
+putb 10
+w = flush
+end
+
+note Run oh-infer-volunteer init (no key yet) or print-key; its "volunteer key HEX" line lands in rb.
+fn lkcmd init bool to long
+pkclr
+pvol
+pkpath
+if init
+pkstr o_init
+else
+pkstr o_prkey
+end
+pkstr o_kf
+pkeyf
+pkpath
+ret runcap
+end
+
+fn plrb to void
+for i ulong get rbn 0
+b = get rb i
+if ne b 10
+pc b
+end
+end
+end
+
+fn ldisc1 to void
+pc 6
+pl o_a0
+pc 2
+pln
+pln
+pl o_a1
+pln
+pl o_a2
+pln
+pl o_a3
+pln
+pl o_a4
+pln
+pl o_a5
+pln
+pl o_a6
+pln
+pl o_a7
+pln
+pl o_a8
+pln
+pl o_a9
+end
+
+fn ldisc2 to void
+pl o_b0
+pln
+pl o_b1
+pln
+pl o_b2
+pln
+pl o_b3
+pln
+pl o_b4
+pln
+pl o_b5
+pln
+pl o_b6
+pln
+pl o_b7
+pln
+pl o_b8
+pln
+pc 6
+pl o_b9
+pln
+pl o_b10
+pc 2
+end
+
+note The lending step: two disclosure panels, then yes or skip. Anything but yes changes nothing.
+fn stlend to void
+enter 7
+pclear
+ldisc1
+prompt o_more
+show
+r = ask
+if lt r 0
+ret
+end
+pclear
+ldisc2
+prompt o_ask
+show
+r = ask
+if lt r 0
+ret
+end
+if not ibis t_yes
+ret
+end
+pclear
+lyes
+prompt t_next
+show
+r = ask
+end
+
+fn lyes to void
+if not lhave
+pl o_none
+ret
+end
+plend
+r = makedir pb 0 get pbn 0 448
+k = lkcmd not lkey
+if or ne k 0 not rbat 0 o_vkey
+pc 4
+pl o_kfail
+pc 2
+ret
+end
+pl o_kis
+pln
+pc 6
+plrb
+pc 2
+pln
+pln
+pl o_reg1
+pln
+pl o_reg2
+end
+
+note ---------- aienos lend ----------
+
+note The pid in lend.pid when that process is still oh-infer-volunteer, else 0.
+fn lpid to ulong
+plend
+pstr o_pidf
+ret pidget o_name
+end
+
+note The packed run command: config from the release, key, the wizard's manifest and model folder.
+fn largs to void
+pkclr
+pvol
+pkpath
+pkstr o_run
+pkstr o_cf
+pconf
+pkpath
+pkstr o_kf
+pkeyf
+pkpath
+pkstr o_mf
+pclr
+proot
+pstr t_share
+pkpath
+pkstr e_mdir
+pmodel
+pkpath
+pkstr e_eng
+pkstr o_eaddr
+pkstr o_ebin
+pclr
+proot
+pstr e_bin
+pkpath
+pkstr o_pf
+plend
+pstr o_paus
+pkpath
+end
+
+note Start the agent in its own session, output appended to lend.log, pid in lend.pid.
+fn lspawn to long
+largs
+plend
+pstr o_logf
+lfd = fopen pb 0 get pbn 0 525377 384
+if lt lfd 0
+ret lfd
+end
+nfd = fopen e_null 0 len e_null 524288 0
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+s = setsid
+d = dupfd int nfd 0 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int lfd
+c = fclose int nfd
+k = wpid ulong pid
+plend
+pstr o_pidf
+r = spill k
+ret pid
+end
+
+fn lstart to int
+if not lhave
+lsay o_none
+ret 1
+end
+if not lkey
+lsay o_nokey
+ret 1
+end
+p = lpid
+if gt p 0
+emit o_runs
+num p
+putb 10
+w = flush
+ret 0
+end
+q = lspawn
+if lt q 0
+lsay o_sfail
+ret 1
+end
+s = sleepns 1000000000
+x = waitpid int q ws 0 4 1
+if eq x q
+lsay o_died
+ret 1
+end
+emit o_start
+num ulong q
+putb 10
+lsay o_log
+ret 0
+end
+
+note Stop the agent: SIGTERM, then wait up to 30 s. Returns true when it is gone.
+fn lstop to bool
+p = lpid
+if eq p 0
+plend
+pstr o_pidf
+x = unlink pb 0 get pbn 0
+ret true
+end
+r = killpid int p 15
+for i ulong 300
+x = waitpid int p ws 0 4 1
+if eq lpid 0
+plend
+pstr o_pidf
+x = unlink pb 0 get pbn 0
+ret true
+end
+s = sleepns 100000000
+end
+ret false
+end
+
+fn lpause on bool to int
+if not lhave
+lsay o_none
+ret 1
+end
+if not lkey
+lsay o_nokey
+ret 1
+end
+pkclr
+pvol
+pkpath
+if on
+pkstr o_pause
+else
+pkstr o_resume
+end
+pkstr o_pf
+plend
+pstr o_paus
+pkpath
+pclr
+r = runpk
+ret int r
+end
+
+fn lquit to int
+if not lstop
+lsay o_nostop
+ret 1
+end
+plend
+pstr o_paus
+x = unlink pb 0 get pbn 0
+pkeyf
+x = unlink pb 0 get pbn 0
+lsay o_quit
+ret 0
+end
+
+fn lendst to int
+p = lpid
+if gt p 0
+emit o_srun
+num p
+putb 10
+else
+lsay o_snot
+end
+plend
+pstr o_paus
+if pexist
+lsay o_spy
+else
+lsay o_spn
+end
+if not and lkey lhave
+lsay o_snok
+ret 0
+end
+pkclr
+pvol
+pkpath
+pkstr o_prkey
+pkstr o_kf
+pkeyf
+pkpath
+pclr
+r = runpk
+ret int r
+end
+
+note aienos lend start|pause|resume|quit|status
+fn clend to int
+x = mopen
+if lt arg 2 0
+lsay o_help
+ret 2
+end
+if ibis o_startw
+ret lstart
+end
+if ibis o_pause
+ret lpause true
+end
+if ibis o_resume
+ret lpause false
+end
+if ibis o_quitw
+ret lquit
+end
+if ibis o_status
+ret lendst
+end
+lsay o_help
+ret 2
+end
+
+note For aienos uninstall: stop a running agent first. False (and says so) when it did not stop.
+fn lunin to bool
+if lstop
+ret true
+end
+lsay o_nostop
+ret false
+end
