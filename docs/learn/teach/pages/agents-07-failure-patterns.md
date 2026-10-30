@@ -82,11 +82,10 @@ ret 1
 end
 ```
 
-`run.sh` first shows the naive reading (count FAIL lines, call zero green), then runs the tally on four logs:
+The past host run first showed the naive reading (count FAIL lines, call zero green), then ran the tally on four logs:
 
-```sh
-sh examples/agents-07-failure-patterns/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output:
 

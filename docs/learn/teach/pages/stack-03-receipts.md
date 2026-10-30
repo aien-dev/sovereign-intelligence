@@ -20,7 +20,7 @@ A real one from my release work: the [container receipt](https://github.com/aien
 
 Hashes make the receipt checkable: change one input byte and its sha256 changes, and so does everything built from it. To verify a receipt you do not trust it; you rebuild and rerun from the named inputs, compute the same fields again and compare. Two rules: a receipt is history, never edited to make a new claim pass (a correction goes beside it as a new file), and a receipt with a missing field is refused, not completed by guessing.
 
-In the example, `run.sh record` produced `receipt.txt` for `hello.om` once, and it was kept. `rcptchk.om` reads the kept receipt, a `--` line and a fresh recomputation, refuses a receipt without its 13 keys in order, prints every field that differs, and checks expected against observed. `sha256sum` is the hash oracle.
+In the example, a past host run produced `receipt.txt` for `hello.om` once, and it was kept. `rcptchk.om` reads the kept receipt, a `--` line and a fresh recomputation, refuses a receipt without its 13 keys in order, prints every field that differs, and checks expected against observed. `sha256sum` was the hash oracle on that host.
 
 ## Example
 
@@ -222,9 +222,8 @@ end
 
 Run it:
 
-```sh
-sh examples/stack-03-receipts/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output:
 

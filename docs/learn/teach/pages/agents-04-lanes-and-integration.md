@@ -22,44 +22,8 @@ Courtesy beats rigid rules. If another agent is mid-measurement on a shared mach
 
 ## Example
 
-`run.sh` builds a throwaway repository with four worktrees, `lane-a` to `lane-d`. Lanes A and B commit in parallel; B also leaves an uncommitted file. The owner merges the committed branches. Then lanes C and D edit the same line of `shared.txt`; the owner merges C, detects the conflict on D, aborts, and D rebases in its own tree. git is the subject of this lesson, so the demo is a git script: every git status is printed, nothing is hidden. The integration owner's part, from the full [run.sh](../examples/agents-04-lanes-and-integration/run.sh):
+A past host run built a throwaway repository with four worktrees, `lane-a` to `lane-d`. Lanes A and B committed in parallel; B also left an uncommitted file. The owner merged the committed branches. Then lanes C and D edited the same line of `shared.txt`; the owner merged C, detected the conflict on D, aborted, and D would rebase in its own tree. Git was the subject. The shell demo is retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read [POINTER.md](../examples/agents-04-lanes-and-integration/POINTER.md). The recorded output below is that host run, not a new run and not a hardware result.
 
-```sh
-printf '\n== integration owner merges committed branches only\n'
-for l in a b; do
-    q git -C "$main" merge --no-ff -m "merge lane-$l" "lane-$l"
-    printf 'merge lane-%s rc=%s\n' "$l" "$?"
-done
-printf 'main now has: %s\n' "$(git -C "$main" ls-files | tr '\n' ' ')"
-if [ -f "$main/wip.txt" ]; then w=present; else w=absent; fi
-printf 'lane-b uncommitted file on main: %s\n' "$w"
-printf 'lane-b dirty tree untouched: %s\n' "$(git -C "$work/lane-b" status --porcelain)"
-
-printf '\n== two lanes edit the same line of a shared file\n'
-sed 's/version: 1/version: 2 (lane c)/' "$work/lane-c/shared.txt" > "$work/t" && cat "$work/t" > "$work/lane-c/shared.txt"
-q git -C "$work/lane-c" commit -am 'lane c: bump version'
-printf 'lane-c commit rc=%s\n' "$?"
-sed 's/version: 1/version: 3 (lane d)/' "$work/lane-d/shared.txt" > "$work/t" && cat "$work/t" > "$work/lane-d/shared.txt"
-q git -C "$work/lane-d" commit -am 'lane d: bump version'
-printf 'lane-d commit rc=%s\n' "$?"
-q git -C "$main" merge --no-ff -m 'merge lane-c' lane-c
-printf 'merge lane-c rc=%s\n' "$?"
-q git -C "$main" merge --no-ff -m 'merge lane-d' lane-d
-rc=$?
-printf 'merge lane-d rc=%s\n' "$rc"
-conflicts=$(git -C "$main" diff --name-only --diff-filter=U)
-printf 'conflicted files: %s\n' "$conflicts"
-if [ "$rc" -ne 0 ]; then
-    q git -C "$main" merge --abort
-    printf 'owner aborts the merge rc=%s, main is clean: [%s]\n' "$?" "$(git -C "$main" status --porcelain)"
-    printf 'CONFLICT: lane-d must rebase onto main in its own worktree and re-decide shared.txt\n'
-fi
-
-```
-
-```sh
-sh examples/agents-04-lanes-and-integration/run.sh
-```
 
 Recorded output:
 
@@ -116,4 +80,4 @@ Three lines carry the lesson. `lane-b uncommitted file on main: absent` and the 
 - Isolated checkouts and never touching a dirty tree (section 1): https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-harness/SKILL.md
 - Directory coordination with crumbs and locks: https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/crumb-protocol/SKILL.md
 - One writer per change, never overwrite others (section 5): https://www.aienos.com/agents/RULES.md
-- The demo: [run.sh](../examples/agents-04-lanes-and-integration/run.sh)
+- The demo: [POINTER.md](../examples/agents-04-lanes-and-integration/POINTER.md)

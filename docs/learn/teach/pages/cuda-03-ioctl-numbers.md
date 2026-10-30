@@ -27,7 +27,7 @@ In Omega you do not write `_IOC`. The pinned compiler has checked device words (
 
 ## Example
 
-`ioctl.om` reads the header values (extracted by `run.sh` with `sed`), computes C struct sizes with natural alignment, and builds each request. The core:
+`ioctl.om` reads header values, computes C struct sizes with natural alignment, and builds each request. The past host run extracted those values from the pinned headers. The core:
 
 ```om
 fn up x ulong a ulong to ulong
@@ -59,9 +59,9 @@ end
 text sacc " devctl-rule=accept\n"
 ```
 
-Then `run.sh` checks every result three ways: the header lines themselves, whether CUDApp's own native client `native/nvrm/context.om` uses the identical literal, and what the pinned `omc` says when the number is compiled into a `devctl`.
+The past host run checked every result three ways: the header lines themselves, whether CUDApp's own native client `native/nvrm/context.om` uses the identical literal, and what the pinned `omc` says when the number is compiled into a `devctl`.
 
-Command: `sh examples/cuda-03-ioctl-numbers/run.sh`
+Command: the retired runner; see `examples/cuda-03-ioctl-numbers/POINTER.md`
 
 Recorded output:
 

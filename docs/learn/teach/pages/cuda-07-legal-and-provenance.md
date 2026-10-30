@@ -28,24 +28,7 @@ That last sentence is why the example re-checks the claims on the pinned tree ra
 
 ## Example
 
-A host-only inspection: each claim is printed next to the count that tests it.
-
-```sh
-echo "== claim 1 (THIRD_PARTY.md): 67 NVIDIA headers, 60 with an SPDX MIT line, 7 with the MIT text only"
-grep -n '67 header files\|60 carry' THIRD_PARTY.md | cut -c1-110
-cd third_party/nvidia-open-580.173.02 || exit 2
-total=$(find . -name '*.h' | wc -l | tr -d ' ')
-spdx=$(grep -rl 'SPDX-License-Identifier: MIT' --include='*.h' . | wc -l | tr -d ' ')
-textonly=$(grep -rL 'SPDX-License-Identifier: MIT' --include='*.h' . | xargs grep -l 'Permission is hereby granted' | wc -l | tr -d ' ')
-echo "   counted: $total headers, $spdx with SPDX MIT, $textonly with the permission text only"
-echo "   NVIDIA's own licence file (COPYING), the line that limits the dual licence:"
-grep -n 'GPL' COPYING | cut -c1-110
-cd "$C" || exit 2
-
-echo "== claim 2 (THIRD_PARTY.md): no NVIDIA firmware, libcuda, cubin, fatbin or PTX; no NVIDIA tool listing stored"
-```
-
-Command: `sh examples/cuda-07-legal-and-provenance/run.sh`
+A host-only inspection: each claim was printed next to the count that tests it. The shell listing is retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read [POINTER.md](../examples/cuda-07-legal-and-provenance/POINTER.md). The recorded output below is that host run, not a new run and not a hardware result.
 
 Recorded output:
 

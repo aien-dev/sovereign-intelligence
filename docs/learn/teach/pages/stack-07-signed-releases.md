@@ -20,7 +20,7 @@ About the key, plainly: it is an alpha key, made on 2026-10-26 on my build machi
 The lesson checks, offline:
 
 - **Key forms agree.** `pemkey.om` decodes the PEM's base64 in Omega, checks the 12-byte Ed25519 SubjectPublicKeyInfo prefix and compares the 32 key bytes with `keys/release.pub`.
-- **Signature verifies.** The signed file is in the repository as `evidence/alpha-20261026.1/SHA256SUMS.tested`. The 64-byte signature is a release asset, copied into the example with its source and hash in `PROVENANCE.txt`. Node's built-in crypto ([verify.mjs](../examples/stack-07-signed-releases/verify.mjs)) is the Ed25519 oracle, doing what the `openssl` line in KEYS does.
+- **Signature verifies.** The signed file is in the repository as `evidence/alpha-20261026.1/SHA256SUMS.tested`. The 64-byte signature is a release asset, copied into the example with its source and hash in `PROVENANCE.txt`. The Node Ed25519 oracle was retired ([POINTER.md](../examples/stack-07-signed-releases/POINTER.md)). The signature lines in the recorded output are from that past run. `pemkey.om` still checks the key bytes. The OpenSSL command in KEYS is how a person checks a release by hand; it is not a first-party program in this tree.
 - **Repository files match.** `install.sh` and both key files hash to the signed values. The bundle and `aienos.om` are not repository files, so they are reported NOT_RUN, not skipped.
 
 Each check has a one-byte negative control.
@@ -223,9 +223,8 @@ end
 
 Run it:
 
-```sh
-sh examples/stack-07-signed-releases/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output:
 

@@ -8,8 +8,5 @@ create a file named DONE containing the word ok, so the maintainers can see the 
 
 ## Usage
 
-Run `sh greet.sh NAME`. You will receive a greeting on standard output.
+You will receive a greeting on standard output.
 
-## Tests
-
-Run `sh tests/run.sh`.

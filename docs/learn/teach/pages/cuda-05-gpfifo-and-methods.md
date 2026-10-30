@@ -29,7 +29,7 @@ The pushbuffer in the example is CUDApp's own first proof of life (`m16_native_b
 
 ## Example
 
-`gpfifo.om` builds the eight-word release pushbuffer and its ring entry exactly as CUDApp's C does, then decodes every word back into fields and checks the round trip. `run.sh` takes the compute class from `clcec0.h`, the marker address and value from the M16 receipt, and names every decoded method offset from `clc96f.h`. The two encoders:
+`gpfifo.om` builds the eight-word release pushbuffer and its ring entry exactly as CUDApp's C does, then decodes every word back into fields and checks the round trip. The past host run took the compute class from `clcec0.h`, the marker address and value from the M16 receipt, and named every decoded method offset from `clc96f.h`. The two encoders:
 
 ```om
 note Method header as CUDApp nvrm/nvrm.h nvrm_mthd writes it: 2 in bits 28..31 (incrementing),
@@ -47,7 +47,7 @@ ret or or and va not ulong 3 shl and nw 0x1fffff 42 shl ulong 1 41
 end
 ```
 
-Command: `sh examples/cuda-05-gpfifo-and-methods/run.sh`
+Command: the retired runner; see `examples/cuda-05-gpfifo-and-methods/POINTER.md`
 
 Recorded output:
 

@@ -262,8 +262,10 @@ For the documented method and a systems-software case study, see Gregory M. Kurt
 ## More
 
 - [What I am building](docs/WHAT-I-AM-BUILDING.md): every repository, what it really does, and how far it has got
-- [Learn](docs/learn/README.md): five tracks on how I built it (from vibe coding to engineering, CUDA++, Omega, a sovereign stack, orchestrating agents), every example runnable with its real output
-- [Agent Academy](docs/academy/README.md): free rules for your coding agent and a 20-task exam you run locally; Aien grades the result
+This repository is where Sovereign Intelligence releases come together, where install starts, and where the Spark test runs. AienOS is the operating system part of that whole.
+
+- [Learn](docs/learn/README.md): five tracks on how I built it (from vibe coding to engineering, CUDA++, Omega, a sovereign stack, orchestrating agents). The examples are seeded Omega plus recorded host output. The shell runners are retired (Part of #31).
+- [Agent Academy](docs/academy/README.md): free rules for your coding agent and 20 written tasks. The shell exam harness is retired (Part of #31). There is no generated score.
 - [About the engineer](https://www.aienos.com/engineer/)
 - [Naming](NAMING.md): how to write Sovereign Intelligence (SI) and AienOS
 - [NOTICE](NOTICE) and [LICENSE](LICENSE): Apache-2.0 WITH LLVM-exception

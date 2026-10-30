@@ -12,9 +12,9 @@ You do not need a GPU for any of it. You do need to keep two things apart, as I 
 
 ## Prerequisites
 
-- Comfortable reading C and shell; hexadecimal and bit fields.
-- A Linux AArch64 host with `git`, `sh`, `grep`, `sed`, `jq` and coreutils.
-- Clones of [CUDApp](https://github.com/aien-dev/CUDApp/tree/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb) and [omega-mv](https://github.com/aien-dev/omega-mv/tree/19f014f2178ca9cd3473728fe00a475a2398c409) at the pinned commits, and the pinned Omega compiler `seed/out/omc` (every `run.sh` checks its sha256 and refuses to run with another one).
+- Comfortable reading C and hexadecimal and bit fields.
+- The examples that are Omega live under `examples/`. Inspections of the pinned CUDApp tree were host runs; their shell runners were retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31).
+- Clones of [CUDApp](https://github.com/aien-dev/CUDApp/tree/780a0af1f08c1786ea53a4e8702ca8bb1396fdbb) and [omega-mv](https://github.com/aien-dev/omega-mv/tree/19f014f2178ca9cd3473728fe00a475a2398c409) at the pinned commits are what those past runs read. The pinned compiler is `seed/out/omc`, sha256 `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`.
 - For the Omega in lessons 2 to 6 and 8: the Omega track's first lessons, or [OMEGESE.md](https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/docs/one_layer/OMEGESE.md).
 
 ## Lessons
@@ -30,10 +30,6 @@ You do not need a GPU for any of it. You do need to keep two things apart, as I 
 
 Start with lesson 1 even if you know CUDA well: the rest of the track hangs on its distinction between user space and the kernel.
 
-## Run every example
+## Read every example
 
-```sh
-SRC=/path/to/clones sh examples/cuda-03-ioctl-numbers/run.sh
-```
-
-Each `run.sh` takes `SRC` (the clone root) and `OMC` (the compiler, default `$SRC/omega-mv/seed/out/omc`), works in its own temporary directory, prints every exit status, and produces the same bytes on every run.
+Open `examples/<lesson>/POINTER.md`, the `.om` sources when the lesson has them, and `output.txt`. That output is a past Linux AArch64 host run. It is not a new run, and it is not a hardware result. CUDApp's own README at the pin still records the native GPU path as NOT_RUN.

@@ -34,11 +34,11 @@
       "examples/omega-08-error-codes/longname.om",
       "examples/omega-08-error-codes/nolength.om",
       "examples/omega-08-error-codes/withlen.om",
-      "examples/omega-08-error-codes/run.sh",
-      "examples/omega-08-error-codes/output.txt"
+      "examples/omega-08-error-codes/output.txt",
+      "examples/omega-08-error-codes/POINTER.md"
     ],
     "code": "note blend.om: refused with error 12. Six parameters, eleven named results and the temporaries of\nnote the last line all want one of the 16 registers at the same time\nfn blend a ulong b ulong c ulong d ulong e ulong f ulong to ulong\nab = mul a b\ncd = mul c d\nef = mul e f\nac = add a c\nbd = add b d\nce = xor c e\ndf = xor d f\ns1 = add ab cd\ns2 = add ef ac\ns3 = add bd ce\nret add add add s1 s2 add s3 df add add ab cd ef\nend\nfn main to int\nx = blend 1 2 3 4 5 6\nret int and x 255\nend\n",
-    "command": "sh examples/omega-08-error-codes/run.sh",
+    "command": "Read examples/omega-08-error-codes/POINTER.md. Recorded host output: examples/omega-08-error-codes/output.txt.",
     "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. error 12: the 16-register pool runs out\ncompile blend.om rc=12\nomc: line 14: error 12\n== 2. the fix: split the work into helpers\ncompile split.om rc=0\n106\n123\nrun split rc=0\n== 2b. negative control: a wrong split (xor d f made and d f in mixes) fails the reference check\ncompile badsplit rc=0\nrun badsplit rc=3\n== 3. error 9: new inside a loop\ncompile inblock.om rc=9\nomc: line 5: error 9\n== 4. the fix: hoist the array to the outermost block\ncompile hoisted.om rc=0\nrun hoisted rc=16\n== 5. error 13: a 9-character variable name\ncompile longname.om rc=13\nomc: line 3: error 13\n== 6. error 16: an array parameter without its length\ncompile nolength.om rc=16\nomc: line 2: error 16\n== 7. the fix: state the length\ncompile withlen.om rc=0\nrun withlen rc=20\n== 8. the whole table: seed/omc/gate15.sh, one minimal refusal per code, in a disposable copy\nPASS gate15 21 refusal cases (codes 3..23; 1 and 2 are compiler I/O) plus a valid control\ngate15 rc=0\nRESULT PASS\n"
   },
   "common_mistake": "Working around error 12 by shortening names or deleting checks. Live values use registers, not long names. Split the function into helpers, keep a reference computation and a negative control that show the split is equivalent.",

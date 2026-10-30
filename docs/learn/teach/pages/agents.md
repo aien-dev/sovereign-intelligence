@@ -25,7 +25,7 @@ Read the lessons in order the first time: each one assumes the roles and words o
 ## Prerequisites
 
 - A Linux AArch64 host with `sh`, `git` and coreutils.
-- The pinned Omega compiler from [aien-dev/omega-mv](https://github.com/aien-dev/omega-mv/tree/19f014f2178ca9cd3473728fe00a475a2398c409/seed/out) for the `.om` examples. Each `run.sh` checks its sha256 and refuses to run (exit 90) on a mismatch.
+- The `.om` examples were compiled, in the recorded host runs, with the pinned omc from [aien-dev/omega-mv](https://github.com/aien-dev/omega-mv/tree/19f014f2178ca9cd3473728fe00a475a2398c409/seed/out), sha256 `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`. The runners that checked that hash were retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31).
 - A clone of [aien-dev/omega-harness](https://github.com/aien-dev/omega-harness/tree/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills) for lesson 2.
 - The Omega track ([omega.md](omega.md)) helps if you want to read the `.om` programs line by line, but you can run them without it.
 
