@@ -66,6 +66,10 @@ repos:
     layer: hardware
     evidence: n/a
     purpose: "Raspberry Pi 5 UEFI build, submodules pointed at my mirrors"
+  - name: omega-gpu-driver
+    layer: driver
+    evidence: EXERCISED
+    purpose: "GB10 GPU driver in seeded Omega; W0 binds, reads identity and releases. Exercised in QEMU only, never run on GB10"
   - name: aienix
     layer: kernel
     evidence: PROPOSED
@@ -80,6 +84,10 @@ repos:
     layer: kernel
     evidence: EXERCISED
     purpose: "Aienux, the AienOS kernel: boot, scheduling, IPC and capabilities. Pre-alpha, not in the alpha bundle"
+  - name: rtl8127-omega
+    layer: kernel
+    evidence: IMPLEMENTED
+    purpose: "Realtek RTL8127 10GbE driver in Omega, checked only against a software model of the chip; never run on a real chip"
   - name: CUDApp
     layer: runtime
     evidence: EXERCISED
@@ -90,19 +98,84 @@ repos:
     evidence: EXERCISED
     purpose: "FORGE: request-bound machine realization, a native GB10 client over the open ioctls, boot gates"
     license: Apache-2.0 WITH LLVM-exception
+  - name: babel
+    layer: omega
+    evidence: EXERCISED
+    purpose: "Translates C through Omega into Rust, C, Python, C++, Zig and Go with differential checks; one narrow C profile, the rest refused"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: compiler-explorer
+    layer: omega
+    evidence: n/a
+    purpose: "Fork of Compiler Explorer; main is upstream, Omega language support is on the unmerged add-omega-language branch"
+  - name: ggml-omega
+    layer: omega
+    evidence: PROPOSED
+    purpose: "ggml/llama.cpp backend running ops through seeded-Omega kernels; main holds only the README, the code is on unmerged branches"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: homebrew-omega
+    layer: omega
+    evidence: EXERCISED
+    purpose: "Homebrew tap that builds omc from the 408-byte seed and refuses a wrong sha256; Linux arm64 only"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: infra
+    layer: omega
+    evidence: n/a
+    purpose: "Fork of Compiler Explorer's infrastructure; main is upstream, omc installation is on the unmerged add-omega branch"
+  - name: omega-blas
+    layer: omega
+    evidence: EXERCISED
+    purpose: "BLAS in Omega behind the CBLAS ABI, with an interim C layer; the cuBLAS replacement track. Netlib tests logged on the host, no GPU run"
+    license: Apache-2.0 WITH LLVM-exception
   - name: omega-bridge
     layer: omega
     evidence: EXERCISED
     purpose: "Emits checked C and Python from a bounded .om subset, so other languages can call Omega"
     license: Apache-2.0 WITH LLVM-exception
+  - name: omega-bridge-kit
+    layer: omega
+    evidence: IMPLEMENTED
+    purpose: "Mac test kit that drives omega-bridge conversions on the Spark over ssh and compares every form"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: omega-dnn
+    layer: omega
+    evidence: IMPLEMENTED
+    purpose: "Deep-learning primitives in seeded Omega with ONNX semantics, the cuDNN replacement track; its tests are not on main"
+    license: Apache-2.0 WITH LLVM-exception
   - name: omega-harness
     layer: omega
     evidence: IMPLEMENTED
     purpose: "Skills that teach agents to write Omega and label evidence honestly"
+  - name: omega-kernel-template
+    layer: omega
+    evidence: EXERCISED
+    purpose: "Template repository: push a kernel.om and CI runs it on AArch64 and as SPIR-V on PoCL against a Python reference"
+  - name: omega-lift
+    layer: omega
+    evidence: IMPLEMENTED
+    purpose: "Work in progress: a bounded C and Python to Omega lifter, the inverse of omega-bridge"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: omega-mcp
+    layer: omega
+    evidence: EXERCISED
+    purpose: "MCP server written in Omega: compiles and runs .om with the pinned omc in a sandbox, explains errors, looks up keywords"
   - name: omega-mv
     layer: omega
     evidence: EXERCISED
     purpose: "Omega: seeded .om compiler, backends, GB10 kernels, specs and gates. [irspirv](https://github.com/aien-dev/omega-mv/blob/3a10bd29fb7debdcf2c8f5cb58680cc74cb5b1f3/docs/SPIRV.md): CPU-exercised ([receipt](https://github.com/aien-dev/omega-mv/blob/3a10bd29fb7debdcf2c8f5cb58680cc74cb5b1f3/evidence/IRSPIRV/20261026-4ad014ed3/receipt.json)); not run on GPU / DPC++."
+  - name: omega-packages
+    layer: omega
+    evidence: EXERCISED
+    purpose: "Nix, Guix, AUR, .deb and container recipes that build omc from the 408-byte seed and check its sha256; arm64 Linux"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: omega-rosetta
+    layer: omega
+    evidence: EXERCISED
+    purpose: "Rosetta Code tasks and exercises in Omega, checked in CI against independent references"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: omega-seed-challenge
+    layer: omega
+    evidence: EXERCISED
+    purpose: "Rebuild omc from 408 hand-written bytes and check every rung's hash; CI runs it and posted results are checked"
   - name: omnet
     layer: omega
     evidence: EXERCISED
@@ -111,6 +184,16 @@ repos:
     layer: omega
     evidence: EXERCISED
     purpose: "Write papers in Omega: an .om library emits escaped LaTeX and compiles its Omega listings; reproduces two published papers"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: tree-sitter-omega
+    layer: omega
+    evidence: EXERCISED
+    purpose: "tree-sitter grammar for Omega, its parse coverage measured against every .om in omega-mv"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: vscode-omega
+    layer: omega
+    evidence: EXERCISED
+    purpose: "VS Code extension for Omega: highlighting checked against tree-sitter-omega, snippets, omc diagnostics and formatting"
     license: Apache-2.0 WITH LLVM-exception
   - name: aegis-runtime-mv
     layer: engine
@@ -145,10 +228,19 @@ repos:
     evidence: IMPLEMENTED
     purpose: "Outside reference oracles I measured against"
     license: AGPL-3.0-or-later
+  - name: BabelStream
+    layer: engine
+    evidence: n/a
+    purpose: "Fork of UoB-HPC BabelStream; main is upstream, a serial Omega model is on the unmerged omega-model branch"
   - name: benchmarks-mv
     layer: engine
     evidence: EXERCISED
     purpose: "Measurement harnesses and evidence bundles for GB10"
+  - name: gpu-head-to-head
+    layer: engine
+    evidence: IMPLEMENTED
+    purpose: "Predeclared protocol and harness for aien-serve-http vs vLLM vs llama.cpp on one Spark; no results table on main yet"
+    license: Apache-2.0 WITH LLVM-exception
   - name: harvester
     layer: engine
     evidence: IMPLEMENTED
@@ -158,6 +250,15 @@ repos:
     layer: engine
     evidence: EXERCISED
     purpose: "CPU inference engine in Mojo and C; dropped with Mojo and MAX"
+  - name: omega-gpu-bench
+    layer: engine
+    evidence: IMPLEMENTED
+    purpose: "Kit to run Omega-written GPU kernels on your own NVIDIA GPU; kernels withdrawn pending a clean-room cubin writer, so it reports NOT_RUN"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: openaccel-lab
+    layer: engine
+    evidence: PROPOSED
+    purpose: "Cross-backend kernel conformance and performance lab; main holds only the README, the work is on the unmerged wip branch"
   - name: spark-adapters
     layer: engine
     evidence: IMPLEMENTED
@@ -305,6 +406,10 @@ repos:
     layer: design
     evidence: EXERCISED
     purpose: "Wire formats and schemas with test vectors and checkers"
+  - name: hive-not-swarm
+    layer: design
+    evidence: n/a
+    purpose: "Preprint: control, flow and collapse in human-directed coding-agent teams; not peer reviewed"
   - name: interplane-mv
     layer: design
     evidence: EXERCISED
@@ -327,3 +432,25 @@ repos:
     layer: design
     evidence: EXERCISED
     purpose: "Agent-native signed changesets with Git and Radicle interop"
+  - name: synapse-board
+    layer: design
+    evidence: EXERCISED
+    purpose: "Generates the human board from the synapse-claims ledger, the repo map and pulse findings"
+  - name: synapse-claims
+    layer: design
+    evidence: PROPOSED
+    purpose: "Signed, hash-chained lease ledger for agents; its source does not yet compile with the pinned omc"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: synapse-map
+    layer: design
+    evidence: PROPOSED
+    purpose: "Repository map for agents: where, tree, new, check; its source does not yet compile with the pinned omc"
+    license: Apache-2.0 WITH LLVM-exception
+  - name: synapse-mcp
+    layer: design
+    evidence: PROPOSED
+    purpose: "MCP server exposing the synapse tools to agents; parked, not compiled, no tests"
+  - name: synapse-pulse
+    layer: design
+    evidence: PROPOSED
+    purpose: "Reconciles the synapse-claims ledger against GitHub and live agent sessions; its source does not yet compile with the pinned omc"
