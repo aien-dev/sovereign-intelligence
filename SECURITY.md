@@ -4,14 +4,16 @@
 
 Report privately. Do not open a public issue, pull request or discussion about it.
 
-1. GitHub: open this repository's Security tab and choose "Report a vulnerability". This
-   creates a private advisory that only the maintainers can see. If that option is not shown,
-   private vulnerability reporting has not been enabled for this repository yet; use email.
-2. Email: drake@aienos.com with the subject `[sovereign-intelligence] security report`.
+Use GitHub private vulnerability reporting. Open this repository's Security tab and choose
+"Report a vulnerability":
+
+https://github.com/aien-dev/sovereign-intelligence/security/advisories/new
+
+That creates a private advisory that only the maintainers can see.
 
 Include the commit or release you tested, the component (path), steps to reproduce, and what an
-attacker gains. If the report involves a secret, say where it was exposed and do not send the
-secret itself. Encrypted mail is not required; do not post proof-of-concept payloads publicly.
+attacker gains. If the report involves a secret, say where it was exposed and do not include the
+secret itself. Do not post proof-of-concept payloads publicly.
 
 ## Response targets
 
@@ -49,7 +51,7 @@ in `installer/HOST-DEPENDENCIES.md`.
 
 ## Supported versions
 
-Only the current alpha release named in `installer/install.sh` (`alpha-20261026.2`) and the default branch `main`. Reports against older commits are welcome but fixes land on the default branch only.
+Only the current alpha release named in `installer/install.sh` (`alpha-20261029.1`) and the default branch `main`. Reports against older commits are welcome but fixes land on the default branch only.
 
 ## Status
 
