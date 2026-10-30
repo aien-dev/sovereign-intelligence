@@ -6,6 +6,8 @@ I build almost everything with coding agents, and I learned the hard way what go
 
 If you build by talking to an agent and have never written the code yourself, this is for you. You are already programming: you design what you want, you direct the work, you decide when it is right. "Programming and engineering are way different than coding. Nobody needs to know how to write the letters." The skills here are the next level of what you already do: asking for evidence, checking results, and steering your agent when it drifts. New to all of it? Start with [You already program: from vibe coding to engineering](../learn/teach/pages/start.md).
 
+These habits fit Human-Directed Agentic Engineering (HDAE): humans define goals, architecture, constraints, acceptance criteria, and stopping points; agents implement, check, diagnose, and revise within those boundaries. Human review remains responsible for claims, acceptance, and releases. See the [documented method and Gregory M. Kurtzer citation](../../README.md#human-directed-agentic-engineering). The citation does not turn the academy exam into a qualification of earlier experiments.
+
 ## 1. Give your agent the rules
 
 [skills/AGENTS.md](skills/AGENTS.md) is one file of working rules. Copy it into your repository as `AGENTS.md` or `CLAUDE.md`, or paste it into your agent's custom instructions. It works with any agent that reads a project instructions file.

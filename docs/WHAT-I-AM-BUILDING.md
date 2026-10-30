@@ -33,7 +33,7 @@ What that release does not do yet:
 
 - It offers one model, Qwen3.6-35B-A3B FP8 (about 37.5 GB), since alpha-20261026.2, with the exact engine build my Spark serves it with: Core branch `ship/motor-l387`, commit 59b05a71, a development build, not a Core release tag. The 27B is to come; it is not offered.
 - It only supports the DGX Spark. Every other machine gets a friendly "not supported yet" line and nothing is written.
-- The local Allen experience (web app, gateway, local Cortex, Omega sandbox, science tools) is not in it. It follows as an update.
+- The local Aien experience (web app, gateway, local Cortex, Omega sandbox, science tools) is not in it. It follows as an update.
 - The GPU path is the statically linked Omega GPU library from omega-mv. No separate CUDA++ runtime ships yet.
 
 ## Alpha product
@@ -57,7 +57,7 @@ What that release does not do yet:
 | aienix | public | Front-door repo: README plus submodules pinning the main components | Shell | AGPL-3.0-or-later | 2026-10-26 | "Built in the open". PROPOSED: an index, no code. Components are not yet one tree. |
 | omega-bridge | public | An Omega program that emits C and Python from a bounded `.om` subset, plus a native caller ABI | Omega, Python | Apache-2.0 WITH LLVM-exception | 2026-10-26 | "Omega emits checked C and Python". EXERCISED on host (red and green logs, callers in six languages). No C or Python to Omega direction; no text, floats or heap. |
 | omega-harness | public | Agent skills and two runnable `.om` examples for working in Omega honestly | Markdown, Omega | Apache-2.0 | 2026-10-26 | "Skills that make agents check and label status". IMPLEMENTED; examples rerun by hand. No CI; effect on agents unmeasured. |
-| omega-projects | public | Static index and intake for projects built with Allen | HTML | Apache-2.0 WITH LLVM-exception | 2026-10-26 | IMPLEMENTED scaffold. Zero projects yet. |
+| omega-projects | public | Static index and intake for projects built with Aien | HTML | Apache-2.0 WITH LLVM-exception | 2026-10-26 | IMPLEMENTED scaffold. Zero projects yet. |
 | physics-mv | public | FORGE realize and verify in C, a native GB10 client over the open NVIDIA ioctls, AArch64 boot assembly with QEMU gates | C | Apache-2.0 WITH LLVM-exception | 2026-10-26 | EXERCISED: host gates, QEMU boot, one GB10 run. Native Spark boot NOT_RUN. |
 | benchmarks-mv | public | Rust measurement harness and the prime drag race runner | Rust | Apache-2.0 | 2026-10-26 | "Speed against the physical limit". EXERCISED: one GB10 run (20.3x my own baseline). The physical-limit gap is unmeasured, as the README says. |
 | interplane-mv | public | Rust protocol crates, JSON Schemas and conformance fixtures between models and agent runtimes | Rust | Apache-2.0 | 2026-10-26 | EXERCISED: 106/106 conformance verdicts, live captures. The 0.2 capability gate FAILED; 0.4 and 0.5 not built. |
@@ -85,7 +85,7 @@ What that release does not do yet:
 | synapse | public | Signed changesets, WAL store, capability auth, deterministic Git output, Radicle quorum verifier | Rust | Apache-2.0 | 2026-10-26 | Components EXERCISED (29/29 conformance, three runs). Reads are slower than Git; stays in the lab. |
 | spark-rsi-mv | public | Self-improvement loop: proposals, sandboxed builds, a separate judge, signed ledger, promotion gate | Rust | AGPL-3.0-or-later | 2026-10-26 | EXERCISED: two fixture cycles on the Spark host, promotion refused. No independent cycle qualified. |
 | open-humanity | public | Signal, crypto and firewall building blocks; a loopback volunteer-compute trainer for a toy model | Rust | Apache-2.0 | 2026-10-26 | The distress network is PROPOSED (parts not joined). Volunteer compute EXERCISED on loopback only. |
-| allen | public | Plans for Allen, one persistent identity across my machines | Markdown | AGPL-3.0-or-later | 2026-10-26 | PROPOSED: no code on `main`. |
+| aien | public | Plans for Aien (formerly Allen; the repository was `allen` until 2026-10-26), one persistent identity across my machines | Markdown | AGPL-3.0-or-later | 2026-10-26 | PROPOSED: no code on `main`. |
 | aien-train | public | Plan for training my own language model on my engine | Markdown | AGPL-3.0-or-later | 2026-10-25 | PROPOSED: no training code. |
 | aien-rig | public | Plan for local AI and frame-rate tuning on RTX gaming PCs | Markdown | AGPL-3.0-or-later | 2026-10-25 | PROPOSED: no code; never run on an RTX card. |
 | spark-connector | public | Plan for a volunteer DGX Spark verification connector | Markdown | AGPL-3.0-or-later | 2026-10-26 | PROPOSED: commands not implemented. |
@@ -136,7 +136,7 @@ These are archived on GitHub or are mirrors I keep so a build cannot vanish. Mos
 - **Omega is not finished.** Much of Omega, CUDA++, omega-learn and omega-programs is still C. The seeded `.om` compiler is real, and the migration of the rest is ongoing.
 - **CUDA++ is partial.** libcuda, cudart and cuBLAS replacements are partial; cuFFT, cuRAND and NVML are missing.
 - **The kernel is research.** aienux has never booted its C kernel on the Spark. AienOS in alpha testing runs on top of Linux.
-- **Several repos are plans.** allen, aien-train, aien-rig and spark-connector have no code yet.
+- **Several repos are plans.** aien, aien-train, aien-rig and spark-connector have no code yet.
 - **Some old READMEs overclaim.** spark-hive's benchmarks are estimated, rad-id-sync never calls Radicle, and spark-inquisitor's and cortex-rs's speed claims have no stored result. They are archived and the claims stand only as history.
 - **Receipts hold digests, not logs.** aien-receipts bundles record verdicts and hashes; the raw logs are not published, and the verifier walkthrough has not been reproduced by anyone else.
 
@@ -183,6 +183,6 @@ I cloned all 68 repositories that existed that morning and read their code, test
 | agent-archive | test fixtures claude/codex.jsonl cwd to /home/alice | [agent-archive#6](https://github.com/aien-dev/agent-archive/pull/6) | `e102eb6bf3` |
 | omega-harness | aien-repositories skill: Sovereign Intelligence is the alpha home; retired aienos name | [omega-harness#29](https://github.com/aien-dev/omega-harness/pull/29) | `97e41c0e40` |
 
-Clean, nothing to change: aien-edge, aien-protocols-mv, aien-receipts, aien-rig, aien-train, aien-translate, allen, arm-trusted-firmware, atlas, edk2-non-osi, encounter, interplane-mv, interplane.io, odysseus, omega-projects, omnet, physics0, pi-register, rpi5-uefi, spark-connector, t3code, translate.
+Clean, nothing to change: aien (then named allen), aien-edge, aien-protocols-mv, aien-receipts, aien-rig, aien-train, aien-translate, arm-trusted-firmware, atlas, edk2-non-osi, encounter, interplane-mv, interplane.io, odysseus, omega-projects, omnet, physics0, pi-register, rpi5-uefi, spark-connector, t3code, translate.
 
 Still open at the time of writing: spark-supervisor keeps its old licence text and one personal address until its owner revives it, and the last eight "pre-alpha" labels on aienos.com change with the `/alpha/` page (aienos.com#112).

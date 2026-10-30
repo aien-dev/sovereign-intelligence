@@ -30,10 +30,10 @@ Around it are tools built on the same stack:
 ## 9. Aien
 
 One persistent identity across my machines: the iMac, the Pi, the Spark and the MacBook. Aien
-is the guide you talk to; he speaks through the engine and remembers through Cortex. He used to
-be called Allen, and his repository keeps that name.
+is the guide you talk to; he speaks through the engine and remembers through Cortex. Allen has now
+evolved into the final Aien (2026-10-26).
 
-- **Source:** [allen](https://github.com/aien-dev/allen), AGPL-3.0.
+- **Source:** [aien](https://github.com/aien-dev/aien), AGPL-3.0.
 - **Evidence:** PROPOSED. The programme, acceptance contract and data contracts are written; there
   is no code on `main` yet, and the Aien experience is not in the first release.
 
