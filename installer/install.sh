@@ -18,7 +18,7 @@
 #              2 a needed tool or the download is missing.
 set -eu
 
-TAG=alpha-20261026.2
+TAG=alpha-20261029.1
 REPO=aien-dev/sovereign-intelligence
 BUNDLE=aienos-$TAG-linux-arm64.tar.gz
 # An explicit tag and asset names, never "latest": this script installs exactly this release.

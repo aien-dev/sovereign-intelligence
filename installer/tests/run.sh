@@ -16,7 +16,7 @@ top=$(cd "$here/.." && pwd)
 S=${1:-$(mktemp -d "${TMPDIR:-/tmp}/aienos-tests.XXXXXX")}
 mkdir -p "$S"
 S=$(cd "$S" && pwd)
-TAG=alpha-20261026.2
+TAG=alpha-20261029.1
 BUNDLE=aienos-$TAG-linux-arm64.tar.gz
 pass=0
 fail=0

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 # Build the AienOS alpha bundle from pinned inputs. Linux arm64 only (omc writes arm64 ELF).
 #
-#   OMEGA_SRC=/path/to/omega-mv@3364a1dfd ENGINE=/path/to/aien-serve-http sh build.sh OUT
+#   OMEGA_SRC=/path/to/omega-mv@bf54b19fa ENGINE=/path/to/aien-serve-http sh build.sh OUT
 #
 # OMEGA_SRC  a clone of aien-dev/omega-mv at OMEGA_REV: its seed/out/omc compiles the wizard
 #            and its om/sha256/sha256-om2.om is the source wizard/sha256.om is derived from.
@@ -16,9 +16,9 @@
 #       6 compile refused, 7 engine identity or linkage wrong. Signing is tools/sign.sh.
 set -eu
 cd "$(dirname "$0")"
-TAG=alpha-20261026.2
-OMEGA_REV=3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9
-OMC_PIN=befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+TAG=alpha-20261029.1
+OMEGA_REV=bf54b19fa590e8ae925c0e80815516dbf41e7326
+OMC_PIN=62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
 CORE_REV=59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3
 ENGINE_SHA256=19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb
 ORDER="sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om"
