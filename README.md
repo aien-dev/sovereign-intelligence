@@ -4,6 +4,8 @@
 
 **My own AI, on hardware I own, with every layer open to read, rebuild and change.**
 
+Sovereign Intelligence: one command turns a DGX Spark into your own AI, with Omega and science tools and no NVIDIA user-space software. Alpha; Aien comes in a later release.
+
 Sovereign Intelligence, built on [AienOS](https://github.com/aien-dev/AienOS-nv).
 
 ```sh
@@ -48,7 +50,7 @@ Every layer above the silicon is source you can read, build and change. The bott
 
 | | Layer | Yours: license and source | What you can change |
 | :---: | :--- | :--- | :--- |
-| 10 | **Apps and tools** | Apache-2.0 WITH LLVM-exception or AGPL-3.0, per repository: [installer](https://github.com/aien-dev/sovereign-intelligence), [aienos.com](https://github.com/aien-dev/aienos.com), [aien-translate](https://github.com/aien-dev/aien-translate) | Anything. The installer is Omega you can read before you run it. |
+| 10 | **Apps and tools** | Apache-2.0 WITH LLVM-exception or AGPL-3.0, per repository: [installer](https://github.com/aien-dev/sovereign-intelligence), [aienos.com](https://github.com/aien-dev/aienos.com), [aien-translate](https://github.com/aien-dev/aien-translate) | Anything. The installer is a reviewed bootstrap shell exception, the only part of AienOS not written in Omega, that you can read before you run it. |
 | 9 | **Aien** | AGPL-3.0: [aien](https://github.com/aien-dev/aien) | His identity, memory and voice contracts. |
 | 8 | **Cortex memory** | Apache-2.0: [cortex-rs](https://github.com/aien-dev/cortex-rs) today, rewritten in Omega in [cortex](https://github.com/aien-dev/cortex) | What is remembered, where it is stored, when it is forgotten. |
 | 7 | **The engine: Sovereign Core** | Apache-2.0: [aien-sovereign-core-mv](https://github.com/aien-dev/aien-sovereign-core-mv) | Scheduling, KV cache, serving and the test judge. |
