@@ -23,36 +23,10 @@ Skills carry public procedure only. Machine addresses, home paths, accounts and 
 
 ## Example
 
-`check-skill.sh` checks the frontmatter rules above. It is plain `sh`, `sed`, `awk` and `grep`, used here as a read-only checker:
+The frontmatter rules above were checked by a shell script that this tree no longer carries (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). A skill file opens with `---`, closes that block, names itself after its directory, and its description says when to use it. This tree has no seeded Omega frontmatter parser.
 
-```sh
-#!/bin/sh
-# check-skill.sh SKILL_DIR: check the Agent Skills frontmatter of SKILL_DIR/SKILL.md.
-# Rules: line 1 is ---, a closing --- follows, name equals the directory name, and description
-# is present and says when to use the skill (contains "Use "). Exit 0 PASS, 1 FAIL, 2 usage.
-dir=${1:?usage: check-skill.sh SKILL_DIR}
-skill=$(basename "$dir")
-f=$dir/SKILL.md
-fail() { printf 'FAIL %s: %s\n' "$skill" "$1"; exit 1; }
-[ -f "$f" ] || fail 'no SKILL.md'
-[ "$(sed -n 1p "$f")" = '---' ] || fail 'line 1 is not ---'
-end=$(awk 'NR > 1 && $0 == "---" { print NR; exit }' "$f")
-[ -n "$end" ] || fail 'frontmatter is never closed'
-front=$(sed -n "2,$((end - 1))p" "$f")
-name=$(printf '%s\n' "$front" | sed -n 's/^name: *//p')
-desc=$(printf '%s\n' "$front" | sed -n 's/^description: *//p')
-[ -n "$name" ] || fail 'no name'
-[ "$name" = "$skill" ] || fail "name '$name' differs from directory '$skill'"
-[ -n "$desc" ] || fail 'no description'
-printf '%s\n' "$desc" | grep -q 'Use ' || fail 'description never says when to use it'
-printf 'PASS %s: name ok, description %s bytes, body %s lines\n' "$skill" "$(printf '%s' "$desc" | wc -c | tr -d ' ')" "$(($(wc -l < "$f") - end))"
-```
+A past host run checked every real skill at the pinned commit, then three malformed skills that must fail (wrong name, a description that never says when, no frontmatter at all), then a throwaway upstream repository showing the symlink-versus-copy difference after a pull. See [POINTER.md](../examples/agents-02-skills/POINTER.md). The recorded output below is that host run, not a new run and not a hardware result.
 
-`run.sh` runs it on every real skill at the pinned commit, then on three malformed skills that must fail (wrong name, a description that never says when, no frontmatter at all), then builds a throwaway upstream repository to show the symlink-versus-copy difference after a pull.
-
-```sh
-sh examples/agents-02-skills/run.sh
-```
 
 Recorded output:
 
@@ -103,4 +77,4 @@ Writing a description that says what the skill *is* ("A collection of useful not
 - The skills and the install table: https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/README.md
 - How to edit a skill (check claims at the cited commit, rerun examples): https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/AGENTS.md
 - A skill with runnable, verified examples: https://github.com/aien-dev/omega-harness/blob/9ab649cd97c7a09d769f97569d62bde847af3ef4/skills/omega-encoding/SKILL.md
-- The checker: [check-skill.sh](../examples/agents-02-skills/check-skill.sh)
+- The retired checker: [POINTER.md](../examples/agents-02-skills/POINTER.md)

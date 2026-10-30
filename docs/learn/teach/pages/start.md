@@ -12,7 +12,7 @@ The development method used here is Human-Directed Agentic Engineering (HDAE). H
 
 ## Who it is for
 
-People who build with AI agents and never learned to write code by hand. You do not need to read code to follow these lessons. Every example is a short script you run with one command, and every page shows the real output it printed, so you can compare yours with mine.
+People who build with AI agents and never learned to write code by hand. You do not need to read code to follow these lessons. Every page shows the real output a past host run printed. The shell runners that produced it were retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). The Omega sources and that recorded output are what you compare.
 
 ## Lessons
 
@@ -24,9 +24,8 @@ People who build with AI agents and never learned to write code by hand. You do 
 
 ## Prerequisites
 
-- A Linux computer with an ARM64 processor (the examples use a small compiled language, Omega, whose compiler makes programs for that kind of machine), with `sh` and `git`.
-- The pinned Omega compiler from [aien-dev/omega-mv](https://github.com/aien-dev/omega-mv/tree/19f014f2178ca9cd3473728fe00a475a2398c409/seed/out). Each example checks its fingerprint (a sha256 hash, a short code that changes if even one byte of the file changes) and refuses to run if it does not match.
-- No GPU, no internet connection, no account. Nothing in this track touches anything outside a scratch folder it deletes when it finishes.
+- The examples are small Omega programs. The recorded runs used the pinned compiler from [aien-dev/omega-mv](https://github.com/aien-dev/omega-mv/tree/19f014f2178ca9cd3473728fe00a475a2398c409/seed/out) on Linux AArch64. That compiler's fingerprint (sha256) is `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`.
+- No GPU. Nothing in the recorded runs is a hardware result.
 
 ## How to read the evidence levels
 

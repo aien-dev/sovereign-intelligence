@@ -19,12 +19,12 @@ I build my own AI on hardware I own, with every layer open to read, rebuild and 
 7. [Signed releases: owning distribution](stack-07-signed-releases.md): the Ed25519 alpha key, the signed SHA256SUMS and a pinned installer, verified offline.
 8. [Alpha tags versus merge gates](stack-08-alpha-tags.md): why a commit with every host check green is not an Alpha without a GPU receipt.
 
-Every lesson has a runnable example under `examples/<lesson id>/`. Each `run.sh` checks the compiler's sha256 first, prints every exit status, and its recorded `output.txt` reproduces byte for byte.
+Every lesson has an example under `examples/<lesson id>/`. The host runner was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read `POINTER.md`, the `.om` sources, and the recorded `output.txt`. That output is a past host run, not a new one.
 
 ## Prerequisites
 
 - A Linux arm64 (AArch64) machine. The examples need no GPU and never open a GPU device.
-- POSIX `sh`, coreutils, `git`, `grep` and `sed`; `node` for the signature check in lesson 7.
+- Lesson 7's Node signature oracle was retired with the host runners. `pemkey.om` remains. The signature lines in that lesson's recorded output are from the past oracle run.
 - Clones of the pinned repositories: [omega-mv](https://github.com/aien-dev/omega-mv) for the pinned compiler `seed/out/omc` (sha256 `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`), [sovereign-intelligence](https://github.com/aien-dev/sovereign-intelligence), [aien-sovereign-core-mv](https://github.com/aien-dev/aien-sovereign-core-mv) and [omega-harness](https://github.com/aien-dev/omega-harness). Set `SRC` to the folder holding them.
 - Reading Omega helps but is not required; the omega track teaches the language. Every example program here is Omega compiled by that pinned compiler, with a small shared helper file, `lib.om`, concatenated in front.
 

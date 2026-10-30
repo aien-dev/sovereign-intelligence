@@ -1,3 +1,5 @@
+Shell harness retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read GRADER.md in this folder before you start. Do not invent a run.
+
 Write sum.om, an Omega program whose main returns the sum of the whole numbers 1 to 10, so the
 compiled program exits with that sum as its status. Compute it with a bounded while loop; do not
 write the result as a literal number. Omega is probably new to you; this is enough of it:

@@ -33,19 +33,8 @@ ret 7
 end
 ```
 
-The core of `run.sh`:
+The past host run copied the seed tree and rebuilt omc. The shell that did that is retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read [POINTER.md](../examples/omega-05-seeded-compiler/POINTER.md). The recorded output below is that host run, not a new run and not a hardware result.
 
-```sh
-cp -R "$SRC/omega-mv/seed" "$T/m/seed"
-(cd "$T/m" && sh seed/omega-from-seed.sh)
-sha256sum "$T/m/seed/out/omc"      # compared with the pin
-```
-
-Command:
-
-```sh
-sh examples/omega-05-seeded-compiler/run.sh
-```
 
 Recorded output:
 

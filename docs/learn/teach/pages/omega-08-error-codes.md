@@ -32,7 +32,7 @@ OM-2 adds 27, 28 and 29 (lesson 7).
 
 **Error 13**: names other than functions are at most 8 characters. `totalsize` has 9.
 
-**Error 16**: the parser met a word it cannot use there. Common causes are C habits (`fn main(x int)`), an array parameter without its length (`a view uchar` instead of `a view uchar 4`), and a variable used as an array length.
+**Error 16**: the parser met a word it cannot use there. Common causes are C habits (a C parameter list written after main), an array parameter without its length (`a view uchar` instead of `a view uchar 4`), and a variable used as an array length.
 
 ## Example
 
@@ -80,9 +80,8 @@ end
 
 Command:
 
-```sh
-sh examples/omega-08-error-codes/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output:
 

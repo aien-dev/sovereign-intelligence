@@ -82,9 +82,8 @@ end
 
 Run it:
 
-```sh
-sh examples/agents-05-memory-and-lessons/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output. The first entry is accepted. The second has no `Verified` line, and the third has the label with nothing after it; both are refused with exit 1:
 

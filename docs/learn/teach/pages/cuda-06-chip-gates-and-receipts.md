@@ -30,7 +30,7 @@ GPU windows themselves are shared and scheduled: on the DGX Spark a chip gate ru
 
 ## Example
 
-`verdict.om` turns three counts into a fail-closed verdict; `run.sh` re-hashes each listed file itself (so the output does not depend on which `sha256sum` prints error messages). The decision:
+`verdict.om` turns three counts into a fail-closed verdict. The past host run re-hashed each listed file itself. The decision:
 
 ```om
 fn main to int
@@ -64,7 +64,7 @@ ret 0
 end
 ```
 
-Command: `sh examples/cuda-06-chip-gates-and-receipts/run.sh`
+Command: the retired runner; see `examples/cuda-06-chip-gates-and-receipts/POINTER.md`
 
 Recorded output:
 
