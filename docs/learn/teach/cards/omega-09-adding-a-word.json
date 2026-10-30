@@ -32,11 +32,11 @@
       "examples/omega-09-adding-a-word/badflags.om",
       "examples/omega-09-adding-a-word/overrun.om",
       "examples/omega-09-adding-a-word/asname.om",
-      "examples/omega-09-adding-a-word/run.sh",
-      "examples/omega-09-adding-a-word/output.txt"
+      "examples/omega-09-adding-a-word/output.txt",
+      "examples/omega-09-adding-a-word/POINTER.md"
     ],
     "code": "note kwpack.om: how omc spells a keyword inside itself. The bytes of \"random\", first byte lowest,\nnote packed into one ulong: the number fn kw in seed/omc/omc.om compares against for word id 135\ntext word \"random\"\nfn putnum v ulong to long\nnote write v in decimal and a newline. A ulong has at most 20 digits, so bound 20 is proved\nd = new uchar 21 0\no = new uchar 21 0\nn = ulong 0\nx = v\nwhile true bound 20\nput d n uchar add rem x 10 48\nn = add n 1\nx = div x 10\nif eq x 0\nbreak\nend\nend\nfor i ulong n\nput o i get d sub sub n i 1\nend\nput o n 10\nw = write 1 o 0 add n 1\nret w\nend\nfn main to int\nv = ulong 0\nfor i ulong len word\nv = or v shl ulong get word i mul i 8\nend\nw = putnum v\nret 0\nend\n",
-    "command": "sh examples/omega-09-adding-a-word/run.sh",
+    "command": "Read examples/omega-09-adding-a-word/POINTER.md. Recorded host output: examples/omega-09-adding-a-word/output.txt.",
     "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. the guide row in docs/one_layer/OMEGESE.md\nOMEGESE.md rows for random: 1\n== 2. the keyword: compute its packed spelling in Omega, then find it in omc.om\ncompile kwpack.om rc=0\n120325193752946\nrun kwpack rc=0\n767:if eq w 120325193752946\n768-ret 135\n== 3. the lowering: fn hrand issues Linux syscall 278 (getrandom on arm64)\n1:fn hrand dst ulong x ulong to void\n10:hsys 278\n== 4. the host gate fixture, compiled and run as the gate does\ncompile seed/host/tests/random.om rc=0\nrun random rc=0\n== 5. negative control: the fixture with a wrong expected count must fail\ncompile mutant rc=0\nrun mutant rc=1\n== 6. the refusals the word promises\ncompile intotext.om rc=20\nomc: line 4: error 20\ncompile badflags.om rc=7\nomc: line 4: error 7\ncompile asname.om rc=16\nomc: line 3: error 16\ncompile overrun.om rc=0\nrun overrun rc=103\nRESULT PASS\n"
   },
   "common_mistake": "Filling the gap with a C, Rust, Python or shell helper and calling it Omega, or landing a word without refusal cases, a fixture that can fail, a guide row and a corpus audit for the newly reserved spelling. If you cannot land it, file the concrete proposal instead.",

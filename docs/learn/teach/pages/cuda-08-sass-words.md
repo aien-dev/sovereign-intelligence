@@ -22,7 +22,7 @@ What came out is CUDA++'s own encoder (`src/omega_blackwell_encoder.c`, `src/ome
 
 ## Example
 
-`sass.om` reads `vecadd.bin` from stdin, decodes every instruction's word 0 and control word, and spells out the add. `run.sh` names each opcode from the base words in `sm121.tbl` and compares the decoded add with the listing's own comment. The field extraction:
+`sass.om` reads `vecadd.bin` from stdin, decodes every instruction's word 0 and control word, and spells out the add. The past host run named each opcode from the base words in `sm121.tbl` and compared the decoded add with the listing's own comment. The field extraction:
 
 ```om
 fn word i ulong k ulong to ulong
@@ -59,7 +59,7 @@ ret 0
 end
 ```
 
-Command: `sh examples/cuda-08-sass-words/run.sh`
+Command: the retired runner; see `examples/cuda-08-sass-words/POINTER.md`
 
 Recorded output:
 

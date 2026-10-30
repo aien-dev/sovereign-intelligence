@@ -49,7 +49,7 @@ ret add a b
 end
 ```
 
-`main.om` (native driver) and `call.js` (the oracle):
+`main.om` is the native driver. The Node oracle that used to load the wasm module was retired; see [POINTER.md](../examples/omega-06-ir-and-wasm/POINTER.md).
 
 ```
 note main.om: the native driver. Units compose by concatenation: fns.om, putnum.om, main.om
@@ -63,33 +63,8 @@ ret 0
 end
 ```
 
-```js
-// call.js: read-only oracle. Loads the module irwasm wrote and calls its exports; generates nothing.
-'use strict';
-const fs = require('node:fs');
-const bytes = fs.readFileSync(process.argv[2]);
-console.log('valid wasm:', WebAssembly.validate(bytes));
-const m = new WebAssembly.Module(bytes);
-console.log('imports:', WebAssembly.Module.imports(m).length);
-console.log('exports:', WebAssembly.Module.exports(m).map(e => e.name).join(' '));
-const x = new WebAssembly.Instance(m).exports;
-console.log(x.gcd(1071, 462) >>> 0);
-console.log(x.lcm(21, 6) >>> 0);
-console.log(x.tri(10) >>> 0);
-console.log(x.addi(2, 3));
-try {
-  x.addi(2147483647, 1);
-  console.log('addi(2147483647, 1): no trap');
-} catch (e) {
-  console.log('addi(2147483647, 1) trapped:', e instanceof WebAssembly.RuntimeError);
-}
-```
+The host runner and the Node wasm oracle were retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read [POINTER.md](../examples/omega-06-ir-and-wasm/POINTER.md). The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result. The wasm lines in that output are from the past Node oracle, not a new validation.
 
-Command:
-
-```sh
-sh examples/omega-06-ir-and-wasm/run.sh
-```
 
 Recorded output:
 

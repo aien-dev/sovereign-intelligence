@@ -28,11 +28,11 @@
       "examples/omega-01-hello-world/hello.om",
       "examples/omega-01-hello-world/status.om",
       "examples/omega-01-hello-world/unbound.om",
-      "examples/omega-01-hello-world/run.sh",
-      "examples/omega-01-hello-world/output.txt"
+      "examples/omega-01-hello-world/output.txt",
+      "examples/omega-01-hello-world/POINTER.md"
     ],
     "code": "note hello.om: the smallest useful Omega program\ntext msg \"hello from seeded Omega\\n\"\nfn main to int\nw = write 1 msg 0 len msg\nif ne w long len msg\nret 1\nend\nret 0\nend\n",
-    "command": "sh examples/omega-01-hello-world/run.sh",
+    "command": "Read examples/omega-01-hello-world/POINTER.md. Recorded host output: examples/omega-01-hello-world/output.txt.",
     "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. hello: compile, then run only if the compile returned 0\ncompile hello.om rc=0\nhello from seeded Omega\nrun rc=0\n== 2. the exit status is main's value modulo 256\ncompile status.om rc=0\nrun rc=44\n== 3. negative control: a result that is not bound to a name\ncompile unbound.om rc=16\nomc: line 4: error 16\nRESULT PASS\n"
   },
   "common_mistake": "Calling write as a bare statement. It returns a long (bytes written or minus errno), so it must be bound and checked: w = write 1 msg 0 len msg. At this pin the bare write line is refused with error 16; a bare call to your own value-returning function is error 7.",

@@ -32,11 +32,11 @@
       "examples/omega-07-om2-contracts/overlap.om",
       "examples/omega-07-om2-contracts/fresh.om",
       "examples/omega-07-om2-contracts/oneline.om",
-      "examples/omega-07-om2-contracts/run.sh",
-      "examples/omega-07-om2-contracts/output.txt"
+      "examples/omega-07-om2-contracts/output.txt",
+      "examples/omega-07-om2-contracts/POINTER.md"
     ],
     "code": "note header.om: an OM-2 unit. The compiler, not a comment, owns the byte layout\nom2\nlayout hdr 8\nfield magic uint at 0 big\nfield size ushort at 4 little\nfield kind uchar at 6 little\nfield flags uchar at 7 little\nend\nfn mkhdr c edit hdr to void\nput c magic 0x4f4d4547\nput c size 512\nput c kind 2\nput c flags 0\nend\nfn main to int\nc = new uchar 8 0\nmkhdr c\nnote big-endian magic: the first four bytes spell OMEG\nw = write 1 c 0 4\nnl = new uchar 1 10\nw = write 1 nl 0 1\nnote size 512 little-endian is the bytes 0 then 2\nif ne get c 4 0\nret 1\nend\nif ne get c 5 2\nret 2\nend\nret 0\nend\n",
-    "command": "sh examples/omega-07-om2-contracts/run.sh",
+    "command": "Read examples/omega-07-om2-contracts/POINTER.md. Recorded host output: examples/omega-07-om2-contracts/output.txt.",
     "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. an external byte layout, written through an edit parameter\ncompile header.om rc=0\nOMEG\nrun header rc=0\n== 2. error 29 (layout): two fields share a byte\ncompile overlap.om rc=29\nomc: line 5: error 29\nomc-diag 1 code=29 sev=error line=5 col=24 span=160-166 expect=type found=6c6974746c65 obligation=layout profile=OM-2\n== 3. error 27 (init): a fresh element is read before it is written\ncompile fresh.om rc=27\nomc: line 5: error 27\nomc-diag 1 code=27 sev=error line=5 col=11 span=168-169 expect=value found=31 obligation=init profile=OM-2\n== 4. without the om2 line, rotr is an unknown word (error 3)\ncompile oneline.om rc=3\nomc: line 3: error 3\n== 5. the repository's tour: examples/om2-tour.om\ncompile tour rc=0\nrun tour rc=0\n== 6. the same tour under 'om2 diag': trap sites and the erased constructor check\ncompile diag rc=0\nomc-site records: 15\nomc-check 1 erased line=11 rule=dup32\n== 7. negative control: a predicate omc does not know (holds v32 dup31)\ncompile dup31 rc=28\nomc: line 8: error 28\n== 8. negative control: one changed constant in stamp is caught by main\ncompile stamp rc=0\nrun stamp rc=11\nRESULT PASS\n"
   },
   "common_mistake": "Using OM-2 words in an OM-1 unit (rotr is error 3, 0x10 is error 6 there) or treating an erased check as lost safety. Add the om2 line; erasure only happens for the exact proven constructor shape, and om2 diag reports kept or erased for every seal.",

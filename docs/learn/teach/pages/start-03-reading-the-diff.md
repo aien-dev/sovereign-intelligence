@@ -25,7 +25,7 @@ When you find one, you do not have to judge whether it was clever. Send it back:
 
 ## Example
 
-`run.sh` creates a scratch git repository for a small photo uploader: a README with a typo ("phtos"), a settings file with an upload limit of 10 MB, and a test saying a 12 MB photo is refused. Two scripted agents get the same request: *fix the typo in README.md*. Agent A fixes it, but also raises the limit and deletes the test. Agent B fixes only the typo. Both report "Fixed the typo."
+The past host run created a scratch git repository for a small photo uploader: a README with a typo ("phtos"), a settings file with an upload limit of 10 MB, and a test saying a 12 MB photo is refused. Two scripted agents got the same request: *fix the typo in README.md*. Agent A fixed it, but also raised the limit and deleted the test. Agent B fixed only the typo. Both reported "Fixed the typo."
 
 To make "did I ask for this?" mechanical, `scope.om` reads the files you allowed and the files that changed, and flags the rest. The part that decides:
 
@@ -85,9 +85,8 @@ ret 1
 end
 ```
 
-```sh
-sh examples/start-03-reading-the-diff/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output:
 

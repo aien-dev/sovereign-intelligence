@@ -24,13 +24,12 @@
     "Check the frontmatter with a negative control that must fail"
   ],
   "example": {
-    "lang": "sh",
+    "lang": "text",
     "files": [
-      "examples/agents-02-skills/check-skill.sh",
-      "examples/agents-02-skills/run.sh"
+      "examples/agents-02-skills/POINTER.md"
     ],
-    "code": "#!/bin/sh\n# check-skill.sh SKILL_DIR: check the Agent Skills frontmatter of SKILL_DIR/SKILL.md.\n# Rules: line 1 is ---, a closing --- follows, name equals the directory name, and description\n# is present and says when to use the skill (contains \"Use \"). Exit 0 PASS, 1 FAIL, 2 usage.\ndir=${1:?usage: check-skill.sh SKILL_DIR}\nskill=$(basename \"$dir\")\nf=$dir/SKILL.md\nfail() { printf 'FAIL %s: %s\\n' \"$skill\" \"$1\"; exit 1; }\n[ -f \"$f\" ] || fail 'no SKILL.md'\n[ \"$(sed -n 1p \"$f\")\" = '---' ] || fail 'line 1 is not ---'\nend=$(awk 'NR > 1 && $0 == \"---\" { print NR; exit }' \"$f\")\n[ -n \"$end\" ] || fail 'frontmatter is never closed'\nfront=$(sed -n \"2,$((end - 1))p\" \"$f\")\nname=$(printf '%s\\n' \"$front\" | sed -n 's/^name: *//p')\ndesc=$(printf '%s\\n' \"$front\" | sed -n 's/^description: *//p')\n[ -n \"$name\" ] || fail 'no name'\n[ \"$name\" = \"$skill\" ] || fail \"name '$name' differs from directory '$skill'\"\n[ -n \"$desc\" ] || fail 'no description'\nprintf '%s\\n' \"$desc\" | grep -q 'Use ' || fail 'description never says when to use it'\nprintf 'PASS %s: name ok, description %s bytes, body %s lines\\n' \"$skill\" \"$(printf '%s' \"$desc\" | wc -c | tr -d ' ')\" \"$(($(wc -l < \"$f\") - end))\"\n",
-    "command": "sh examples/agents-02-skills/run.sh",
+    "code": "The host script for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read POINTER.md in the example directory. Where this lesson has Omega sources, they are listed there. Where it was a tree inspection or a git demo, the recorded output is the evidence.",
+    "command": "Read examples/agents-02-skills/POINTER.md. Recorded host output: examples/agents-02-skills/output.txt.",
     "output": "omega-harness at 9ab649cd97c7a09d769f97569d62bde847af3ef4\n\n== real skills\nPASS aien-repositories: name ok, description 236 bytes, body 119 lines\n  rc=0 (expected 0)\nPASS crumb-protocol: name ok, description 282 bytes, body 155 lines\n  rc=0 (expected 0)\nPASS omega-communication: name ok, description 229 bytes, body 62 lines\n  rc=0 (expected 0)\nPASS omega-encoding: name ok, description 229 bytes, body 448 lines\n  rc=0 (expected 0)\nPASS omega-harness: name ok, description 296 bytes, body 151 lines\n  rc=0 (expected 0)\nPASS wolfram-math: name ok, description 235 bytes, body 72 lines\n  rc=0 (expected 0)\n\n== negative controls\nFAIL wrong-name: name 'right-name' differs from directory 'wrong-name'\n  rc=1 (expected 1)\nFAIL no-when: description never says when to use it\n  rc=1 (expected 1)\nFAIL no-frontmatter: line 1 is not ---\n  rc=1 (expected 1)\n\n== install: symlink follows a pull, a copy goes stale\nupstream fixes the skill (pin v2)\ngit pull rc=0\nsymlinked install reads: Pin v2\ncopied install reads:    Pin v1\nPASS demo-skill: name ok, description 31 bytes, body 0 lines\n  rc=0 (expected 0)\n\nALL EXIT STATUSES AS EXPECTED\n"
   },
   "common_mistake": "A description that says what the skill is instead of when to use it, so it never loads; or a copied install that silently goes stale. Fix: say 'Use when/before ...' in the description and install by symlink, then pull.",

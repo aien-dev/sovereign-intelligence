@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-# The Learn check, on GitHub-hosted arm64 runners only. It clones every source repository at the
-# commit in docs/learn/teach/PINS, checks the pinned omc, then runs every lesson example and
-# requires its output to match the recorded output.txt byte for byte, and checks every card,
-# page and pinned link. No example opens a GPU device. It also runs the Agent Academy exam
-# selftest: every task's untouched workspace and bad states must fail and its good state pass,
-# with the Omega tasks compiled by the same pinned omc.
+# Phase 1 of https://github.com/aien-dev/sovereign-intelligence/issues/31 retired the shell
+# runners under docs/learn and docs/academy. This job refuses a new first-party runner in
+# those trees. It does not clone omega-mv, it does not run omc, and it does not grade hardware.
 name: learn
 on:
   pull_request:
@@ -24,19 +21,42 @@ permissions:
 jobs:
   learn-check:
     name: learn-check
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 20
-    env:
-      OMC_PIN: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - name: Pinned sources
+      - name: No first-party runners under docs/learn or docs/academy
         run: |
-          sh docs/learn/teach/check.sh clone "$RUNNER_TEMP/src"
-          echo "$OMC_PIN  $RUNNER_TEMP/src/omega-mv/seed/out/omc" | sha256sum -c -
-      - name: Every example, card and link
-        run: SRC="$RUNNER_TEMP/src" sh docs/learn/teach/check.sh
-      - name: Agent Academy exam selftest
-        run: OMC="$RUNNER_TEMP/src/omega-mv/seed/out/omc" sh docs/academy/exam/selftest.sh
+          python3 - << 'PY'
+          import os, sys
+          roots = ("docs/learn", "docs/academy")
+          bad = []
+          for root in roots:
+              for dirpath, dirs, files in os.walk(root):
+                  dirs[:] = [d for d in dirs if d != ".git"]
+                  for fn in files:
+                      path = os.path.join(dirpath, fn)
+                      ext = os.path.splitext(fn)[1]
+                      if ext in (".sh", ".bash", ".py", ".js", ".mjs"):
+                          bad.append(path + " ext")
+                          continue
+                      if ext == ".om":
+                          continue
+                      with open(path, "rb") as f:
+                          head = f.read(4096)
+                      include = b"#" + b"include"
+                      fnmain = b"fn main" + b"("
+                      if head.startswith(b"#!"):
+                          bad.append(path + " shebang")
+                      elif include in head:
+                          bad.append(path + " include")
+                      elif fnmain in head:
+                          bad.append(path + " fnmain")
+          if bad:
+              print("LEARN-CHECK FAIL")
+              print("\n".join(bad))
+              sys.exit(1)
+          print("LEARN-CHECK PASS runners=0")
+          PY

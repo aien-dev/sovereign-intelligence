@@ -85,11 +85,10 @@ ret 1
 end
 ```
 
-`run.sh` makes three commits in a throwaway repository and checks each one:
+The past host run made three commits in a throwaway repository and checked each one:
 
-```sh
-sh examples/agents-09-keeping-guides-current/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output. The first commit changes the compiler and leaves its guide alone, so it is stale (exit 1). The second changes both (exit 0). The third is a docs typo that no guide describes, and the checker says to state that in the report:
 

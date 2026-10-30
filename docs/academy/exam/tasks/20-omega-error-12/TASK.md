@@ -1,3 +1,5 @@
+Shell harness retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read GRADER.md in this folder before you start. Do not invent a run.
+
 The pinned Omega compiler refuses mix.om with `omc: line 13: error 12`. Change mix.om so that it
 compiles and the program exits with exactly the same status the original body of mix means. Keep
 main exactly as it is.

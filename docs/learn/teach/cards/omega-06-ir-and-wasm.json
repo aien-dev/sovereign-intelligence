@@ -30,13 +30,12 @@
       "examples/omega-06-ir-and-wasm/fns.om",
       "examples/omega-06-ir-and-wasm/putnum.om",
       "examples/omega-06-ir-and-wasm/main.om",
-      "examples/omega-06-ir-and-wasm/call.js",
       "examples/omega-06-ir-and-wasm/irglobal.om",
-      "examples/omega-06-ir-and-wasm/run.sh",
-      "examples/omega-06-ir-and-wasm/output.txt"
+      "examples/omega-06-ir-and-wasm/output.txt",
+      "examples/omega-06-ir-and-wasm/POINTER.md"
     ],
     "code": "note fns.om: plain scalar functions. One source, two targets: AArch64 and WebAssembly\nfn gcd a uint b uint to uint\nwhile ne b 0 bound 64\nt = rem a b\na = b\nb = t\nend\nret a\nend\nfn lcm a uint b uint to uint\nret mul div a gcd a b b\nend\nfn tri n uint to uint\nnote 0 + 1 + ... + (n - 1)\ns = uint 0\nfor i uint n\ns = add s i\nend\nret s\nend\nfn addi a int b int to int\nnote signed add: overflow traps, it never wraps\nret add a b\nend\n",
-    "command": "sh examples/omega-06-ir-and-wasm/run.sh",
+    "command": "Read examples/omega-06-ir-and-wasm/POINTER.md. Recorded host output: examples/omega-06-ir-and-wasm/output.txt.",
     "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. native: fns.om + putnum.om + main.om concatenated into one program\ncompile native rc=0\n21\n42\n45\n5\nrun native rc=101\n== 2. IR: a leading 'ir' line makes omc write OSC IR v1 instead of machine code\ncompile ir rc=0\nIR magic: OSC1\n== 3. the WebAssembly back end is itself an Omega program: compile irwasm.om\ncompile irwasm.om rc=0\nirwasm rc=0\ntwo translations identical: yes\nfns.wasm sha256 3028744939f987532d7b69b272eae804761a2bae0644a83e214dbcf8961935b7\n== 4. run the module (node as a read-only oracle)\nvalid wasm: true\nimports: 0\nexports: gcd lcm tri addi\n21\n42\n45\n5\naddi(2147483647, 1) trapped: true\nnode rc=0\n== 5. negative control: IR mode refuses a global pool\ncompile ir irglobal rc=9\nomc: line 3: error 9\n== 6. negative control: irwasm refuses truncated IR and writes nothing\nirwasm truncated rc=22 stdout bytes=0\nirwasm: TRUNCATED\n== 7. SPIR-V at this pin\nseed/spirv: absent (proposed in an open pull request, not on this commit)\nRESULT PASS\n"
   },
   "common_mistake": "Putting globals, text, arrays or host words in an IR unit (error 9 or 3), or reading a wasm RuntimeError as a specific Omega trap code (wasm does not keep it). Keep IR units scalar and compare with a native run when the code matters. And do not call SPIR-V supported until PR #804 merges and its gate runs.",
