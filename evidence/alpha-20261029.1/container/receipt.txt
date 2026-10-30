@@ -1,0 +1,11 @@
+image ubuntu:24.04 ubuntu@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852 arm64
+host Linux 7.0.0-1019-nvidia aarch64, docker 29.2.1
+dist SHA256SUMS sha256 a525f856696f5155a0a43b63e565e7dc9f73e4f7ebbad5a7e76379e19b836e48
+base image aienos-test-base:alpha-20261029.1 = ubuntu:24.04 + curl openssl ca-certificates + user tester
+PASS install-fake-gb10 rc=0 want=0 changed=14 outside_home=0
+PASS install-real-sysfs rc=0 want=0 changed=51 outside_home=0
+PASS refuse-darwin rc=0 want=0 changed=4 outside_home=0
+PASS refuse-nogpu rc=0 want=0 changed=4 outside_home=0
+PASS tampered rc=1 want=1 changed=4 outside_home=0
+PASS canary (the detector sees a write outside HOME: /usr /usr/local /usr/local/canary)
+AIENOS-CONTAINER pass=6 fail=0

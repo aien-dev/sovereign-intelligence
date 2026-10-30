@@ -1,6 +1,6 @@
 # The stack, walked from the top down
 
-Sovereign Intelligence (SI), built on AienOS, is ten layers. This page walks them from what you
+Sovereign Intelligence (SI), built on AienOS, is eleven layers. This page walks them from what you
 touch down to the silicon: what each layer does, what it talks to below it, where its source is,
 and how far it has really got.
 
@@ -30,10 +30,10 @@ Around it are tools built on the same stack:
 ## 9. Aien
 
 One persistent identity across my machines: the iMac, the Pi, the Spark and the MacBook. Aien
-is the guide you talk to; he speaks through the engine and remembers through Cortex. He used to
-be called Allen, and his repository keeps that name.
+is the guide you talk to; he speaks through the engine and remembers through Cortex. Allen has now
+evolved into the final Aien (2026-10-26).
 
-- **Source:** [allen](https://github.com/aien-dev/allen), AGPL-3.0.
+- **Source:** [aien](https://github.com/aien-dev/aien), AGPL-3.0.
 - **Evidence:** PROPOSED. The programme, acceptance contract and data contracts are written; there
   is no code on `main` yet, and the Aien experience is not in the first release.
 
@@ -94,11 +94,19 @@ driver client over the kernel module's device files, and matmul, attention and M
 - **Evidence:** EXERCISED (33 host test targets, on-chip logs, a zero-CUDA gate). Replacements for
   libcuda, cudart and cuBLAS are partial; cuFFT, cuRAND and NVML are missing.
 
-## 3. Aienux kernel and AienOS
+## 3b. AienOS
+
+AienOS is the operating system around the kernel, with its own home in
+[AienOS-nv](https://github.com/aien-dev/AienOS-nv). SI alpha still runs on the Spark's own Linux today.
+
+- **Yours:** Apache-2.0 WITH LLVM-exception.
+- **Evidence:** EXERCISED: the AienOS alpha installer, engine and wizard in this repo ran on host
+  (33/33 under a read-only root, 6/6 in a container; [evidence/alpha-20261026.2](../evidence/alpha-20261026.2)).
+
+## 3a. Aienux kernel
 
 [Aienux](https://github.com/aien-dev/aienux) is the kernel: boot, scheduling, IPC and capability
-boundaries. AienOS is the operating system around it, with its own home in
-[AienOS-nv](https://github.com/aien-dev/AienOS-nv).
+boundaries.
 
 - **Yours:** Apache-2.0.
 - **Evidence:** EXERCISED in QEMU, on a Pi 5 and on an iMac. The kernel has not booted on the

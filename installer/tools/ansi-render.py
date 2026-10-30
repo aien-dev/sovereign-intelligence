@@ -112,7 +112,8 @@ def hexc(c):
 def as_svg(cells, cw=9, ch=18):
     rows, cols = len(cells), len(cells[0])
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{cols*cw}" height="{rows*ch}" '
-         f'viewBox="0 0 {cols*cw} {rows*ch}" font-family="monospace" font-size="15">',
+         f'viewBox="0 0 {cols*cw} {rows*ch}" font-family="monospace" font-size="15" '
+         f'shape-rendering="crispEdges">',
          f'<rect width="100%" height="100%" fill="#000"/>']
     for r, row in enumerate(cells):
         for c, (t, fg, bg) in enumerate(row):

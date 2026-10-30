@@ -1,0 +1,12 @@
+Black hole redraw: captures of the real Omega wizard, built from this commit's installer/wizard
+sources (concatenated in build.sh ORDER) with the pinned omc befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d.
+
+aienos.om sha256  72262f1d0d87e436a6f5b2084b51cee9838b14064bf1b7074f3cf2d57324a42a
+aienos    sha256  12449d655ac0946014060756e736678a0644d8aee3d2128bc13ae68b4537f797
+tour.ans  sha256  06d68e9facb9f75768f9bc12eca0dc07a96adfc8b182fd9110f038a96640982a  (6443304 bytes, 175 frames)
+
+Run: installer/tools/capture.py BIN tour.ans 100 34 --tour, HOME a scratch home with the release
+tree, AIENOS_PROBE_ROOT a tests/fake-root.sh gb10 tree. Host run in a pty: no GPU, no network.
+Frames rendered with installer/tools/ansi-render.py: wizard-plan = frame 108 (step 3 of 8),
+wizard-welcome = frame 20 (step 1 of 8), each a frame whose label letters are whole and readable.
+The release alpha-20261026.2 still ships the older drawing; this one ships in the next alpha.
