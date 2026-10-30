@@ -44,8 +44,9 @@ In scope:
 - The index generator `index/gen/index.om`, which turns GitHub API data (repository names and
   descriptions) into `index/repos.json` and README text, and the `index-sync` workflow that pushes
   and auto-merges its output.
-- The Learn and Academy check scripts and the six tracked workflows: `verify.yml`, `index.yml`,
-  `index-sync.yml`, `release-verify.yml`, `learn.yml` and `sbom.yml`.
+- The six tracked workflows: `verify.yml`, `index.yml`, `index-sync.yml`, `release-verify.yml`,
+  `learn.yml` and `sbom.yml`. `learn.yml` refuses a new first-party runner under `docs/learn` and
+  `docs/academy`. It does not clone omega-mv and it does not run omc.
 
 Out of scope: the NVIDIA driver, the engine internals, Hugging Face, and the host programs listed
 in `installer/HOST-DEPENDENCIES.md`.

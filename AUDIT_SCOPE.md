@@ -2,7 +2,7 @@
 
 Written for an outside, independent security audit. Revision described: the head of
 `audit/readiness` that contains this file, on top of `main`
-`9a08cec0475e9b9d67ce108fa042d40fde2efaaf`, 2026-10-30. Everything below is taken from the
+`0212894a2739b8ecbf5834d4f68ff9b79d2ae45b`, 2026-10-30. Everything below is taken from the
 repository's own files at that head; items marked NOT_RUN were not executed while writing this
 document.
 
@@ -16,8 +16,9 @@ Mostly documentation plus one installer (Apache 2.0 with LLVM Exceptions):
   and .gitignore.
 - `index/`: `index/gen/index.om` (1,573 lines of Omega) with `index/curated.yml`,
   `index/gen/repos.graphql` and the generated `index/repos.json`.
-- `docs/learn/teach/` (294 files) and `docs/academy/` (208 files): lessons with examples and
-  recorded outputs, and an exam with a selftest. `docs/STACK.md` and `NAMING.md` are prose.
+- `docs/learn/teach/` (291 files) and `docs/academy/` (138 files): lessons with Omega examples
+  and recorded host output, and an exam whose tasks have a written `GRADER.md`. `docs/STACK.md`
+  and `NAMING.md` are prose.
 - `evidence/alpha-20261029.1/`: receipts for the current release. `evidence/alpha-20261026.1/` and
   `evidence/alpha-20261026.2/`: receipts for the previous releases. `evidence/wizard-hole-redraw/`:
   terminal captures of the redrawn wizard screens.
@@ -47,8 +48,12 @@ Mostly documentation plus one installer (Apache 2.0 with LLVM Exceptions):
    Check how text from the GitHub API is escaped into README markdown and JSON.
 4. `installer/tools/sign.sh`: the seed passes through an environment variable of `sh -c` on its way
    to `openssl`; check its exposure.
-5. `docs/learn/teach/check.sh` and `docs/academy/exam/selftest.sh`: clone the repositories in
-   `docs/learn/teach/PINS` and run lesson examples; check what they execute.
+5. `.github/workflows/learn.yml`: on changes under `docs/learn` and `docs/academy`, the job
+   refuses a new first-party runner in those trees (a `.sh`, `.bash`, `.py`, `.js` or `.mjs`
+   file, a shebang, `#include`, or `fn main(`). It does not clone omega-mv, it does not run omc,
+   and it does not grade hardware. Lessons point at Omega sources and recorded output
+   (`docs/learn/teach/examples/*/POINTER.md`). Exam tasks are judged from
+   `docs/academy/exam/tasks/*/GRADER.md`.
 
 ## Trust boundaries
 
@@ -80,10 +85,11 @@ Mostly documentation plus one installer (Apache 2.0 with LLVM Exceptions):
 Pins in `installer/build.sh` and in `verify.yml`, `index.yml`, `index-sync.yml` and
 `release-verify.yml`: omega-mv `bf54b19fa590e8ae925c0e80815516dbf41e7326`, omc sha256
 `62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b`. Those four workflows and
-`build.sh` agree. `learn.yml` does not: it clones omega-mv at the `PINS` commit below and checks
-omc sha256 `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`. `sbom.yml` pins
-neither. `installer/build.sh` also pins the engine to aien-sovereign-core-mv
-`59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3` (re-read at this head). Linux arm64 only.
+`build.sh` agree. `learn.yml` sets no omega-mv pin and no omc pin. It does not clone omega-mv
+and it does not run omc. It walks `docs/learn` and `docs/academy` and fails if a first-party
+runner appears. `sbom.yml` pins neither. `installer/build.sh` also pins the engine to
+aien-sovereign-core-mv `59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3` (re-read at this head). Linux
+arm64 only.
 
 ```sh
 git clone https://github.com/aien-dev/omega-mv && git -C omega-mv checkout bf54b19fa590e8ae925c0e80815516dbf41e7326
@@ -102,11 +108,13 @@ OMC=/path/to/omc DIST=OUT/dist STAGE=OUT/stage sh installer/tests/run.sh
 sh installer/tests/host-untouched.sh
 DIST=OUT/dist sh installer/tests/container.sh RECEIPT_DIR    # needs docker
 ./index-gen check                                            # offline index check
-sh docs/learn/teach/check.sh clone SRC && SRC=SRC sh docs/learn/teach/check.sh
-OMC=SRC/omega-mv/seed/out/omc sh docs/academy/exam/selftest.sh
 ```
 
 `installer/tests/run.sh` needs the signed build output, so it needs the release seed.
+
+`.github/workflows/learn.yml` is the check for `docs/learn` and `docs/academy`. The Python is in
+that workflow. It fails if a `.sh`, `.bash`, `.py`, `.js` or `.mjs` file, a shebang, `#include`,
+or `fn main(` appears under those trees. It does not clone omega-mv and it does not run omc.
 
 ## Known limitations and NOT_RUN
 
@@ -118,9 +126,8 @@ OMC=SRC/omega-mv/seed/out/omc sh docs/academy/exam/selftest.sh
 - The engine branch named above is not `main` of aien-sovereign-core-mv.
 - `installer/tools/capture.py` and `ansi-render.py` are Python, used to record documentation
   screens, not in the install path.
-- The Learn check reads omega-mv at `19f014f2178ca9cd3473728fe00a475a2398c409` from `PINS` and
-  checks omc digest `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`, not the
-  installer pin `62775d2a...`.
+- `learn.yml` does not re-run lesson examples. Recorded output under `docs/learn/teach/examples`
+  is a past host run. The workflow only refuses a new first-party runner.
 
 ## Dependencies and provenance
 
@@ -129,7 +136,9 @@ OMC=SRC/omega-mv/seed/out/omc sh docs/academy/exam/selftest.sh
 - Model: Qwen3.6-35B-A3B-FP8 (README), hashes in `installer/share/model.manifest`.
 - Host tools for `install.sh` and the wizard, with versions seen: `installer/HOST-DEPENDENCIES.md`.
 - `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683` (v4.2.2) in `verify.yml`, `index.yml`,
-  `index-sync.yml`, `release-verify.yml` and `learn.yml`. Those jobs run on `ubuntu-24.04-arm`.
+  `index-sync.yml`, `release-verify.yml` and `learn.yml`. `verify.yml`, `index.yml`,
+  `index-sync.yml` and `release-verify.yml` run on `ubuntu-24.04-arm`. `learn.yml` runs on
+  `ubuntu-24.04`.
 - `sbom.yml` runs on `ubuntu-latest` and pins `actions/checkout@11d5960a326750d5838078e36cf38b85af677262`
   (v4.4.0) and `anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c` (v0.24.3).
 
