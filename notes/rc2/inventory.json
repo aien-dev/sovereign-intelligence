@@ -14,7 +14,7 @@
     "note": "Generated census of aien-dev heads. Not a dependency pin. Heads below were re-read live and disagree with the census."
   },
   "live_mains": {
-    "omega-mv": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+    "omega-mv": "089e5b05350ee61cc1439f17d3d3052a18a3e0a5",
     "aien-sovereign-core-mv": "6c4fa26e3104f84127be602f261ba3de13d304fe",
     "CUDApp": "78fea51d6f8859ec8cc5e5561295fd5583b92c19",
     "aienux": "a525c405ea47e3fe91c19602a6bef6753599d726",
@@ -85,7 +85,7 @@
         "target": "omega-mv",
         "pin": "a647b6a9821fffcf52ba9ce813f75afa4b84be62",
         "status": "ahead",
-        "main_ahead": 217,
+        "main_ahead": 218,
         "pin_only": 0
       },
       {
@@ -93,7 +93,7 @@
         "target": "omega-mv",
         "pin": "362c9ab50c8ecc3012dd2e3ac20329865ba80982",
         "status": "ahead",
-        "main_ahead": 847,
+        "main_ahead": 848,
         "pin_only": 0
       },
       {
@@ -101,7 +101,7 @@
         "target": "omega-mv",
         "pin": "bf54b19fa590e8ae925c0e80815516dbf41e7326",
         "status": "ahead",
-        "main_ahead": 5,
+        "main_ahead": 6,
         "pin_only": 0
       },
       {
@@ -126,7 +126,7 @@
         "target": "omega-mv",
         "pin": "6de999da86efc6edd9c2554a87ee31f7fa9215ac",
         "status": "ahead",
-        "main_ahead": 443,
+        "main_ahead": 444,
         "pin_only": 0
       },
       {
@@ -134,7 +134,7 @@
         "target": "omega-mv",
         "pin": "84d03c5523f39ca1045d1c313c5f62597779462b",
         "status": "diverged",
-        "main_ahead": 529,
+        "main_ahead": 530,
         "pin_only": 1
       },
       {
@@ -142,7 +142,7 @@
         "target": "omega-mv",
         "pin": "e5b32567a7aff3ce594e3254a622a846a6cd190b",
         "status": "ahead",
-        "main_ahead": 34,
+        "main_ahead": 35,
         "pin_only": 0
       },
       {
@@ -206,7 +206,7 @@
         "target": "omega-mv",
         "pin": "f4a9849fb127f8d2d664dfc56890752ad180c507",
         "status": "ahead",
-        "main_ahead": 532,
+        "main_ahead": 533,
         "pin_only": 0
       },
       {
@@ -388,7 +388,7 @@
       "id": "omega-physics-lock",
       "via": "github",
       "repo": "omega-mv",
-      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "sha": "089e5b05350ee61cc1439f17d3d3052a18a3e0a5",
       "path": "physics.lock",
       "parse": "first-sha",
       "pin": "048e5f5e881b092733baaf65d0ace46abda7f908",
@@ -398,7 +398,7 @@
       "id": "omega-aienos-lock",
       "via": "github",
       "repo": "omega-mv",
-      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "sha": "089e5b05350ee61cc1439f17d3d3052a18a3e0a5",
       "path": "aienos.lock",
       "parse": "first-sha",
       "pin": "b84c0a67590a934f3f3e001b12ec85ebc086a9eb",
@@ -408,7 +408,7 @@
       "id": "omega-argus-lock",
       "via": "github",
       "repo": "omega-mv",
-      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "sha": "089e5b05350ee61cc1439f17d3d3052a18a3e0a5",
       "path": "argus.lock",
       "parse": "first-sha",
       "pin": "b375dcaa2887d53cda407d773c2e4e489a0b1365",
@@ -418,7 +418,7 @@
       "id": "omega-crumb-lock",
       "via": "github",
       "repo": "omega-mv",
-      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "sha": "089e5b05350ee61cc1439f17d3d3052a18a3e0a5",
       "path": "crumb.lock",
       "parse": "first-sha",
       "pin": "d0f0b95d344b4c6628c3d868346932fd247ce168",
@@ -428,7 +428,7 @@
       "id": "omega-no-cudapp-lock",
       "parse": "absent",
       "repo": "omega-mv",
-      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "sha": "089e5b05350ee61cc1439f17d3d3052a18a3e0a5",
       "path": "cudapp.lock"
     },
     {
@@ -728,7 +728,7 @@
       "id": "omega-omc-at-main",
       "via": "github",
       "repo": "omega-mv",
-      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "sha": "089e5b05350ee61cc1439f17d3d3052a18a3e0a5",
       "path": "seed/out/omc",
       "parse": "file-sha256",
       "pin": "62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b"
