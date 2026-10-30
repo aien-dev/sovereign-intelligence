@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="900" viewBox="0 0 960 900" role="img" aria-labelledby="t d">
 <title id="t">Sovereign Intelligence: the stack, from the silicon up</title>
-<desc id="d">Ten layers from GB10 silicon and NVIDIA signed firmware at the bottom to apps at the top, each with its license and evidence level.</desc>
+<desc id="d">Eleven layers from GB10 silicon and NVIDIA signed firmware at the bottom to apps at the top, each with its license and evidence level.</desc>
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1020"/><stop offset="1" stop-color="#05070d"/></linearGradient>
 <radialGradient id="glow" cx="0.5" cy="0" r="0.8"><stop offset="0" stop-color="#7c3aed" stop-opacity="0.35"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
@@ -63,9 +63,9 @@
 <rect x="40" y="580" width="6" height="56" rx="3" fill="#2dd4bf"/>
 <text x="64" y="604" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">AienOS</text>
 <text x="64" y="623" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#94a3b8">Operating system around the kernel; SI alpha runs on DGX OS today</text>
-<text x="760" y="613" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#2dd4bf">yours: Apache-2.0</text>
-<rect x="792" y="596" width="112" height="24" rx="12" fill="#1f2937"/>
-<text x="848.0" y="612" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#9ca3af">n/a</text>
+<text x="760" y="613" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#2dd4bf">yours: Apache-2.0 WITH LLVM-exception</text>
+<rect x="792" y="596" width="112" height="24" rx="12" fill="#064e3b"/>
+<text x="848.0" y="612" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="0.8" fill="#6ee7b7">EXERCISED</text>
 <rect x="40" y="646" width="880" height="56" rx="12" fill="#111827" fill-opacity="0.85" stroke="#2dd4bf" stroke-opacity="0.35"/>
 <rect x="40" y="646" width="6" height="56" rx="3" fill="#2dd4bf"/>
 <text x="64" y="670" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#f1f5f9">Aienux kernel</text>

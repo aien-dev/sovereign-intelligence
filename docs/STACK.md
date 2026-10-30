@@ -1,6 +1,6 @@
 # The stack, walked from the top down
 
-Sovereign Intelligence (SI), built on AienOS, is ten layers. This page walks them from what you
+Sovereign Intelligence (SI), built on AienOS, is eleven layers. This page walks them from what you
 touch down to the silicon: what each layer does, what it talks to below it, where its source is,
 and how far it has really got.
 
@@ -100,7 +100,8 @@ AienOS is the operating system around the kernel, with its own home in
 [AienOS-nv](https://github.com/aien-dev/AienOS-nv). SI alpha still runs on the Spark's own Linux today.
 
 - **Yours:** Apache-2.0 WITH LLVM-exception.
-- **Evidence:** n/a.
+- **Evidence:** EXERCISED: the AienOS alpha installer, engine and wizard in this repo ran on host
+  (33/33 under a read-only root, 6/6 in a container; [evidence/alpha-20261026.2](../evidence/alpha-20261026.2)).
 
 ## 3a. Aienux kernel
 
