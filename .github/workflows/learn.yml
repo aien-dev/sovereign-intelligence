@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     env:
-      OMC_PIN: 62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
+      OMC_PIN: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
