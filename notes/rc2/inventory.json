@@ -1,0 +1,918 @@
+{
+  "schema": "si-rc2-dependency-inventory/1",
+  "role": "Preparation inventory for DRA-24 M1. Not a freeze. Not a release manifest. No RC-1 pass is carried.",
+  "observed_at": "2026-10-30T12:10:26Z",
+  "observer": "GitHub contents and compare APIs via gh, plus git show of sovereign-intelligence 48f857c (README-only descendant of 9a08cec; pin files are the same blobs). No pushes to other aien-dev repositories.",
+  "si_main": {
+    "repo": "aien-dev/sovereign-intelligence",
+    "sha": "48f857c1966ba26cef28b4649f82bd94c0a86588"
+  },
+  "index": {
+    "path": "index/repos.json",
+    "sha": "48f857c1966ba26cef28b4649f82bd94c0a86588",
+    "sha256": "f2bb7a1a08f23fd6d9eb88a49ac5cb8a5ac03ba7f137f1031b7baf5551020fab",
+    "note": "Generated census of aien-dev heads. Not a dependency pin. Heads below were re-read live and disagree with the census."
+  },
+  "live_mains": {
+    "omega-mv": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+    "aien-sovereign-core-mv": "6c4fa26e3104f84127be602f261ba3de13d304fe",
+    "CUDApp": "78fea51d6f8859ec8cc5e5561295fd5583b92c19",
+    "aienux": "a525c405ea47e3fe91c19602a6bef6753599d726",
+    "synapse": "b1870353077b645b294e4476b9c8f04f49de91a5",
+    "physics-mv": "bbd3d2fbb11c8dc0ec09d5a38351c74a8e931c50",
+    "aien-protocols-mv": "cc7a310f8b57bb69dcd897ff861466b34d403a26",
+    "omega-bridge": "1958a1895279c0d4869bab39eaa20f070b174a6c",
+    "aien-architecture-mv": "0dcaa29d540a9c70aab2c9a68f84b5ae201adf2c",
+    "aienix": "a195a4972c8ccf6affadb81c65be0f9f46c18c0e",
+    "sovereign-intelligence": "48f857c1966ba26cef28b4649f82bd94c0a86588",
+    "crumb-spec-mv": "e2dc22ea78df7d12d2ca5f2e74e3b3f064a16c9b",
+    "spark-crumbs-mv": "156633e1af13fe4f9819db0064534dd7cf9ae8fb",
+    "interplane-mv": "68c00986b4bbb9e91a0a1efb11973c9253ecb0b6"
+  },
+  "drift_snapshot": {
+    "method": "GitHub compare pin...main. main_ahead is commits on main that are not in the pin. pin_only is commits reachable from the pin that are not in main. Snapshot only; verify_inventory.py does not re-check these counts.",
+    "rows": [
+      {
+        "id": "omega-physics-lock",
+        "target": "physics-mv",
+        "pin": "048e5f5e881b092733baaf65d0ace46abda7f908",
+        "status": "ahead",
+        "main_ahead": 15,
+        "pin_only": 0
+      },
+      {
+        "id": "omega-aienos-lock",
+        "target": "aienux",
+        "pin": "b84c0a67590a934f3f3e001b12ec85ebc086a9eb",
+        "status": "ahead",
+        "main_ahead": 212,
+        "pin_only": 0
+      },
+      {
+        "id": "omega-argus-lock",
+        "target": "aienux",
+        "pin": "b375dcaa2887d53cda407d773c2e4e489a0b1365",
+        "status": "ahead",
+        "main_ahead": 425,
+        "pin_only": 0
+      },
+      {
+        "id": "omega-and-aienux-crumb",
+        "target": "aien-architecture-mv",
+        "pin": "d0f0b95d344b4c6628c3d868346932fd247ce168",
+        "status": "ahead",
+        "main_ahead": 211,
+        "pin_only": 0
+      },
+      {
+        "id": "core-crumb-lock",
+        "target": "aien-architecture-mv",
+        "pin": "94fffbcf88492c5a1c54211b5126c8a6c370a98d",
+        "status": "ahead",
+        "main_ahead": 132,
+        "pin_only": 0
+      },
+      {
+        "id": "physics-and-synapse-crumb",
+        "target": "aien-architecture-mv",
+        "pin": "12ad0141b41ec67ef5aa51cb4e1815894c1083bb",
+        "status": "ahead",
+        "main_ahead": 92,
+        "pin_only": 0
+      },
+      {
+        "id": "core-omega-lock",
+        "target": "omega-mv",
+        "pin": "a647b6a9821fffcf52ba9ce813f75afa4b84be62",
+        "status": "ahead",
+        "main_ahead": 217,
+        "pin_only": 0
+      },
+      {
+        "id": "aienux-omega-lock",
+        "target": "omega-mv",
+        "pin": "362c9ab50c8ecc3012dd2e3ac20329865ba80982",
+        "status": "ahead",
+        "main_ahead": 847,
+        "pin_only": 0
+      },
+      {
+        "id": "si-omega-rev",
+        "target": "omega-mv",
+        "pin": "bf54b19fa590e8ae925c0e80815516dbf41e7326",
+        "status": "ahead",
+        "main_ahead": 5,
+        "pin_only": 0
+      },
+      {
+        "id": "si-core-rev",
+        "target": "aien-sovereign-core-mv",
+        "pin": "59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3",
+        "status": "ahead",
+        "main_ahead": 329,
+        "pin_only": 0
+      },
+      {
+        "id": "si-core-branch-head",
+        "target": "aien-sovereign-core-mv",
+        "pin": "f6155f9f6f71f4b346e2683e995fcae32ff68dcd",
+        "note": "ship/motor-l387 head, not the SI pin",
+        "status": "ahead",
+        "main_ahead": 312,
+        "pin_only": 0
+      },
+      {
+        "id": "si-libomega-source",
+        "target": "omega-mv",
+        "pin": "6de999da86efc6edd9c2554a87ee31f7fa9215ac",
+        "status": "ahead",
+        "main_ahead": 443,
+        "pin_only": 0
+      },
+      {
+        "id": "cudapp-omega653",
+        "target": "omega-mv",
+        "pin": "84d03c5523f39ca1045d1c313c5f62597779462b",
+        "status": "diverged",
+        "main_ahead": 529,
+        "pin_only": 1
+      },
+      {
+        "id": "cudapp-moe-compiler",
+        "target": "omega-mv",
+        "pin": "e5b32567a7aff3ce594e3254a622a846a6cd190b",
+        "status": "ahead",
+        "main_ahead": 34,
+        "pin_only": 0
+      },
+      {
+        "id": "cudapp-omega-bridge",
+        "target": "omega-bridge",
+        "pin": "0c4cb9ff980af278890b231b994eaede4dc7621c",
+        "status": "ahead",
+        "main_ahead": 5,
+        "pin_only": 0
+      },
+      {
+        "id": "cudapp-base",
+        "target": "CUDApp",
+        "pin": "b759afc3f5e46f152ffb06b39882ffa28cacaf96",
+        "status": "ahead",
+        "main_ahead": 94,
+        "pin_only": 0
+      },
+      {
+        "id": "core-cargo-protocols-old-name",
+        "target": "aien-protocols-mv",
+        "pin": "7ac6facb630ca7e9a6ab4125b292203fe2bb6687",
+        "status": "ahead",
+        "main_ahead": 72,
+        "pin_only": 0
+      },
+      {
+        "id": "core-cargo-protocols-mv",
+        "target": "aien-protocols-mv",
+        "pin": "28bc49ec57a89398fcb463cf71c0add7fcd2ef6c",
+        "status": "ahead",
+        "main_ahead": 14,
+        "pin_only": 0
+      },
+      {
+        "id": "core-cargo-crumb-spec",
+        "target": "crumb-spec-mv",
+        "pin": "24194d1b7917ef19244aae6bcaff510686b75fef",
+        "status": "ahead",
+        "main_ahead": 4,
+        "pin_only": 0
+      },
+      {
+        "id": "core-cargo-spark-crumbs",
+        "target": "spark-crumbs-mv",
+        "pin": "9355a92bc9adfe95a6ec5f8ac926f38a0b6e7db2",
+        "status": "ahead",
+        "main_ahead": 4,
+        "pin_only": 0
+      },
+      {
+        "id": "aienix-aienux",
+        "target": "aienux",
+        "pin": "17ad0167eac91edc280472020679a11969a78609",
+        "status": "ahead",
+        "main_ahead": 78,
+        "pin_only": 0
+      },
+      {
+        "id": "aienix-omega",
+        "target": "omega-mv",
+        "pin": "f4a9849fb127f8d2d664dfc56890752ad180c507",
+        "status": "ahead",
+        "main_ahead": 532,
+        "pin_only": 0
+      },
+      {
+        "id": "aienix-sovereign-core",
+        "target": "aien-sovereign-core-mv",
+        "pin": "12e71aad80fda23a428317d11b0dac02d1c777f1",
+        "status": "ahead",
+        "main_ahead": 439,
+        "pin_only": 0
+      },
+      {
+        "id": "aienix-architecture",
+        "target": "aien-architecture-mv",
+        "pin": "6142a352d3e6fe324ed757a44519e9b0142aa48d",
+        "status": "ahead",
+        "main_ahead": 97,
+        "pin_only": 0
+      },
+      {
+        "id": "aienix-protocols",
+        "target": "aien-protocols-mv",
+        "pin": "4b76f7f1f4c2d1359a3b71709a1345d7c9d5e606",
+        "status": "ahead",
+        "main_ahead": 46,
+        "pin_only": 0
+      },
+      {
+        "id": "aienix-physics",
+        "target": "physics-mv",
+        "pin": "2043924224b9ecffd79de2c37b2fe7a3a5396e0c",
+        "status": "ahead",
+        "main_ahead": 35,
+        "pin_only": 0
+      }
+    ]
+  },
+  "rc1_historical": {
+    "status": "NOT_CARRIED",
+    "source": "aien-architecture-mv CURRENT_EXECUTION_PLAN.md at 0dcaa29d540a9c70aab2c9a68f84b5ae201adf2c, section 'Release candidate RC-1 (native v1), pinned 2026-10-12'",
+    "pins": {
+      "aienux": "4958cbdff2e16a71cee33eb3c6f5cd90a937f781",
+      "omega-mv": "4d0bb369c25500634c53a8bfacd1ee1af9dab7b7",
+      "physics-mv": "57aafa0d69d5d768e46164ff0963ffd87355ab0d",
+      "aien-sovereign-core-mv": "35e2910ee28db4e73982e6a1c9f884eb02de334f",
+      "aien-architecture-mv": "0ac89dfacad7956ea656f99525407a7af441f204"
+    },
+    "note": "Recorded so it is not mistaken for the current locks. No RC-1 gate, build, or receipt is reused as a pass."
+  },
+  "in_flight_prs": [
+    {
+      "repo": "omega-mv",
+      "number": 579,
+      "head": "5be22e571a9744b1f47a767bbdd92949e4150dc4",
+      "draft": false,
+      "mergeable": null,
+      "changes": "physics.lock to aecb9d35, which is 15 commits behind the lock on main"
+    },
+    {
+      "repo": "omega-mv",
+      "number": 926,
+      "head": "9ab1e7bb15037a2d1fd69eb9f2d4004882bcf3ae",
+      "draft": true,
+      "mergeable": false,
+      "changes": "adds cudapp.lock 685f6c38; main has no cudapp.lock"
+    },
+    {
+      "repo": "omega-mv",
+      "number": 924,
+      "head": "3303dd79b3c3096a773b51d09316c01330e3f9f2",
+      "draft": true,
+      "mergeable": false,
+      "changes": "adds cudapp.lock 7a354dbd; main has no cudapp.lock"
+    },
+    {
+      "repo": "aien-sovereign-core-mv",
+      "number": 784,
+      "head": "5ce28e1a67f96fa6868a6448d2a6d0af801c4402",
+      "draft": true,
+      "mergeable": false,
+      "changes": "adds cudapp.lock c30c0be6; omega.lock stays a647b6a9; native-artifacts.lock header comment only"
+    },
+    {
+      "repo": "aien-sovereign-core-mv",
+      "number": 798,
+      "head": "d9217f092a398768ca558f3a09adea1985416913",
+      "draft": true,
+      "mergeable": false,
+      "changes": "omega.lock becomes 3303dd79 (omega #924 head) and appends libcudapp.a records; Cargo.lock drops the aien-protocols-mv 28bc49ec revisions and keeps 7ac6facb"
+    },
+    {
+      "repo": "aien-sovereign-core-mv",
+      "number": 799,
+      "head": "034d04772f068063e801b63812a2903152c568a2",
+      "draft": true,
+      "mergeable": false,
+      "changes": "omega.lock becomes 9ab1e7bb (omega #926 head) and appends libcudapp.a records"
+    },
+    {
+      "repo": "aien-sovereign-core-mv",
+      "number": 796,
+      "head": "724625a69a214ea09761997292a9919e4dc1d2eb",
+      "draft": true,
+      "mergeable": false,
+      "changes": "native-artifacts.lock header comment only; digest lines unchanged"
+    },
+    {
+      "repo": "aien-sovereign-core-mv",
+      "number": 808,
+      "head": "3f7aa036368e8f062feaa6133e4c7627abf32f73",
+      "draft": false,
+      "mergeable": true,
+      "changes": "benchmarks/Cargo.lock rustls 0.23.45 to 0.23.46"
+    },
+    {
+      "repo": "aien-sovereign-core-mv",
+      "number": 810,
+      "head": "758a6e2519ad88aa5f8aed6a01ca9cee3d8acc5d",
+      "draft": false,
+      "mergeable": false,
+      "changes": "no omega.lock change (still a647b6a9); kv-store tests; conflicted"
+    }
+  ],
+  "not_frozen": [
+    {
+      "item": "image",
+      "status": "NOT_PINNED",
+      "why": "No current lock records a boot or release image digest. CAND-4 executable digests are a different historical candidate."
+    },
+    {
+      "item": "model weights",
+      "status": "NOT_FROZEN",
+      "why": "installer/share/model.manifest at 48f857c lists Qwen/Qwen3.6-35B-A3B-FP8 revision 95a723d0 and per-file sha256. That is the alpha installer input list, not an RC-2 candidate freeze. RC-1 did not pin this model."
+    },
+    {
+      "item": "tokenizer and template",
+      "status": "NOT_FROZEN",
+      "why": "tokenizer.json and chat_template.jinja hashes are lines in that same alpha manifest. No candidate pins them. Core #790 (template pin) is an open draft and is not on main."
+    },
+    {
+      "item": "config",
+      "status": "NOT_FROZEN",
+      "why": "config.json's sha256 is a line in the alpha manifest. Serving flags in the wizard are source text, not a locked config identity."
+    },
+    {
+      "item": "numerical policy",
+      "status": "NOT_PINNED",
+      "why": "No lock pins a numerical or resource policy. Context, batch slots and memory notes in the alpha release text are not a frozen policy."
+    },
+    {
+      "item": "operator public keys",
+      "status": "NOT_PINNED",
+      "why": "keys/release.pub is the alpha bundle signing key. No operator-authority public key is pinned for an RC-2 candidate."
+    },
+    {
+      "item": "firmware profile",
+      "status": "NOT_PINNED",
+      "why": "install.sh names kernel driver 580.173.02. CUDApp and physics vendor the same nvidia-open-580.173.02 header SHA256SUMS. Neither is a GSP firmware profile or a signed firmware blob pin."
+    },
+    {
+      "item": "acceptance contracts",
+      "status": "NOT_PINNED",
+      "why": "No RC-2 acceptance contract is pinned. E1-E6 and N1-N7 remain the historical program in aien-architecture-mv#190. Crumb and protocol crate revisions in Cargo.lock are library pins, not those contracts."
+    },
+    {
+      "item": "negative fixtures",
+      "status": "NOT_PINNED",
+      "why": "No lock pins a negative-control fixture set to a candidate."
+    }
+  ],
+  "not_run": [
+    "gate suites",
+    "double build and reproducible build",
+    "independent review",
+    "the freeze",
+    "manifest commit to aien-architecture-mv#190"
+  ],
+  "verifications": [
+    {
+      "id": "omega-physics-lock",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "path": "physics.lock",
+      "parse": "first-sha",
+      "pin": "048e5f5e881b092733baaf65d0ace46abda7f908",
+      "sha256": "d38a63cfc8f76b2f5a63b03564be9587ce698f48267d73da2326c355393900d1"
+    },
+    {
+      "id": "omega-aienos-lock",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "path": "aienos.lock",
+      "parse": "first-sha",
+      "pin": "b84c0a67590a934f3f3e001b12ec85ebc086a9eb",
+      "sha256": "7e5937f4fa8026daaa0320d873df882e3e250265e6d956b71d8d91248afd980e"
+    },
+    {
+      "id": "omega-argus-lock",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "path": "argus.lock",
+      "parse": "first-sha",
+      "pin": "b375dcaa2887d53cda407d773c2e4e489a0b1365",
+      "sha256": "184f805eab654d8cd44f3224901fc9c4807f42eb9fc329eb34e51c9b0ecf13ec"
+    },
+    {
+      "id": "omega-crumb-lock",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "path": "crumb.lock",
+      "parse": "first-sha",
+      "pin": "d0f0b95d344b4c6628c3d868346932fd247ce168",
+      "sha256": "ae8e15fbe41ddc7e5bd2c0d7c778a28af7f366a659b36303ba53a7998ef8d9d7"
+    },
+    {
+      "id": "omega-no-cudapp-lock",
+      "parse": "absent",
+      "repo": "omega-mv",
+      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "path": "cudapp.lock"
+    },
+    {
+      "id": "core-omega-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "6c4fa26e3104f84127be602f261ba3de13d304fe",
+      "path": "omega.lock",
+      "parse": "first-sha",
+      "pin": "a647b6a9821fffcf52ba9ce813f75afa4b84be62",
+      "sha256": "3be762e4f147fe3e73c37aee8a597d06538089133e23ed69474e6bcb4ca48865"
+    },
+    {
+      "id": "core-crumb-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "6c4fa26e3104f84127be602f261ba3de13d304fe",
+      "path": "crumb.lock",
+      "parse": "first-sha",
+      "pin": "94fffbcf88492c5a1c54211b5126c8a6c370a98d",
+      "sha256": "dd16abca46a77d5818c5f28675483519f3dafd8fb2191d1b09bf06b9cf674610"
+    },
+    {
+      "id": "core-native-artifacts-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "6c4fa26e3104f84127be602f261ba3de13d304fe",
+      "path": "native-artifacts.lock",
+      "parse": "contains",
+      "pin": [
+        "libomega_gpu.a a647b6a9821fffcf52ba9ce813f75afa4b84be62 aarch64-unknown-linux-gnu 036b7491d85a2d0781360c194402f345ad2f63720dab1b8f6d0cbc5c09f87d3e"
+      ],
+      "sha256": "40c6babb9f1c3feb8d9fa3a7b30f4439778ed46b2456703e52449ff7aa4a9156"
+    },
+    {
+      "id": "core-rust-toolchain",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "6c4fa26e3104f84127be602f261ba3de13d304fe",
+      "path": "rust-toolchain.toml",
+      "parse": "contains",
+      "pin": [
+        "channel = \"1.98.1\""
+      ],
+      "sha256": "887f9be066a15585a2c583578e84b0fcb541126d81546276bad3d2ff00d61167"
+    },
+    {
+      "id": "core-cargo-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "6c4fa26e3104f84127be602f261ba3de13d304fe",
+      "path": "Cargo.lock",
+      "parse": "cargo-git",
+      "pin": [
+        {
+          "name": "aien-evaluation-protocol",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "aien-probe",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "aien-protocol-types",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols-mv?rev=28bc49ec57a89398fcb463cf71c0add7fcd2ef6c#28bc49ec57a89398fcb463cf71c0add7fcd2ef6c"
+        },
+        {
+          "name": "aien-protocol-types",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "aien-provenance",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols-mv?rev=28bc49ec57a89398fcb463cf71c0add7fcd2ef6c#28bc49ec57a89398fcb463cf71c0add7fcd2ef6c"
+        },
+        {
+          "name": "aien-provenance",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "crumb-spec",
+          "version": "1.0.0",
+          "source": "git+https://github.com/aien-dev/crumb-spec?rev=24194d1b7917ef19244aae6bcaff510686b75fef#24194d1b7917ef19244aae6bcaff510686b75fef"
+        },
+        {
+          "name": "spark-crumbs",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/spark-crumbs?rev=9355a92bc9adfe95a6ec5f8ac926f38a0b6e7db2#9355a92bc9adfe95a6ec5f8ac926f38a0b6e7db2"
+        }
+      ],
+      "sha256": "4b1dddddd216bb5cff44d49bb753376d09e142eccb22ce8aff96ad0ae03c1f82"
+    },
+    {
+      "id": "core-benchmarks-cargo-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "6c4fa26e3104f84127be602f261ba3de13d304fe",
+      "path": "benchmarks/Cargo.lock",
+      "parse": "rustls",
+      "pin": "0.23.45",
+      "sha256": "4af72ff89e80e7a5b495ae1d668fa9a65b0ba9bf6cc7ccb6bc4498a05be69273"
+    },
+    {
+      "id": "aienux-omega-lock",
+      "via": "github",
+      "repo": "aienux",
+      "sha": "a525c405ea47e3fe91c19602a6bef6753599d726",
+      "path": "omega.lock",
+      "parse": "aienux-omega",
+      "pin": {
+        "commit": "362c9ab50c8ecc3012dd2e3ac20329865ba80982",
+        "files": [
+          {
+            "sha256": "999ca9c0b35831779b215d816f49ddc8e85761efde057382322c00ba949d1ff9",
+            "dest": "native/kernel/third_party/omega/rx_cortex.c",
+            "src": "src/runtime/rx_cortex.c"
+          },
+          {
+            "sha256": "4ab6d9883609b5b529a040d9977e1de11e5dbb6d022ce9256d7adf5a6bec6ba9",
+            "dest": "native/kernel/third_party/omega/rx_cortex.h",
+            "src": "src/runtime/rx_cortex.h"
+          }
+        ]
+      },
+      "sha256": "3c87de9887bf3110c7b6de259d145740abe5dbe8b6f1f052a041cac64fde301a"
+    },
+    {
+      "id": "aienux-crumb-lock",
+      "via": "github",
+      "repo": "aienux",
+      "sha": "a525c405ea47e3fe91c19602a6bef6753599d726",
+      "path": "crumb.lock",
+      "parse": "first-sha",
+      "pin": "d0f0b95d344b4c6628c3d868346932fd247ce168",
+      "sha256": "ae8e15fbe41ddc7e5bd2c0d7c778a28af7f366a659b36303ba53a7998ef8d9d7"
+    },
+    {
+      "id": "aienux-cargo-lock",
+      "via": "github",
+      "repo": "aienux",
+      "sha": "a525c405ea47e3fe91c19602a6bef6753599d726",
+      "path": "Cargo.lock",
+      "parse": "cargo-git",
+      "pin": [],
+      "sha256": "249e5c7bd2e9f0278f5fb9285b2a0a2380dbb1f9e9494f4b34a93c1eb2c594ae"
+    },
+    {
+      "id": "aienux-vendor-tree",
+      "parse": "tree-entry",
+      "repo": "aienux",
+      "sha": "a525c405ea47e3fe91c19602a6bef6753599d726",
+      "path": "vendor",
+      "mode": "040000",
+      "pin": "4a77c9f42f146fbe5fbea40ae2bba6aaa6a62bbd"
+    },
+    {
+      "id": "synapse-crumb-lock",
+      "via": "github",
+      "repo": "synapse",
+      "sha": "b1870353077b645b294e4476b9c8f04f49de91a5",
+      "path": "crumb.lock",
+      "parse": "first-sha",
+      "pin": "12ad0141b41ec67ef5aa51cb4e1815894c1083bb",
+      "sha256": "e4e896408a516b31596f433dc4bf86017465e405baa4780fb56103efed2fceb9"
+    },
+    {
+      "id": "synapse-cargo-lock",
+      "via": "github",
+      "repo": "synapse",
+      "sha": "b1870353077b645b294e4476b9c8f04f49de91a5",
+      "path": "Cargo.lock",
+      "parse": "cargo-git",
+      "pin": [],
+      "sha256": "229e860cd7b974553698998e7c52f93aea87db5d0a1d0d01b410cc2d084ec1cc"
+    },
+    {
+      "id": "physics-crumb-lock",
+      "via": "github",
+      "repo": "physics-mv",
+      "sha": "bbd3d2fbb11c8dc0ec09d5a38351c74a8e931c50",
+      "path": "crumb.lock",
+      "parse": "first-sha",
+      "pin": "12ad0141b41ec67ef5aa51cb4e1815894c1083bb",
+      "sha256": "e4e896408a516b31596f433dc4bf86017465e405baa4780fb56103efed2fceb9"
+    },
+    {
+      "id": "physics-nvidia-sha256sums",
+      "via": "github",
+      "repo": "physics-mv",
+      "sha": "bbd3d2fbb11c8dc0ec09d5a38351c74a8e931c50",
+      "path": "third_party/nvidia-open-580.173.02/SHA256SUMS",
+      "parse": "file-sha256",
+      "pin": "964f7d2e73c34dee1dab1c0b1e8c97480f77df8db0c0311e3293b53194b8bc32"
+    },
+    {
+      "id": "cudapp-dependencies-lock",
+      "via": "github",
+      "repo": "CUDApp",
+      "sha": "78fea51d6f8859ec8cc5e5561295fd5583b92c19",
+      "path": "om/pipeline/dependencies.lock",
+      "parse": "json-fields",
+      "pin": {
+        "schema": "pipeline57-source-dependencies/1",
+        "base": "b759afc3f5e46f152ffb06b39882ffa28cacaf96",
+        "compiler_sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f",
+        "dependencies.0.commit": "fe25929ce71b11703eafa72395df2dd495aa61f2",
+        "dependencies.0.path": "om/quant/quant.om",
+        "dependencies.0.sha256": "44bce96f3c274401e19a71b835814d69caf2bea8c2b1f4f43616c7c121232f09",
+        "dependencies.1.commit": "2e93f998b70852abcd425f8865d842a05dad76ea",
+        "dependencies.1.path": "om/components/realize.om",
+        "dependencies.2.commit": "693464cfcff678a9278fe4586f8a24b07ce45fb2",
+        "dependencies.2.path": "om/cache/digest.om",
+        "dependencies.3.commit": "693464cfcff678a9278fe4586f8a24b07ce45fb2",
+        "dependencies.3.path": "om/cache/residency.om",
+        "dependencies.4.commit": "2e93f998b70852abcd425f8865d842a05dad76ea",
+        "dependencies.4.path": "om/components/fixture.om"
+      },
+      "sha256": "6042ad8b8c764c1e07adc8175fe4cf704cadf02dbef42f6569bba52a71e64633"
+    },
+    {
+      "id": "cudapp-omega-bridge-lock",
+      "via": "github",
+      "repo": "CUDApp",
+      "sha": "78fea51d6f8859ec8cc5e5561295fd5583b92c19",
+      "path": "om/omega-bridge.lock",
+      "parse": "first-sha",
+      "pin": "0c4cb9ff980af278890b231b994eaede4dc7621c",
+      "sha256": "b6acd1ca0f7ddd3b44b9a7461eebfd89c7932667acb8f812663eb6630d829c27"
+    },
+    {
+      "id": "cudapp-omega653-lock",
+      "via": "github",
+      "repo": "CUDApp",
+      "sha": "78fea51d6f8859ec8cc5e5561295fd5583b92c19",
+      "path": "native/learn53/omega653.lock",
+      "parse": "json-fields",
+      "pin": {
+        "repository": "https://github.com/aien-dev/omega-mv.git",
+        "revision": "84d03c5523f39ca1045d1c313c5f62597779462b",
+        "sha256": "a5a2e74c815f9ca6a90dbdfbfc7ecc343f0362c824064f2058e9d1d7c119c40c"
+      },
+      "sha256": "7e2dc1cb6fdba685f6f5b8ff9cef1f94a543d6c4e57814bb3f9af3a240f158d7"
+    },
+    {
+      "id": "cudapp-moe-closure-lock",
+      "via": "github",
+      "repo": "CUDApp",
+      "sha": "78fea51d6f8859ec8cc5e5561295fd5583b92c19",
+      "path": "native/learn53/moe-closure.lock",
+      "parse": "json-fields",
+      "pin": {
+        "baseline": "b759afc3f5e46f152ffb06b39882ffa28cacaf96",
+        "compiler.revision": "e5b32567a7aff3ce594e3254a622a846a6cd190b",
+        "compiler.sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f",
+        "sources.0.revision": "fe25929ce71b11703eafa72395df2dd495aa61f2",
+        "sources.1.revision": "2e93f998b70852abcd425f8865d842a05dad76ea",
+        "sources.2.revision": "693464cfcff678a9278fe4586f8a24b07ce45fb2",
+        "sources.3.revision": "966213fe14e37f39c94e4b57f140b19dd78af210",
+        "sources.4.revision": "966213fe14e37f39c94e4b57f140b19dd78af210"
+      },
+      "sha256": "3b6db1cf0702276fb5a614326a13b4f96d0e22a6a20bd7748c7c689ec0075cc6"
+    },
+    {
+      "id": "cudapp-nvidia-sha256sums",
+      "via": "github",
+      "repo": "CUDApp",
+      "sha": "78fea51d6f8859ec8cc5e5561295fd5583b92c19",
+      "path": "third_party/nvidia-open-580.173.02/SHA256SUMS",
+      "parse": "file-sha256",
+      "pin": "964f7d2e73c34dee1dab1c0b1e8c97480f77df8db0c0311e3293b53194b8bc32"
+    },
+    {
+      "id": "protocols-cargo-lock",
+      "via": "github",
+      "repo": "aien-protocols-mv",
+      "sha": "cc7a310f8b57bb69dcd897ff861466b34d403a26",
+      "path": "Cargo.lock",
+      "parse": "cargo-git",
+      "pin": [],
+      "sha256": "4b66adf30555bb428c31125c48afa586592d9c835702911319f62a38c5825a68"
+    },
+    {
+      "id": "omega-omc-at-si-rev",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "bf54b19fa590e8ae925c0e80815516dbf41e7326",
+      "path": "seed/out/omc",
+      "parse": "file-sha256",
+      "pin": "62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b"
+    },
+    {
+      "id": "omega-omc-at-main",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "b3dca0f1e28d9a02ee162fd384ff0bd112bcc4a3",
+      "path": "seed/out/omc",
+      "parse": "file-sha256",
+      "pin": "62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b"
+    },
+    {
+      "id": "si-build-sh",
+      "via": "git",
+      "sha": "48f857c1966ba26cef28b4649f82bd94c0a86588",
+      "path": "installer/build.sh",
+      "parse": "contains",
+      "pin": [
+        "OMEGA_REV=bf54b19fa590e8ae925c0e80815516dbf41e7326",
+        "OMC_PIN=62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b",
+        "CORE_REV=59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3",
+        "ENGINE_SHA256=19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb",
+        "6de999da libomega_gpu.a sha256 110295ef23dc7561eea371636347c005835f37b82c22f92401aa8a887a3ca990"
+      ],
+      "sha256": "8590ac711501d2c4c46090d89d7dcde7c69e4abaeb68c41586aad49ee8653dec"
+    },
+    {
+      "id": "si-model-manifest",
+      "via": "git",
+      "sha": "48f857c1966ba26cef28b4649f82bd94c0a86588",
+      "path": "installer/share/model.manifest",
+      "parse": "contains",
+      "pin": [
+        "name qwen3.6-35b-a3b-fp8-95a723d0",
+        "url https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8/resolve/95a723d08a9490559dae23d0cff1d9466213d989/",
+        "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259 7764 chat_template.jinja",
+        "570ef7ea45a7e1d3de2b1d3c70c4ac3562d0e768acdc195778cb4f4d95025845 37000 config.json",
+        "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42 12807982 tokenizer.json"
+      ],
+      "sha256": "cfdc1f53a65e4b8b9b6fc87667af7c1e528b71597a766d1f7664d5a40e0064a1"
+    },
+    {
+      "id": "si-repos-json",
+      "via": "git",
+      "sha": "48f857c1966ba26cef28b4649f82bd94c0a86588",
+      "path": "index/repos.json",
+      "parse": "file-sha256",
+      "pin": "f2bb7a1a08f23fd6d9eb88a49ac5cb8a5ac03ba7f137f1031b7baf5551020fab"
+    },
+    {
+      "id": "aienix-gitmodules",
+      "parse": "gitlinks",
+      "repo": "aienix",
+      "sha": "a195a4972c8ccf6affadb81c65be0f9f46c18c0e",
+      "pin": {
+        "aienux": "17ad0167eac91edc280472020679a11969a78609",
+        "architecture": "6142a352d3e6fe324ed757a44519e9b0142aa48d",
+        "attachments/aegis-runtime": "971d4502f2d43416dc09b5a2f9393e2c82594c9b",
+        "attachments/benchmarks": "1e52d94db8168c6a2c44707134914a6857b470c2",
+        "attachments/interplane": "83df0f074b2c572473cd535c89f767df48933f4a",
+        "attachments/open-humanity": "a244b46291d192bb5f026a0afb67147e6de3f804",
+        "attachments/spark-rsi": "82898f99298be424ddeb72439fedc4d999512bf3",
+        "attachments/synapse": "2f06c455a5af8a5db7e0230c3692f08db21f61f2",
+        "omega": "f4a9849fb127f8d2d664dfc56890752ad180c507",
+        "physics": "2043924224b9ecffd79de2c37b2fe7a3a5396e0c",
+        "protocols": "4b76f7f1f4c2d1359a3b71709a1345d7c9d5e606",
+        "sovereign-core": "12e71aad80fda23a428317d11b0dac02d1c777f1"
+      }
+    },
+    {
+      "id": "pr-omega-579-physics-lock",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "5be22e571a9744b1f47a767bbdd92949e4150dc4",
+      "path": "physics.lock",
+      "parse": "first-sha",
+      "pin": "aecb9d35dc362d4afe82925dd2681f499a0e14e2"
+    },
+    {
+      "id": "pr-omega-926-cudapp-lock",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "9ab1e7bb15037a2d1fd69eb9f2d4004882bcf3ae",
+      "path": "cudapp.lock",
+      "parse": "first-sha",
+      "pin": "685f6c38924383667469fa32d1f6495490b94bc9"
+    },
+    {
+      "id": "pr-omega-924-cudapp-lock",
+      "via": "github",
+      "repo": "omega-mv",
+      "sha": "3303dd79b3c3096a773b51d09316c01330e3f9f2",
+      "path": "cudapp.lock",
+      "parse": "first-sha",
+      "pin": "7a354dbda9eddd405610fdcabf4fc4e24c1a0f47"
+    },
+    {
+      "id": "pr-core-784-cudapp-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "5ce28e1a67f96fa6868a6448d2a6d0af801c4402",
+      "path": "cudapp.lock",
+      "parse": "first-sha",
+      "pin": "c30c0be6222af7d13e38dd354a752fd17367adeb"
+    },
+    {
+      "id": "pr-core-784-omega-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "5ce28e1a67f96fa6868a6448d2a6d0af801c4402",
+      "path": "omega.lock",
+      "parse": "first-sha",
+      "pin": "a647b6a9821fffcf52ba9ce813f75afa4b84be62"
+    },
+    {
+      "id": "pr-core-798-omega-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "d9217f092a398768ca558f3a09adea1985416913",
+      "path": "omega.lock",
+      "parse": "first-sha",
+      "pin": "3303dd79b3c3096a773b51d09316c01330e3f9f2"
+    },
+    {
+      "id": "pr-core-799-omega-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "034d04772f068063e801b63812a2903152c568a2",
+      "path": "omega.lock",
+      "parse": "first-sha",
+      "pin": "9ab1e7bb15037a2d1fd69eb9f2d4004882bcf3ae"
+    },
+    {
+      "id": "pr-core-808-benchmarks-rustls",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "3f7aa036368e8f062feaa6133e4c7627abf32f73",
+      "path": "benchmarks/Cargo.lock",
+      "parse": "rustls",
+      "pin": "0.23.46",
+      "sha256": "56b018871f54a89ee7dc98f3c490e1f02a98ebcc41a385fc6d4baf90ebb66c9b"
+    },
+    {
+      "id": "pr-core-810-omega-lock-unchanged",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "758a6e2519ad88aa5f8aed6a01ca9cee3d8acc5d",
+      "path": "omega.lock",
+      "parse": "first-sha",
+      "pin": "a647b6a9821fffcf52ba9ce813f75afa4b84be62"
+    },
+    {
+      "id": "pr-core-798-cargo-lock",
+      "via": "github",
+      "repo": "aien-sovereign-core-mv",
+      "sha": "d9217f092a398768ca558f3a09adea1985416913",
+      "path": "Cargo.lock",
+      "parse": "cargo-git",
+      "pin": [
+        {
+          "name": "aien-evaluation-protocol",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "aien-probe",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "aien-protocol-types",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "aien-provenance",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/aien-protocols?rev=7ac6facb630ca7e9a6ab4125b292203fe2bb6687#7ac6facb630ca7e9a6ab4125b292203fe2bb6687"
+        },
+        {
+          "name": "crumb-spec",
+          "version": "1.0.0",
+          "source": "git+https://github.com/aien-dev/crumb-spec?rev=24194d1b7917ef19244aae6bcaff510686b75fef#24194d1b7917ef19244aae6bcaff510686b75fef"
+        },
+        {
+          "name": "spark-crumbs",
+          "version": "0.1.0",
+          "source": "git+https://github.com/aien-dev/spark-crumbs?rev=9355a92bc9adfe95a6ec5f8ac926f38a0b6e7db2#9355a92bc9adfe95a6ec5f8ac926f38a0b6e7db2"
+        }
+      ],
+      "sha256": "327b0408fc46db2e45343a19f48f7c2994a397915d22af53e3c158fdb983c668"
+    }
+  ]
+}
