@@ -1,0 +1,34 @@
+  ok   bare: older release alpha-20261025.9 installs (exit 0)
+  ok   bare: wizard ran to the end (exit 0)
+  ok   bare: the model is verified
+  ok   bare: this release (alpha-20261029.1) installs over it (exit 0)
+  ok   bare: rollback exit 0, current -> releases/alpha-20261025.9: yes
+  ok   bare: rollback added no path outside ~/.local/share/aienos
+  ok   bare: uninstall exit 0 (got 0)
+  ok   bare: after uninstall no new path outside ~/.local/share/aienos
+  ok   bare: nothing of the user's was removed
+  ok   bare: ~/.local/share/aienos is gone
+  ok   used: older release alpha-20261025.9 installs (exit 0)
+  ok   used: wizard ran to the end (exit 0)
+  ok   used: the model is verified
+  ok   used: this release (alpha-20261029.1) installs over it (exit 0)
+  ok   used: rollback exit 0, current -> releases/alpha-20261025.9: yes
+  ok   used: rollback added no path outside ~/.local/share/aienos
+  ok   used: uninstall exit 0 (got 0)
+  ok   used: after uninstall no new path outside ~/.local/share/aienos
+  ok   used: nothing of the user's was removed
+  ok   used: ~/.local/share/aienos holds only the kept model
+  ok   mut: older release alpha-20261025.9 installs (exit 0)
+  ok   mut: wizard ran to the end (exit 0)
+  ok   mut: the model is verified
+  ok   mut: this release (alpha-20261029.1) installs over it (exit 0)
+      control left after uninstall: $HOME/.local
+      control left after uninstall: $HOME/.local/bin
+      control left after uninstall: $HOME/.local/share
+      control left after uninstall: $HOME/.local/share/applications
+      control left after uninstall: $HOME/.local/share/icons
+      control left after uninstall: $HOME/.local/share/icons/hicolor
+      control left after uninstall: $HOME/.local/share/icons/hicolor/scalable
+      control left after uninstall: $HOME/.local/share/icons/hicolor/scalable/apps
+  ok   negative control (uninstaller without its folder sweep leaves paths): opposite
+RESULT rollback-clean PASS EXERCISED(host, fake GB10 root) cases=bare,used control=opposite spark=NOT_RUN

@@ -48,11 +48,17 @@ fp_port() {
 }
 
 # Compile the wizard (optionally with PORT replaced, test builds only) and the fake engine.
-# fp_compile OUTDIR [ENGINE-PORT]
+# fp_compile OUTDIR [ENGINE-PORT]. With FP_MUTATE set (a sed script), the wizard source is
+# changed by it first: the deliberately broken build a negative control runs against.
 fp_compile() {
     mkdir -p "$1"
     : > "$1/aienos.om"
     for f in $ORDER; do cat "$FP_TOP/wizard/$f" >> "$1/aienos.om"; done
+    if [ -n "${FP_MUTATE:-}" ]; then
+        cp "$1/aienos.om" "$1/aienos.om.orig"
+        sed -i "$FP_MUTATE" "$1/aienos.om"
+        ! cmp -s "$1/aienos.om" "$1/aienos.om.orig" || return 1
+    fi
     cp "$FP_TESTS/fake-engine.om" "$1/fake-engine.om"
     if [ -n "${2:-}" ]; then
         sed -i "s/^const PORT ulong 18100\$/const PORT ulong $2/" "$1/aienos.om"
@@ -78,9 +84,12 @@ fp_key() {
 
 # fp_release NAME BINDIR [PAD-BYTES]: www/NAME holds a signed test release whose bundle carries
 # BINDIR's wizard and fake engine. PAD-BYTES adds share/aienos/test-padding.bin (zeros): a file
-# much larger than the compressed bundle, for the disk-full path.
+# much larger than the compressed bundle, for the disk-full path. With FP_TAG set, the release is
+# that tag instead of install.sh's (an older release to roll back to).
 fp_release() {
     fp_key
+    tg=${FP_TAG:-$TAG}
+    bn=aienos-$tg-linux-arm64.tar.gz
     st=$S/stage-$1
     rm -rf "$st" "$S/www/$1"
     mkdir -p "$st/bin" "$st/share/aienos/wizard" "$S/www/$1"
@@ -99,14 +108,15 @@ fp_release() {
     } > "$st/share/aienos/model.manifest"
     [ -z "${3:-}" ] || head -c "$3" /dev/zero > "$st/share/aienos/test-padding.bin"
     (cd "$st" && find . -type f ! -name SHA256SUMS | sed 's|^\./||' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS)
-    (cd "$st" && tar -czf "$S/www/$1/$BUNDLE" .)
-    awk -v pem="$S/test.pub.pem" '
+    (cd "$st" && tar -czf "$S/www/$1/$bn" .)
+    awk -v pem="$S/test.pub.pem" -v tg="$tg" '
+        /^TAG=/ { print "TAG=" tg; next }
         /^RELEASE_PUB_PEM=/ { while ((getline l < pem) > 0) { out = out (out == "" ? "" : "\n") l }
                               print "RELEASE_PUB_PEM='"'"'" out "'"'"'"; skip = 1; next }
         skip && /^-----END PUBLIC KEY-----/ { skip = 0; next }
         skip { next }
         { print }' "$FP_TOP/install.sh" > "$S/www/$1/install.sh"
-    (cd "$S/www/$1" && sha256sum "$BUNDLE" install.sh > SHA256SUMS \
+    (cd "$S/www/$1" && sha256sum "$bn" install.sh > SHA256SUMS \
         && openssl pkeyutl -sign -inkey "$S/test.key" -rawin -in SHA256SUMS -out SHA256SUMS.sig)
 }
 
@@ -119,6 +129,71 @@ fp_serve() {
     i=0
     while ! curl -fs "http://127.0.0.1:$FP_HTTP/" >/dev/null 2>&1; do
         i=$((i + 1)); [ $i -lt 50 ] || fp_notrun "local http server did not start"; sleep 0.1
+    done
+}
+# fp_serve_range: like fp_serve, but the server answers "Range: bytes=N-" with 206 (as Hugging
+# Face's CDN does, and python3 -m http.server does not), logs one line per request to
+# $S/range.log ("GET /path range=bytes=N- status=206 sent=BYTES"), and obeys two control files
+# in $S/ctl, for a file named NAME:
+#   cut-NAME    "K M": the next M answers for NAME stop after K body bytes under the full
+#               Content-Length and close the connection (a dropped connection).
+#   stall-NAME  "K": answers for NAME send K body bytes, then wait while the file exists, then
+#               close (a transfer that hangs until it is interrupted).
+fp_serve_range() {
+    FP_HTTP=$(fp_port)
+    mkdir -p "$S/www" "$S/ctl"
+    python3 - "$FP_HTTP" "$S/www" "$S/ctl" "$S/range.log" > "$S/http.log" 2>&1 <<'EOF' &
+import http.server, os, sys, time
+port, root, ctl, logp = int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4]
+log = open(logp, 'a', buffering=1)
+class H(http.server.BaseHTTPRequestHandler):
+    protocol_version = 'HTTP/1.1'
+    def log_message(self, *a): pass
+    def do_GET(self):
+        p = os.path.normpath(os.path.join(root, self.path.split('?')[0].lstrip('/')))
+        rng = self.headers.get('Range', '-')
+        if not p.startswith(root + '/') or not os.path.isfile(p):
+            self.send_response(404); self.send_header('Content-Length', '0'); self.end_headers()
+            log.write('GET %s range=%s status=404 sent=0\n' % (self.path, rng)); return
+        data = open(p, 'rb').read()
+        start, status = 0, 200
+        if rng.startswith('bytes=') and rng.endswith('-'):
+            start = int(rng[6:-1])
+            if start >= len(data):
+                self.send_response(416); self.send_header('Content-Length', '0'); self.end_headers()
+                log.write('GET %s range=%s status=416 sent=0\n' % (self.path, rng)); return
+            status = 206
+        body = data[start:]
+        self.send_response(status)
+        self.send_header('Content-Length', str(len(body)))
+        if status == 206:
+            self.send_header('Content-Range', 'bytes %d-%d/%d' % (start, len(data) - 1, len(data)))
+        self.send_header('Accept-Ranges', 'bytes')
+        self.end_headers()
+        name = os.path.basename(p)
+        cut, stall = os.path.join(ctl, 'cut-' + name), os.path.join(ctl, 'stall-' + name)
+        n = len(body)
+        if os.path.exists(cut):
+            k, m = open(cut).read().split()
+            n = min(n, int(k))
+            if int(m) <= 1: os.unlink(cut)
+            else: open(cut, 'w').write('%s %d\n' % (k, int(m) - 1))
+        elif os.path.exists(stall):
+            n = min(n, int(open(stall).read()))
+        try:
+            self.wfile.write(body[:n]); self.wfile.flush()
+            while n < len(body) and os.path.exists(stall):
+                time.sleep(0.1)
+        except OSError:
+            pass
+        log.write('GET %s range=%s status=%d sent=%d\n' % (self.path, rng, status, n))
+        if n < len(body): self.close_connection = True
+http.server.ThreadingHTTPServer(('127.0.0.1', port), H).serve_forever()
+EOF
+    FP_SRV=$!
+    i=0
+    while ! curl -s -o /dev/null "http://127.0.0.1:$FP_HTTP/" 2>/dev/null; do
+        i=$((i + 1)); [ $i -lt 50 ] || fp_notrun "local range server did not start"; sleep 0.1
     done
 }
 fp_cleanup() {
@@ -136,12 +211,13 @@ fp_files() { (cd "$1" && find . \( -type f -o -type l \) ! -path './.local/share
 
 # A complete, verified install: what every failure path must either reach or leave untouched.
 # fp_installed HOME -> 0 when current/bin/aienos verifies, the links exist and installed-files
-# lists exactly the four paths install.sh writes outside its own folder.
+# lists exactly the four paths install.sh writes outside its own folder (plus "DIR/" lines for
+# the folders it made).
 fp_installed() {
     b=$1/.local/share/aienos
     [ -x "$b/current/bin/aienos" ] && [ -L "$1/.local/bin/aienos" ] \
         && [ -f "$1/.local/share/applications/aienos.desktop" ] && [ -f "$1/Desktop/aienos.desktop" ] \
-        && [ -f "$b/installed-files" ] && [ "$(wc -l < "$b/installed-files")" -eq 4 ] \
+        && [ -f "$b/installed-files" ] && [ "$(grep -vc '/$' "$b/installed-files")" -eq 4 ] \
         && [ ! -e "$b/installed-files.new" ] \
         && [ ! -e "$b/releases/.$TAG.new" ] \
         && env HOME="$1" "$b/current/bin/aienos" verify > "$S/verify.out" 2>&1 \

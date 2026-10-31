@@ -1,0 +1,7 @@
+PASS     disk-full            EXERCISED(host, EFBIG stand-in for ENOSPC) cases=install,model control=opposite/opposite spark=NOT_RUN
+PASS     no-network           EXERCISED(host) cases=refused,nobundle,cut,wizard-model control=opposite/opposite spark=NOT_RUN
+PASS     wrong-gpu-driver     EXERCISED(host, fake probe roots) cases=nogpu,othergpu,olddrv,newdrv control=opposite spark=NOT_RUN
+PASS     interrupted-install  EXERCISED(host) cases=download/KILL,download/INT,unpack/KILL,unpack/INT,moved/KILL,linked/KILL,listed/KILL control=opposite spark=NOT_RUN
+PASS     bad-signature        EXERCISED(host) cases=otherkey,badsig,tampered control=opposite spark=NOT_RUN
+PASS     port-in-use          EXERCISED(host, test build on port 33657) cases=tcp,http control=opposite spark=NOT_RUN
+PASS     uninstall-partial    EXERCISED(host) cases=moved,linked,listed control=opposite spark=NOT_RUN

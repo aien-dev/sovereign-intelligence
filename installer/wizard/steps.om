@@ -80,6 +80,9 @@ text m_l6 "A cut connection resumes where it stopped. q is not read here; Ctrl+C
 text m_fail "The download or a hash check failed. Nothing broken was kept."
 text m_fail2 "Run aienos again to resume. The log is ~/.local/share/aienos/download.log."
 text m_done "Every model file is downloaded and matches its SHA-256."
+text m_vbad1 "model file "
+text m_vbad2 " does not match its SHA-256; the next aienos run downloads it again"
+text m_vok " model files match model.manifest"
 text t_dlocal "/.local"
 text t_dshare "/share"
 
@@ -1022,6 +1025,46 @@ end
 ret true
 end
 
+note aienos verify, model part: when the model is marked verified, hash every manifest file again.
+note Returns the count checked (0 when no model is marked), or -1 after naming the first file that
+note is missing or does not match and withdrawing the verified marker, so the wizard fetches it.
+fn mvfy to long
+if not mdone
+ret 0
+end
+k = long 0
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+sz = fline o e
+pmfile e
+ok = false
+if eq pstat 0
+if eq ssize sz
+r = fhash
+ok = and ge r 0 dgis o
+end
+end
+if not ok
+emit m_vbad1
+for i ulong get pbn 0
+putb get pb i
+end
+emit m_vbad2
+putb 10
+pmodel
+pstr t_vfy
+r = unlink pb 0 get pbn 0
+ret -1
+end
+k = add k 1
+end
+o = add e 1
+end
+ret k
+end
+
 note One model file: keep it if it is there and hashes right, else download to .part, check the
 note size and hash, then rename it into place. A file that fails its hash is deleted.
 fn mfile o ulong e ulong to bool
@@ -1062,11 +1105,28 @@ ret mplace e
 end
 end
 end
+note A short .part from a dropped or stopped transfer stays for the next try or the next run to
+note resume with -C -. Removed: one of the full size whose hash failed, and any after curl
+note answered 22 (HTTP error), 33 (server cannot resume) or 36 (bad resume offset).
 pmfile e
 pstr t_part
+if not ckeep c sz
 r = unlink pb 0 get pbn 0
 end
+end
 ret false
+end
+
+note Keep pb (a .part) after curl status c? Only when it is shorter than sz and c says the
+note transfer stopped, not that the server refused or cannot resume.
+fn ckeep c long sz ulong to bool
+if or or eq c 22 eq c 33 eq c 36
+ret false
+end
+if ne pstat 0
+ret false
+end
+ret lt ssize sz
 end
 
 note Rename model/PATH.part to model/PATH with renameat2 (packed list of the two paths).

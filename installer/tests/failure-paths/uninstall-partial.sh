@@ -24,8 +24,8 @@ fp_serve
 fp_compile "$S/bin" "$(fp_port)" || fp_notrun "omc refused the test wizard ($S/bin/omc.err)"
 fp_release good "$S/bin"
 leftover() { fp_files "$1" | sed 's/^/      left: /'; }
-# No AienOS file or link left (the shared ~/.local/bin and XDG folders may stay, as they were made
-# for every program; gvfs metadata is GNOME's).
+# No AienOS file or link left (folders install.sh made are rollback-clean.sh's check; gvfs
+# metadata is GNOME's).
 gone() { [ -z "$(fp_files "$1")" ] && [ ! -e "$1/.local/share/aienos" ]; }
 
 ctl=same

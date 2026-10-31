@@ -1,0 +1,39 @@
+  ok   download/KILL: install.sh stopped (exit 137)
+  ok   download/KILL: checker says not installed
+  ok   download/KILL: re-run exit 0 (got 0)
+  ok   download/KILL: re-run gives a complete verified install
+  ok   download/KILL: same files as an uninterrupted install
+  ok   download/INT: install.sh stopped (exit 2)
+  ok   download/INT: checker says not installed
+  ok   download/INT: no temporary or staging folder left
+  ok   download/INT: re-run exit 0 (got 0)
+  ok   download/INT: re-run gives a complete verified install
+  ok   download/INT: same files as an uninterrupted install
+  ok   unpack/KILL: install.sh stopped (exit 137)
+  ok   unpack/KILL: checker says not installed
+  ok   unpack/KILL: re-run exit 0 (got 0)
+  ok   unpack/KILL: re-run gives a complete verified install
+  ok   unpack/KILL: same files as an uninterrupted install
+  ok   unpack/INT: install.sh stopped (exit 2)
+  ok   unpack/INT: checker says not installed
+  ok   unpack/INT: no temporary or staging folder left
+  ok   unpack/INT: re-run exit 0 (got 0)
+  ok   unpack/INT: re-run gives a complete verified install
+  ok   unpack/INT: same files as an uninterrupted install
+  ok   moved/KILL: install.sh stopped (exit 137)
+  ok   moved/KILL: checker says not installed
+  ok   moved/KILL: re-run exit 0 (got 0)
+  ok   moved/KILL: re-run gives a complete verified install
+  ok   moved/KILL: same files as an uninterrupted install
+  ok   linked/KILL: install.sh stopped (exit 137)
+  ok   linked/KILL: checker says not installed
+  ok   linked/KILL: re-run exit 0 (got 0)
+  ok   linked/KILL: re-run gives a complete verified install
+  ok   linked/KILL: same files as an uninterrupted install
+  ok   listed/KILL: install.sh stopped (exit 137)
+  ok   listed/KILL: checker says not installed
+  ok   listed/KILL: re-run exit 0 (got 0)
+  ok   listed/KILL: re-run gives a complete verified install
+  ok   listed/KILL: same files as an uninterrupted install
+  ok   negative control (uninterrupted install passes the checker): opposite
+RESULT interrupted-install PASS EXERCISED(host) cases=download/KILL,download/INT,unpack/KILL,unpack/INT,moved/KILL,linked/KILL,listed/KILL control=opposite spark=NOT_RUN

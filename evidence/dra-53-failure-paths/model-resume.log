@@ -1,0 +1,28 @@
+  ok   stop/KILL: SIGKILL ended the wizard within 30 s (cut by the KILL backstop: no)
+  ok   stop/KILL: the interruption left a partial weights.bin.part (2498560 of 5000000 bytes)
+  ok   stop/KILL: re-run exit 0 (got 0)
+  ok   stop/KILL: re-run resumed with Range bytes=2498560- and fetched only the rest: yes
+      GET /model/weights.bin range=bytes=2498560- status=206 sent=2501440
+  ok   stop/KILL: weights.bin verified, marker written, no .part left
+  ok   stop/INT: SIGINT ended the wizard within 30 s (cut by the KILL backstop: no)
+  ok   stop/INT: the interruption left a partial weights.bin.part (2498560 of 5000000 bytes)
+  ok   stop/INT: re-run exit 0 (got 0)
+  ok   stop/INT: re-run resumed with Range bytes=2498560- and fetched only the rest: yes
+      GET /model/weights.bin range=bytes=2498560- status=206 sent=2501440
+  ok   stop/INT: weights.bin verified, marker written, no .part left
+      GET /model/weights.bin range=- status=200 sent=2000000
+      GET /model/weights.bin range=bytes=2000000- status=206 sent=3000000
+  ok   cut1: wizard exit 0 (got 0)
+  ok   cut1: the second try resumed from byte 2000000
+  ok   cut1: weights.bin verified, marker written, no .part left
+  ok   cut2: first run exit non-zero (got 1)
+  ok   cut2: says to run aienos again to resume
+  ok   cut2: no weights.bin, no verified marker
+  ok   cut2: the .part is kept for the resume (4000000 bytes, want 4000000)
+      GET /model/weights.bin range=bytes=4000000- status=206 sent=1000000
+  ok   cut2: re-run exit 0 (got 0)
+  ok   cut2: re-run resumed from byte 4000000 and fetched only the rest
+  ok   cut2: weights.bin verified, marker written, no .part left
+      GET /model/weights.bin range=- status=200 sent=5000000
+  ok   negative control (wizard without -C -: the resume check fails): opposite
+RESULT model-resume PASS EXERCISED(host, 5 MB test model, loopback Range server) cases=stop/KILL,stop/INT,cut1,cut2 control=opposite spark=NOT_RUN

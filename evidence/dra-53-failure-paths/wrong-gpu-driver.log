@@ -1,0 +1,23 @@
+  ok   nogpu: install.sh exit 0 (got 0)
+  ok   nogpu: says nothing was changed
+  ok   nogpu: home folder untouched
+  ok   othergpu: install.sh exit 0 (got 0)
+  ok   othergpu: says nothing was changed
+  ok   othergpu: home folder untouched
+  ok   olddrv: install.sh exit 0 (got 0)
+  ok   olddrv: says nothing was changed
+  ok   olddrv: home folder untouched
+  ok   newdrv: install.sh exit 0 (got 0)
+  ok   newdrv: says nothing was changed
+  ok   newdrv: home folder untouched
+  ok   othergpu: doctor exit 1 with a no line (got 1)
+  ok   othergpu: aienos start refuses with exit 2 (got 2)
+  ok   othergpu: no engine started
+  ok   olddrv: doctor exit 1 with a no line (got 1)
+  ok   olddrv: aienos start refuses with exit 2 (got 2)
+  ok   olddrv: no engine started
+  ok   newdrv: doctor exit 1 with a no line (got 1)
+  ok   newdrv: aienos start refuses with exit 2 (got 2)
+  ok   newdrv: no engine started
+  ok   negative control (gb10: installs, doctor 0, engine starts): opposite
+RESULT wrong-gpu-driver PASS EXERCISED(host, fake probe roots) cases=nogpu,othergpu,olddrv,newdrv control=opposite spark=NOT_RUN
