@@ -12,15 +12,9 @@ Sovereign Intelligence, built on [AienOS](https://github.com/aien-dev/AienOS-nv)
 git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intelligence && cd sovereign-intelligence && sh installer/install.sh
 ```
 
-[Install](#install) · [The stack](#the-stack-and-whats-yours) · [Every repository](#every-repository) · [Deeper walk](docs/STACK.md) · [Naming](NAMING.md) · [aienos.com](https://www.aienos.com)
+[Install](#install) · [Every repository](#every-repository) · [Roadmap](docs/ROADMAP.md) · [Naming](NAMING.md) · [aienos.com](https://www.aienos.com)
 
 </div>
-
-<br>
-
-<p align="center">
-  <img src="docs/stack.svg" alt="The Sovereign Intelligence stack, from GB10 silicon and NVIDIA's signed firmware at the bottom to apps at the top, each layer with its license and evidence level" width="880">
-</p>
 
 <br>
 
@@ -46,23 +40,7 @@ openssl pkeyutl -verify -pubin -inkey release.pub.pem -rawin -in SHA256SUMS -sig
 
 ## The stack, and what's yours
 
-Every layer above the silicon is source you can read, build and change. The bottom layer is the honest boundary: NVIDIA's signed firmware runs on the GB10 and I cannot change it, so I say so.
-
-| | Layer | Yours: license and source | What you can change |
-| :---: | :--- | :--- | :--- |
-| 10 | **Apps and tools** | Apache-2.0 WITH LLVM-exception or AGPL-3.0, per repository: [installer](https://github.com/aien-dev/sovereign-intelligence), [aienos.com](https://github.com/aien-dev/aienos.com), [aien-translate](https://github.com/aien-dev/aien-translate) | Anything. The installer is a reviewed bootstrap shell exception, the only part of AienOS not written in Omega, that you can read before you run it. |
-| 9 | **Aien** | AGPL-3.0: [aien](https://github.com/aien-dev/aien) | His identity, memory and voice contracts. |
-| 8 | **Cortex memory** | Apache-2.0: [cortex-rs](https://github.com/aien-dev/cortex-rs) today, rewritten in Omega in [cortex](https://github.com/aien-dev/cortex) | What is remembered, where it is stored, when it is forgotten. |
-| 7 | **The engine: Sovereign Core** | Apache-2.0: [aien-sovereign-core-mv](https://github.com/aien-dev/aien-sovereign-core-mv) | Scheduling, KV cache, serving and the test judge. |
-| 6 | **Math engine** | My own engine, written in Omega. Source not yet published. | Nothing yet; it will be yours when it is published. |
-| 5 | **Omega language and compiler** | Apache-2.0: [omega-mv](https://github.com/aien-dev/omega-mv), [omega-bridge](https://github.com/aien-dev/omega-bridge) | The language itself: omc, irwasm, irspirv (merged, CPU-exercised; not run on GPU / DPC++). |
-| 4 | **CUDA++ runtime** | Apache-2.0: [CUDApp](https://github.com/aien-dev/CUDApp) | Instruction encoder, runtime and kernels, with no NVIDIA user-space software. |
-| | **AienOS** | Apache-2.0 WITH LLVM-exception: [AienOS-nv](https://github.com/aien-dev/AienOS-nv) | The operating system around the kernel. SI alpha still runs on the Spark's own Linux. |
-| 3 | **Aienux kernel** | Apache-2.0: [aienux](https://github.com/aien-dev/aienux) | The kernel: boot, scheduling, IPC and capability boundaries. Pre-alpha; physical runs on iMac and Pi 5. |
-| 2 | **GPU kernel driver** | Today NVIDIA's open kernel module 580.173.02 (Dual MIT/GPL). Mine, aien-gpu, is being written in [CUDApp](https://github.com/aien-dev/CUDApp/blob/main/omega/slices/kmod.osc) (Dual MIT/GPL-2.0). | NVIDIA's module source is open; aien-gpu will replace it. |
-| 1 | **GB10 silicon and NVIDIA signed firmware** | Not mine. | Nothing. This is the boundary, stated plainly. |
-
-Evidence words mean one thing each: **PROPOSED** (written down), **IMPLEMENTED** (code exists), **EXERCISED** (ran, with kept receipts), **QUALIFIED** (passed the hardware gate). Nothing is QUALIFIED yet. The walk down the stack, layer by layer, is in [docs/STACK.md](docs/STACK.md).
+The ten-layer stack, from the GB10 silicon to the apps, is a roadmap; each layer's real status, repository commit and evidence file are in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 <br>
 
