@@ -54,7 +54,7 @@ and the step says so.
 
 | Program | Version | Used for | Omega replacement |
 |---|---|---|---|
-| `oh-infer-volunteer` | aien-dev/open-humanity `crates/oh-infer` at `094f9d34` (PR #41 head, pending until it merges) | makes the Spark's volunteer key, checks the model files against the release manifest, connects out to the Open Humanity coordinator and answers through the local engine on 127.0.0.1:18100; pause and resume | `oh-infer` as one `.om` unit speaking the same `OHINF001` bytes, once the OmegaTLS words (SHA-2, X25519, ChaCha20-Poly1305, Ed25519, X.509, a TLS client) and OmegaNet sockets merge on omega-mv; tested against the Rust program as the reference (open-humanity `docs/design/volunteer-inference-v0.md`, last section) |
+| `oh-infer-volunteer` | aien-dev/open-humanity `crates/oh-infer` at `c0484649` (main, the squash merge of open-humanity#51; built with `OH_SRC` at that commit) | makes the Spark's volunteer key, checks the model files against the release manifest, connects out to the Open Humanity coordinator and answers through the local engine on 127.0.0.1:18100; pause and resume | `oh-infer` as one `.om` unit speaking the same `OHINF001` bytes, once the OmegaTLS words (SHA-2, X25519, ChaCha20-Poly1305, Ed25519, X.509, a TLS client) and OmegaNet sockets merge on omega-mv; tested against the Rust program as the reference (open-humanity `docs/design/volunteer-inference-v0.md`, last section) |
 
 Its Rust dependencies (rustls 0.23.46, webpki-roots 1.0.10, sha2 0.10.9, ed25519-dalek, x25519-dalek,
 chacha20poly1305, serde, serde_json, bincode) are listed with their successors in that design doc.

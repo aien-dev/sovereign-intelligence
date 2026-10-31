@@ -14,7 +14,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 S=${1:-$(mktemp -d "${TMPDIR:-/tmp}/aienos-lend.XXXXXX")}
 mkdir -p "$S"
 S=$(cd "$S" && pwd)
-TAG=alpha-20261026.1
+TAG=alpha-20261029.1
 CLOSED=${AIENOS_TEST_CLOSED_PORT:-18797}
 pass=0
 fail=0
@@ -95,8 +95,9 @@ out=$(aien "$h" lend start 2>&1); rc=$?
     && [ ! -e "$h/$lend" ]; verdict lend-start-without-program-refuses $?
 
 if [ -z "${OH_VOLUNTEER:-}" ]; then
-    for c in lend-wizard-yes-makes-key lend-start-without-key-refuses lend-start lend-status \
-             lend-pause-resume lend-quit lend-uninstall-stops-agent; do nr "$c" "OH_VOLUNTEER not set"; done
+    for c in lend-wizard-yes-makes-key lend-wizard-yes-keeps-key lend-start-without-key-refuses lend-start \
+             lend-start-twice lend-status lend-pause-resume lend-quit lend-status-after-quit \
+             lend-uninstall-stops-agent; do nr "$c" "OH_VOLUNTEER not set"; done
 else
     mkstage "$S/stage-lend" yes
     h=$(mkhome yes "$S/stage-lend")

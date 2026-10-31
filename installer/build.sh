@@ -16,8 +16,10 @@
 # OH_VOLUNTEER        oh-infer-volunteer built from aien-dev/open-humanity at OH_REV
 #                     (cargo build --release -p oh-infer). Unset: the bundle has no lending program
 #                     and the wizard's lending step says so.
+# OH_SRC              the clean open-humanity clone at OH_REV it was built from; required when
+#                     OH_VOLUNTEER is set.
 # OH_COORDINATOR_KEY  the coordinator's 64-hex public key; required when OH_VOLUNTEER is set.
-# OH_REV is open-humanity PR #41's head and stays pending until that PR merges.
+# OH_REV is open-humanity main c0484649, the squash merge of open-humanity#51 (volunteer inference).
 #
 # Exit: 2 missing input, 3 wrong pin, 4 derived source differs, 5 nondeterministic compile,
 #       6 compile refused, 7 engine or lending program identity or linkage wrong. Signing is tools/sign.sh.
@@ -28,7 +30,7 @@ OMEGA_REV=bf54b19fa590e8ae925c0e80815516dbf41e7326
 OMC_PIN=62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
 CORE_REV=59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3
 ENGINE_SHA256=19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb
-OH_REV=094f9d344b843f11f3d1cd25edcc78902594aeaa
+OH_REV=c048464950ed40baf0d98c7bcb9e1e860aa69b87
 OH_COORDINATOR=https://www.aienos.com/oh/v1/volunteer
 ORDER="sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om"
 out=${1:?usage: build.sh OUT}
@@ -47,6 +49,11 @@ have=$(sha256sum "$omc" | cut -d' ' -f1)
 vol=${OH_VOLUNTEER:-}
 if [ -n "$vol" ]; then
     [ -x "$vol" ] || fail 2 "OH_VOLUNTEER $vol is not executable"
+    ohsrc=${OH_SRC:?OH_VOLUNTEER is set: set OH_SRC to the open-humanity clone at $OH_REV}
+    [ -d "$ohsrc/.git" ] || fail 2 "$ohsrc is not a git clone"
+    ohrev=$(git -C "$ohsrc" rev-parse HEAD)
+    [ "$ohrev" = "$OH_REV" ] || fail 3 "open-humanity is at $ohrev, want $OH_REV"
+    git -C "$ohsrc" diff --quiet HEAD -- || fail 3 "open-humanity clone $ohsrc has local changes"
     printf '%s' "${OH_COORDINATOR_KEY:-}" | grep -Eqx '[0-9a-f]{64}' \
         || fail 2 "OH_VOLUNTEER is set: OH_COORDINATOR_KEY must be 64 lowercase hex"
     "$vol" > /dev/null 2>&1 && fail 7 "$vol does not behave like oh-infer-volunteer"
@@ -118,7 +125,7 @@ install -m 644 bundle/README.txt "$stage/README.txt"
     printf 'engine NEEDED: %s\n' "$(tr '\n' ' ' < "$work/engine.needed")"
     sed 's/^/engine --help: /' "$work/engine.usage"
     if [ -n "$vol" ]; then
-        printf 'lending: bin/oh-infer-volunteer sha256 %s, from aien-dev/open-humanity %s (pending PR #41)\n' \
+        printf 'lending: bin/oh-infer-volunteer sha256 %s, from aien-dev/open-humanity %s (main, open-humanity#51)\n' \
             "$(sha256sum "$vol" | cut -d' ' -f1)" "$OH_REV"
     else
         printf 'lending: not included\n'
