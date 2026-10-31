@@ -13,8 +13,9 @@
 # The installer under test is installer/install.sh itself. The only change is its release key
 # constant (RELEASE_PUB_HEX and RELEASE_PUB_PEM), replaced with the test key by an awk rewrite
 # like the one tests/run.sh uses; case key-swap-only checks that nothing else changed. The
-# release is served over http://127.0.0.1 (python3 -m http.server) and the installer runs once
-# per case with a fake GB10 tree (tests/fake-root.sh) as AIENOS_PROBE_ROOT.
+# release is served over https://127.0.0.1 by openssl s_server -HTTP with a certificate made for
+# this run (curl trusts it through CURL_CA_BUNDLE), and the installer runs once per case with a
+# fake GB10 tree (tests/fake-root.sh) as AIENOS_PROBE_ROOT. No Python anywhere (DRA-38).
 #
 # Every refusal case checks the exit status, the installer's exact reason, and that nothing was
 # installed. The self-check cases run refusal cases against copies of install.sh with one check
@@ -92,13 +93,10 @@ outer() { # dist-dir key: the release's SHA256SUMS over the bundle and install.s
 }
 sign() { (cd "$1" && openssl pkeyutl -sign -inkey "$2" -rawin -in SHA256SUMS -out SHA256SUMS.sig); }
 flip() { # file: change one byte in the middle
-    python3 - "$1" <<'EOF'
-import sys
-p = sys.argv[1]
-b = bytearray(open(p, "rb").read())
-b[len(b) // 2] ^= 1
-open(p, "wb").write(bytes(b))
-EOF
+    local off b
+    off=$(( $(wc -c < "$1") / 2 ))
+    b=$(od -An -tu1 -j "$off" -N1 "$1" | tr -d ' ')
+    printf "\\$(printf %03o $(( b ^ 1 )))" | dd of="$1" bs=1 seek="$off" conv=notrunc status=none
 }
 dist() { # name: a release folder served at /name, starting from the good one
     rm -rf "$S/www/$1"; cp -a "$S/www/good" "$S/www/$1"
@@ -127,16 +125,11 @@ dist bundle-not-in-signed-list
 sign "$S/www/bundle-not-in-signed-list" "$S/test.key"
 # A correctly signed bundle with a "../" member.
 dist unsafe-path-in-bundle
-python3 - "$S/stage" "$S/www/unsafe-path-in-bundle/$BUNDLE" <<'EOF'
-import io, sys, tarfile
-src, out = sys.argv[1], sys.argv[2]
-with tarfile.open(out, "w:gz") as t:
-    t.add(src, arcname=".")
-    data = b"written outside the release folder\n"
-    info = tarfile.TarInfo("../escape.txt")
-    info.size = len(data)
-    t.addfile(info, io.BytesIO(data))
-EOF
+printf 'written outside the release folder\n' > "$S/escape.txt"
+tar -czf "$S/www/unsafe-path-in-bundle/$BUNDLE" -C "$S/stage" . \
+    -C "$S" -P --transform 's,^escape\.txt$,../escape.txt,' escape.txt
+tar -tzf "$S/www/unsafe-path-in-bundle/$BUNDLE" 2>/dev/null | grep -qx '\.\./escape\.txt' \
+    || { echo "VERIFY-PATH crashed: the unsafe-path fixture has no ../escape.txt member"; exit 2; }
 outer "$S/www/unsafe-path-in-bundle" "$S/test.key"
 # A file inside the bundle changed after the bundle's SHA256SUMS was written; the bundle itself
 # is listed and signed correctly, so only the per-file check can refuse it.
@@ -149,15 +142,31 @@ outer "$S/www/tampered-file-inside-bundle" "$S/test.key"
 dist missing-signature; rm "$S/www/missing-signature/SHA256SUMS.sig"
 
 # ---- the server ----
-PORT=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
-python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$S/www" > "$S/http.log" 2>&1 &
+# openssl s_server -HTTP sends each requested file as the whole response, so every served file is
+# a complete HTTP/1.0 response built from the fixture. A file it cannot open would get a 200 with
+# an error text, so the missing signature is served as an explicit 404.
+openssl req -x509 -newkey ed25519 -nodes -keyout "$S/tls.key" -out "$S/tls.pem" -days 1 \
+    -subj /CN=127.0.0.1 -addext subjectAltName=IP:127.0.0.1 2>/dev/null
+rm -rf "$S/srv"
+(cd "$S/www" && find . -type f) | while read -r f; do
+    mkdir -p "$(dirname "$S/srv/$f")"
+    { printf 'HTTP/1.0 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %s\r\n\r\n' \
+        "$(wc -c < "$S/www/$f")"; cat "$S/www/$f"; } > "$S/srv/$f"
+done
+printf 'HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n' > "$S/srv/missing-signature/SHA256SUMS.sig"
+(cd "$S/srv" && exec openssl s_server -HTTP -accept 127.0.0.1:0 -cert "$S/tls.pem" -key "$S/tls.key") \
+    > "$S/https.log" 2>&1 < /dev/null &
 srv=$!
 trap 'kill $srv 2>/dev/null || true' EXIT
-i=0
-until curl -fs "http://127.0.0.1:$PORT/good/SHA256SUMS" > /dev/null 2>&1; do
-    i=$((i + 1)); [ $i -lt 100 ] || { echo "VERIFY-PATH crashed: http server did not start"; exit 2; }
+export CURL_CA_BUNDLE=$S/tls.pem
+i=0 PORT=
+until [ -n "$PORT" ] && curl -fs "https://127.0.0.1:$PORT/good/SHA256SUMS" > /dev/null 2>&1; do
+    i=$((i + 1)); [ $i -lt 100 ] || { echo "VERIFY-PATH crashed: https server did not start"; exit 2; }
     sleep 0.1
+    PORT=$(sed -n 's/^ACCEPT .*:\([0-9][0-9]*\)$/\1/p' "$S/https.log")
 done
+curl -fs "https://127.0.0.1:$PORT/good/$BUNDLE" | cmp -s - "$S/www/good/$BUNDLE" \
+    || { echo "VERIFY-PATH crashed: the server does not return the bundle byte for byte"; exit 2; }
 
 # ---- cases ----
 n=0
@@ -167,7 +176,7 @@ run() { # served-name installer: sets rc, out, h
     mkdir -p "$h/Desktop"
     rc=0
     out=$(env PATH="$ipath" HOME="$h" TMPDIR="$S/tmp" AIENOS_PROBE_ROOT="$S/root-gb10" \
-        AIENOS_BASE_URL="http://127.0.0.1:$PORT/$1" AIENOS_NO_WIZARD=1 \
+        AIENOS_BASE_URL="https://127.0.0.1:$PORT/$1" AIENOS_NO_WIZARD=1 CURL_CA_BUNDLE="$S/tls.pem" \
         sh "$2" < /dev/null 2>&1) || rc=$?
     printf '%s\nexit %s\n' "$out" "$rc" > "$S/out/$n-$1.txt"
 }
@@ -218,7 +227,7 @@ refusal bundle-not-in-signed-list "$S/install.sh" 1 \
 refusal unsafe-path-in-bundle "$S/install.sh" 1 "$UNSAFE"; verdict unsafe-path-in-bundle
 refusal tampered-file-inside-bundle "$S/install.sh" 1 "$FILE"; verdict tampered-file-inside-bundle
 refusal missing-signature "$S/install.sh" 2 \
-    "Could not download http://127.0.0.1:$PORT/missing-signature/SHA256SUMS.sig"; verdict missing-signature
+    "Could not download https://127.0.0.1:$PORT/missing-signature/SHA256SUMS.sig"; verdict missing-signature
 
 # ---- self-check: with one check removed, the matching case must FAIL ----
 mutant() { # name from to: a copy of the installer under test with one line's check disabled

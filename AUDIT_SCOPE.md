@@ -116,10 +116,11 @@ bash installer/tests/verify-path.sh                          # no secret: genera
 constant swapped for a key generated in the run, against a test release and its negative controls
 (bad signature, tampered bundle, tampered file inside the bundle, unsafe path, missing signature).
 `.github/workflows/installer-verify-path.yml` runs it on every pull request. Besides the tools
-`install.sh` itself calls, the test uses host `openssl` (test key and signature), `tar`,
-`sha256sum`, `awk` (the key swap and the mutants), `curl` (waiting for the server) and `python3`
-(the 127.0.0.1 HTTP server, the one-byte flip and the tar with a `../` member). They are
-test-only and not in the install path.
+`install.sh` itself calls, the test uses host `openssl` (test key, signature, a throwaway TLS
+certificate and `s_server -HTTP` as the https://127.0.0.1 server), GNU `tar` (`-P --transform` for
+the bundle with a `../` member), `sha256sum`, `awk` (the key swap and the mutants), `od` and `dd`
+(the one-byte flip) and `curl` (waiting for the server). No Python (DRA-38). They are test-only
+and not in the install path.
 
 `.github/workflows/learn.yml` is the check for `docs/learn` and `docs/academy`. The Python is in
 that workflow. It fails if a `.sh`, `.bash`, `.py`, `.js` or `.mjs` file, a shebang, `#include`,

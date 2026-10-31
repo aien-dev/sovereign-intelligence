@@ -34,7 +34,6 @@ jobs:
           sha256sum --version | sed -n 1p
           tar --version | sed -n 1p
           curl --version | sed -n 1p
-          python3 --version
       - name: Verification path with negative controls
         run: |
           set -euo pipefail
