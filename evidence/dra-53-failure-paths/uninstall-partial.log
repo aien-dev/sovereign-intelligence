@@ -1,0 +1,8 @@
+  ok   moved: uninstall exit 0 (got 0)
+  ok   moved: nothing of AienOS left
+  ok   linked: uninstall exit 0 (got 0)
+  ok   linked: nothing of AienOS left
+  ok   listed: uninstall exit 0 (got 0)
+  ok   listed: nothing of AienOS left
+  ok   negative control (partial home has files before uninstall; full install uninstalls clean): opposite
+RESULT uninstall-partial PASS EXERCISED(host) cases=moved,linked,listed control=opposite spark=NOT_RUN

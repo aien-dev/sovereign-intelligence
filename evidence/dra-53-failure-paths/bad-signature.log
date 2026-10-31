@@ -1,0 +1,15 @@
+  ok   otherkey: install.sh exit 1 (got 1)
+  ok   otherkey: says "signature on SHA256SUMS does not match"
+  ok   otherkey: says nothing was installed
+  ok   otherkey: home folder untouched
+  ok   badsig: install.sh exit 1 (got 1)
+  ok   badsig: says "signature on SHA256SUMS does not match"
+  ok   badsig: says nothing was installed
+  ok   badsig: home folder untouched
+  ok   tampered: install.sh exit 1 (got 1)
+  ok   tampered: says "does not match its signed SHA-256"
+  ok   tampered: says nothing was installed
+  ok   tampered: home folder untouched
+  ok   no temporary folder left in TMPDIR
+  ok   negative control (untampered release installs and verifies): opposite
+RESULT bad-signature PASS EXERCISED(host) cases=otherkey,badsig,tampered control=opposite spark=NOT_RUN

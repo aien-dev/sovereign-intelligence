@@ -1,0 +1,14 @@
+  ok   tcp: aienos start exit 1 (got 1)
+  ok   tcp: says the port is used by another program
+  ok   tcp: does not say engine ready
+  ok   tcp: no engine.pid, no engine process
+  ok   tcp: the other program still runs
+  ok   http: aienos start exit 1 (got 1)
+  ok   http: says the port is used by another program
+  ok   http: does not say engine ready
+  ok   http: no engine.pid, no engine process
+  ok   http: aienos chat sent no question to the other program
+  ok   http: the other program still runs
+  ok   control: aienos stop stops the engine
+  ok   negative control (port free: engine starts): opposite
+RESULT port-in-use PASS EXERCISED(host, test build on port 33657) cases=tcp,http control=opposite spark=NOT_RUN

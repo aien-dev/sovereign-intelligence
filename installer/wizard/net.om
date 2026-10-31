@@ -188,7 +188,12 @@ put rbn 0 ulong k
 ret long rbnum 9
 end
 
+note Our engine answers on 127.0.0.1:p: engine.pid names a live aien-serve-http and /health says
+note 200. Another program on the port is never trusted, whatever it answers.
 fn alive p ulong to bool
+if eq epid 0
+ret false
+end
 ret eq hget p h_health 200
 end
 

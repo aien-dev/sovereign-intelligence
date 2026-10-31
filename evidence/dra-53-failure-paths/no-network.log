@@ -1,0 +1,17 @@
+  ok   refused: install.sh exit 2 (got 2)
+  ok   refused: says Could not download
+  ok   refused: home folder untouched
+  ok   nobundle: install.sh exit 2 (got 2)
+  ok   nobundle: names the bundle
+  ok   nobundle: home folder untouched
+  ok   cut: install.sh exit 2 (got 2)
+  ok   cut: names the bundle
+  ok   cut: home folder untouched
+  ok   no temporary folder left in TMPDIR
+  ok   negative control (server up: installs and verifies): opposite
+  ok   wiznet: wizard exit non-zero (got 1)
+  ok   wiznet: no model file, no verified marker
+  ok   wiznet: says the download failed
+  ok   wiznet: no engine started
+  ok   negative control (wizard with the server back verifies the model): opposite
+RESULT no-network PASS EXERCISED(host) cases=refused,nobundle,cut,wizard-model control=opposite/opposite spark=NOT_RUN

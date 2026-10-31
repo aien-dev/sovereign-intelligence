@@ -69,8 +69,22 @@ done
 [ -n "${HOME:-}" ] && [ -d "$HOME" ] || { say "HOME is not set to a folder."; exit 2; }
 
 base=$HOME/.local/share/aienos
+# A temporary folder whose run was killed before its trap ran (kill -9, a power cut) holds that
+# run's pid; it goes once the pid is dead (one without a pid, from an older install.sh, after an hour).
+for old in "${TMPDIR:-/tmp}"/aienos-install.*; do
+    [ -d "$old" ] && [ ! -L "$old" ] && [ -O "$old" ] || continue
+    pid=$(cat "$old/pid" 2>/dev/null || true)
+    case $pid in
+        ''|*[!0-9]*) [ -n "$(find "$old" -maxdepth 0 -mmin +60)" ] || continue ;;
+        *) ! kill -0 "$pid" 2>/dev/null || continue ;;
+    esac
+    rm -rf "$old"
+done
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/aienos-install.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+echo $$ > "$tmp/pid"
+stage=
+# A staging folder left by an error or Ctrl+C goes too (a power cut leaves it; the next run removes it).
+trap 'rm -rf "$tmp" ${stage:+"$stage"}' EXIT HUP INT TERM
 
 fetch() {
     curl -fsSL --retry 3 --proto '=https,http' -o "$tmp/$1" "$BASE_URL/$1" \
@@ -99,7 +113,18 @@ fi
 say "Signature and SHA-256 match (release key $RELEASE_PUB_HEX)."
 
 # 4. Unpack into a staging folder, check every file again, then move it into place.
+# The folders this run makes outside $base (or an earlier run recorded), deepest first: their
+# "DIR/" lines in installed-files let "aienos uninstall" remove them again once they are empty.
+mine=
+for d in .local/share/icons/hicolor/scalable/apps .local/share/icons/hicolor/scalable \
+        .local/share/icons/hicolor .local/share/icons .local/share/applications .local/bin .local/share .local; do
+    if [ ! -e "$HOME/$d" ] || grep -qsxF "$HOME/$d/" "$base/installed-files" "$base/installed-files.new"; then
+        mine="$mine$HOME/$d/
+"
+    fi
+done
 mkdir -p "$base/releases"
+printf '%s' "$mine" > "$base/installed-files.new"
 if tar -tzf "$tmp/$BUNDLE" | grep -Eq '^/|(^|/)\.\.(/|$)'; then
     say "The bundle contains an unsafe path. Nothing was installed."
     exit 1
@@ -107,7 +132,11 @@ fi
 stage=$base/releases/.$TAG.new
 rm -rf "$stage"
 mkdir -p "$stage"
-tar -xzf "$tmp/$BUNDLE" -C "$stage" --no-same-owner --no-same-permissions
+if ! tar -xzf "$tmp/$BUNDLE" -C "$stage" --no-same-owner --no-same-permissions; then
+    rm -rf "$stage"
+    say "Could not unpack the bundle into $base (is the disk full?). Nothing was installed."
+    exit 2
+fi
 if ! (cd "$stage" && sha256sum --quiet -c SHA256SUMS >/dev/null 2>&1); then
     rm -rf "$stage"
     say "A file inside the bundle does not match its SHA-256. Nothing was installed."
@@ -132,37 +161,36 @@ cp "$tmp/SHA256SUMS.sig" "$dest/release.SHA256SUMS.sig"
 ln -sfn "releases/$TAG" "$base/current.new"
 mv -T "$base/current.new" "$base/current"
 
-# 5. The command, the menu entry, the desktop icon. Every path written is listed in
-#    installed-files so "aienos uninstall" removes exactly these.
+# 5. The command, the menu entry, the desktop icon. Every path is listed in installed-files.new
+#    before it is written, so "aienos uninstall" removes exactly these even after an interrupted run.
 list=$base/installed-files
-: > "$list.new"
 mkdir -p "$HOME/.local/bin" "$HOME/.local/share/applications" \
     "$HOME/.local/share/icons/hicolor/scalable/apps"
-ln -sfn "$base/current/bin/aienos" "$HOME/.local/bin/aienos"
 printf '%s\n' "$HOME/.local/bin/aienos" >> "$list.new"
+ln -sfn "$base/current/bin/aienos" "$HOME/.local/bin/aienos"
 icon=$HOME/.local/share/icons/hicolor/scalable/apps/aienos.svg
-cp "$base/current/share/aienos/aienos.svg" "$icon"
 printf '%s\n' "$icon" >> "$list.new"
+cp "$base/current/share/aienos/aienos.svg" "$icon"
 # The launcher template ships in the bundle; only its two paths are filled in here.
 entry() {
     sed -e "s|@AIENOS@|$base/current/bin/aienos|g" -e "s|@ICON@|$icon|g" \
         "$base/current/share/aienos/aienos.desktop.in"
 }
 menu=$HOME/.local/share/applications/aienos.desktop
-entry > "$menu"
 printf '%s\n' "$menu" >> "$list.new"
+entry > "$menu"
 desk=
 if command -v xdg-user-dir >/dev/null 2>&1; then
     desk=$(xdg-user-dir DESKTOP 2>/dev/null || true)
 fi
 [ -n "$desk" ] || desk=$HOME/Desktop
 if [ "$desk" != "$HOME" ] && [ -d "$desk" ]; then
+    printf '%s\n' "$desk/aienos.desktop" >> "$list.new"
     entry > "$desk/aienos.desktop"
     chmod 755 "$desk/aienos.desktop"
     if command -v gio >/dev/null 2>&1; then
         gio set "$desk/aienos.desktop" metadata::trusted true >/dev/null 2>&1 || true
     fi
-    printf '%s\n' "$desk/aienos.desktop" >> "$list.new"
 fi
 mv "$list.new" "$list"
 

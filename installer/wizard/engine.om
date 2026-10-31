@@ -35,6 +35,8 @@ text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
 text f_load1 "Starting the engine (Core ship/motor-l387 59b05a71) and loading the 35B onto the GB10."
 text f_load2 "The first load reads about 37.5 GB, so it can take a few minutes."
 text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
+text e_busy1 "The engine's port 127.0.0.1:18100 is used by another program."
+text e_busy2 "AienOS does not talk to it. Stop that program, then run aienos again."
 text f_q "Say hello in one short sentence, and tell me what you are."
 text f_you "you    "
 text f_ai "model  "
@@ -52,6 +54,7 @@ text d_l5 "  aienos source      where my .om source lives"
 text d_l6 "  aienos uninstall   remove everything AienOS put on this machine"
 text d_l7 "OpenAI-style API:    http://127.0.0.1:18100/v1/chat/completions"
 text u_list "/installed-files"
+text u_listn "/installed-files.new"
 text u_sure "This removes AienOS from this machine. Type yes to remove it"
 text u_keep "--keep-model"
 text u_yes "--yes"
@@ -140,6 +143,19 @@ fn epid to ulong
 pbase
 pstr e_pid
 ret pidget e_name
+end
+
+note Is PORT taken by a program that is not this release's engine (no live engine.pid)?
+fn ptaken to bool
+if ne epid 0
+ret false
+end
+fd = tcp PORT
+if lt fd 0
+ret false
+end
+c = fclose int fd
+ret true
 end
 
 note The pid in the file named by pb when /proc/PID/exe still ends in nm, else 0.
@@ -270,6 +286,17 @@ r = ask
 ret true
 end
 if not alive PORT
+if ptaken
+pclear
+pc 4
+pl e_busy1
+pc 2
+pl e_busy2
+prompt t_close
+show
+r = ask
+ret false
+end
 pl f_load1
 pln
 pl f_load2
@@ -416,23 +443,65 @@ end
 ret true
 end
 
-note Unlink every path in installed-files that lies inside the home folder.
-fn ulist to void
+note Unlink every path in installed-files, and in installed-files.new that an interrupted install
+note left behind, that lies inside the home folder. True when either list was read; mf then holds
+note the last one read (mload leaves mf alone when a file is missing).
+fn ulist to bool
 pbase
 pstr u_list
+a = ulfile
+pbase
+pstr u_listn
+b = ulfile
+ret or a b
+end
+
+note Unlink every path listed in the file named by pb that lies inside the home folder. Lines
+note ending in "/" are folders install.sh made; ulsweep removes those once they are empty.
+fn ulfile to bool
 n = mload
 if lt n 0
-ret
+ret false
 end
 o = ulong 0
 while lt o get mfn 0 bound 65537
 e = mfnl o
+if not isdirl o e
 pclr
 for i ulong sub e o
 pbyte get mf add o i
 end
 if inhome
 r = unlink pb 0 get pbn 0
+end
+end
+o = add e 1
+end
+ret true
+end
+
+note Is mf[o..e) a folder line (it ends in "/")?
+fn isdirl o ulong e ulong to bool
+if le e o
+ret false
+end
+ret eq get mf sub e 1 47
+end
+
+note rmdir, in list order (deepest first), every folder line of the list in mf that lies inside the
+note home folder: the folders install.sh made go when nothing else is in them.
+fn ulsweep to void
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if isdirl o e
+pclr
+for i ulong sub e o
+pbyte get mf add o i
+end
+if inhome
+r = rmdir pb 0 get pbn 0
+end
 end
 o = add e 1
 end
@@ -545,9 +614,12 @@ end
 if not lunin
 ret 1
 end
-ulist
+l = ulist
 pbase
 rmt 0 keep
+if l
+ulsweep
+end
 emit u_done
 putb 10
 if keep

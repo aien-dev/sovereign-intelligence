@@ -557,6 +557,16 @@ end
 num ulong k
 emit n_vok
 putb 10
+m = mvfy
+if lt m 0
+w = flush
+ret 1
+end
+if gt m 0
+num ulong m
+emit m_vok
+putb 10
+end
 w = flush
 ret 0
 end
@@ -579,6 +589,29 @@ end
 putb 10
 w = flush
 ret 2
+end
+if not ok
+col = istty 1
+for i ulong NCHK
+if eq get dk i 2
+cline i col
+putb 10
+end
+end
+emit x_l1
+putb 10
+emit x_l2
+putb 10
+w = flush
+ret 2
+end
+if ptaken
+emit e_busy1
+putb 10
+emit e_busy2
+putb 10
+w = flush
+ret 1
 end
 p = estart
 if lt p 0
