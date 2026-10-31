@@ -364,7 +364,7 @@ repos:
   - name: open-humanity
     layer: apps
     evidence: PROPOSED
-    purpose: "Opt-in, privacy-first assistance network and volunteer compute"
+    purpose: "Opt-in, privacy-first assistance network, volunteer compute, and volunteer inference (Spark owners answer Aien overflow; routing off)"
   - name: pi-register
     layer: apps
     evidence: IMPLEMENTED

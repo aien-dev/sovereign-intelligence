@@ -117,24 +117,33 @@ end
 c = fclose int lfd
 c = fclose int nfd
 put ui 9 ulong pid
-put rbn 0 0
-pclr
-pnum ulong pid
-for i ulong get pbn 0
-put rb i get pb i
-end
-put rb get pbn 0 10
-k = add get pbn 0 1
+k = wpid ulong pid
 pbase
 pstr e_pid
 r = spill k
 ret pid
 end
 
+note Put "PID\n" into rb; returns its length.
+fn wpid p ulong to ulong
+put rbn 0 0
+pclr
+pnum p
+for i ulong get pbn 0
+put rb i get pb i
+end
+put rb get pbn 0 10
+ret add get pbn 0 1
+end
 note The pid in engine.pid when that process is still aien-serve-http, else 0.
 fn epid to ulong
 pbase
 pstr e_pid
+ret pidget e_name
+end
+
+note The pid in the file named by pb when /proc/PID/exe still ends in nm, else 0.
+fn pidget nm view uchar * to ulong
 n = slurp
 if le n 0
 ret 0
@@ -152,10 +161,10 @@ if le n 0
 ret 0
 end
 put rbn 0 ulong n
-if lt ulong n len e_name
+if lt ulong n len nm
 ret 0
 end
-if rbat sub ulong n len e_name e_name
+if rbat sub ulong n len nm nm
 ret p
 end
 ret 0
@@ -350,7 +359,7 @@ r = rline
 end
 
 fn stdone ready bool to void
-enter 7
+enter 8
 pclear
 pc 3
 if ready
@@ -531,6 +540,9 @@ if not estop
 emit u_stop
 putb 10
 w = flush
+ret 1
+end
+if not lunin
 ret 1
 end
 ulist

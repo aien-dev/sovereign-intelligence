@@ -1,6 +1,6 @@
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 note steps.om: the screens of the wizard (welcome, doctor, plan, consent, install, model, first chat,
-note done), the panel under the black hole, the progress bar, file hashing with the Omega SHA-256 unit,
+note lend (in lend.om), done), the panel under the black hole, the progress bar, file hashing with the Omega SHA-256 unit,
 note the model download and the engine's start and stop.
 note
 note Panel markup: byte 1 gold, 2 plain, 3 green, 4 red, 5 dim, 6 bright. A line ends at byte 10.
@@ -22,7 +22,7 @@ global ppt uchar 4096
 global pptn ulong 1
 text s_title " Sovereign Intelligence alpha "
 text s_step "  step "
-text s_of " of 8  "
+text s_of " of 9  "
 text s_n0 "welcome"
 text s_n1 "doctor"
 text s_n2 "plan"
@@ -30,7 +30,8 @@ text s_n3 "your yes"
 text s_n4 "install"
 text s_n5 "model"
 text s_n6 "first chat"
-text s_n7 "done"
+text s_n7 "lend (optional)"
+text s_n8 "done"
 text s_omega "  written in Omega (.om)"
 text t_tbase "~/.local/share/aienos"
 text t_files " files"
@@ -202,6 +203,9 @@ emit s_n6
 end
 if eq i 7
 emit s_n7
+end
+if eq i 8
+emit s_n8
 end
 end
 
