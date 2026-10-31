@@ -17,7 +17,7 @@ Mostly documentation plus one installer (Apache 2.0 with LLVM Exceptions):
 - `index/`: `index/gen/index.om` (1,573 lines of Omega) with `index/curated.yml`,
   `index/gen/repos.graphql` and the generated `index/repos.json`.
 - `docs/learn/teach/` (291 files) and `docs/academy/` (138 files): lessons with Omega examples
-  and recorded host output, and an exam whose tasks have a written `GRADER.md`. `docs/STACK.md`
+  and recorded host output, and an exam whose tasks have a written `GRADER.md`. `docs/ROADMAP.md`
   and `NAMING.md` are prose.
 - `evidence/alpha-20261029.1/`: receipts for the current release. `evidence/alpha-20261026.1/` and
   `evidence/alpha-20261026.2/`: receipts for the previous releases. `evidence/wizard-hole-redraw/`:
