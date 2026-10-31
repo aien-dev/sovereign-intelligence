@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# Post-reset stock check (DRA-44) on the SI test DGX Spark, started by hand only. A pull request can
+# never start it: installer/rig/wfcheck.om (DRA-45) refuses any other trigger for a self-hosted job.
+# Read-only: it compiles installer/rig/stock.om into the runner's temp folder and reads the Spark's
+# own / . It uses no sudo, writes nothing outside the runner's work and temp folders, and touches no
+# GPU, service or package. The job fails when the Spark is not stock (installer/rig/RESET-TO-STOCK.md).
+name: Rig stock check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  event-guard:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: test "${{ github.event_name }}" = workflow_dispatch
+  stock:
+    needs: event-guard
+    runs-on: [self-hosted, linux, ARM64, si-test-spark]
+    timeout-minutes: 10
+    env:
+      OMEGA_REV: bf54b19fa590e8ae925c0e80815516dbf41e7326
+      OMC_PIN: 62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned omega-mv
+        run: |
+          rm -rf "$RUNNER_TEMP/omega"
+          git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"
+          git -C "$RUNNER_TEMP/omega" checkout --quiet "$OMEGA_REV"
+          echo "$OMC_PIN  $RUNNER_TEMP/omega/seed/out/omc" | sha256sum -c -
+      - name: Stock check of this Spark (read-only)
+        run: |
+          "$RUNNER_TEMP/omega/seed/out/omc" < installer/rig/stock.om > "$RUNNER_TEMP/stock"
+          chmod +x "$RUNNER_TEMP/stock"
+          "$RUNNER_TEMP/stock" /
