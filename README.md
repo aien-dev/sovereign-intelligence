@@ -2,9 +2,9 @@
 
 # Sovereign Intelligence™ (SI)
 
-**My own AI, on hardware I own, with every layer open to read, rebuild and change.**
+**My own AI on my own DGX Spark: one command installs a signed engine and Qwen3.6-35B, and one command removes it.**
 
-Sovereign Intelligence: one command turns a DGX Spark into your own AI, with Omega and science tools and no NVIDIA user-space software. Alpha; Aien comes in a later release.
+Sovereign Intelligence alpha: the installer checks the machine, verifies an Ed25519-signed release before unpacking and installs into your home folder without sudo. It installs Qwen3.6-35B-A3B and the engine that serves it on my own Spark's GB10, a binary that links no CUDA library ([release notes](https://github.com/aien-dev/sovereign-intelligence/blob/dcae5bd49f4c4903525b42ff401f52a2393e9348/notes/alpha-20261026.2.md#L33)). A real install with a first token through the installer is still NOT_RUN ([status](https://github.com/aien-dev/sovereign-intelligence/blob/dcae5bd49f4c4903525b42ff401f52a2393e9348/notes/alpha-20261026.2.md#L42-L53)). Aien, Cortex, the Omega sandbox and the science tools are not in this release. Not mine: the Qwen model weights (Qwen's, Apache-2.0, see [NOTICE](NOTICE)), NVIDIA's open kernel module 580.173.02 and signed GB10 firmware, and the Spark's DGX OS Linux.
 
 Sovereign Intelligence, built on [AienOS](https://github.com/aien-dev/AienOS-nv).
 
