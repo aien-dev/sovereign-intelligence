@@ -1,6 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-# Failure-path runner (DRA-53): runs the ten failure-path scripts and prints one line per path:
+# Failure-path runner (DRA-53): runs the eleven failure-path scripts and prints one line per path:
 #   PASS|FAIL|NOT_RUN  <path>  <evidence level and cases, negative control, stock-Spark status>
 # then one summary line. Exit 0 when nothing failed, 1 otherwise. Not wired into CI: it builds
 # test releases, serves them on 127.0.0.1 and starts the fake engine on a free high port, so run
@@ -14,7 +14,7 @@ S=${1:-$(mktemp -d "${TMPDIR:-/tmp}/aienos-failure-paths.XXXXXX")}
 mkdir -p "$S"
 pass=0 fail=0 notrun=0
 for p in disk-full no-network wrong-gpu-driver interrupted-install bad-signature port-in-use uninstall-partial \
-        model-resume model-corrupt rollback-clean; do
+        model-resume model-corrupt rollback-clean stale-tmp; do
     sh "$here/$p.sh" "$S/$p" > "$S/$p.log" 2>&1; rc=$?
     line=$(sed -n "s/^RESULT $p [A-Z_]* //p" "$S/$p.log" | tail -n 1)
     case $rc in
