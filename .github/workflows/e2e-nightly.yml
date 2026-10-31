@@ -63,3 +63,25 @@ jobs:
           name: e2e-evidence-${{ github.run_id }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
+  notify-failure:
+    # DRA-59: a failed night opens or comments on the nightly-failure issue, mentioning the
+    # maintainer and linking the run. Hosted runner, so it reports even when the self-hosted job
+    # never started; never on a fork or for any event other than schedule/dispatch.
+    needs: [event-guard, e2e]
+    if: failure() && github.repository == 'aien-dev/sovereign-intelligence' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      MAINTAINER: ${{ vars.SI_MAINTAINER || 'drakestapleton' }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Notify the maintainer (gh issue)
+        run: sh installer/rig/notify-failure.sh

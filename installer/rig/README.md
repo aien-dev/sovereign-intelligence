@@ -22,6 +22,9 @@ A workflow with a self-hosted job passes only when:
 2. It has a job named `event-guard` on a GitHub-hosted runner whose text reads
    `github.event_name` (it fails the run on any other event).
 3. Every self-hosted job lists `event-guard` in `needs`.
+4. When `on:` names `schedule`, a GitHub-hosted job's text contains `failure()`, `gh issue` and
+   `issues: write` (DRA-59: nobody watches a scheduled run, so its failure must notify the
+   maintainer). This is a text check of the job, not proof the notice is sent.
 
 Operator rule that the checker cannot see: a self-hosted runner must never be registered with a
 GitHub-hosted image label such as `ubuntu-24.04-arm`.
@@ -65,4 +68,8 @@ and five negative controls must be refused (a missing member, a bad sha256, a st
 previous end, FAKE records with `--want REAL`, and a record relabelled REAL). Rig checks runs it
 on every pull request. `.github/workflows/e2e-nightly.yml` runs the REAL harness nightly and on
 manual dispatch on the runner labelled `si-test-spark`, certifies the evidence with
-`--want REAL` and uploads it. A REAL run needs the test Spark and a registered runner.
+`--want REAL` and uploads it. A REAL run needs the test Spark and a registered runner. When the
+run fails, the hosted `notify-failure` job (`issues: write`, never on a fork) runs
+`installer/rig/notify-failure.sh`: it comments on the open issue labelled `nightly-failure`, or
+opens one assigned to the maintainer (`vars.SI_MAINTAINER`, default `drakestapleton`), with an
+@-mention and the run URL.
