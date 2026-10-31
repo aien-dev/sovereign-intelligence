@@ -80,15 +80,15 @@ the program's own prefix; other lines are counted, not copied. The lending key a
 Sovereign Intelligence alpha-20261029.1: the installer and the aienos command
 written in Omega (.om), compiled by omc sha256 62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
   (aien-dev/omega-mv bf54b19fa590e8ae925c0e80815516dbf41e7326, seed/out/omc)
-engine: aien-serve-http sha256 19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb,
-  the build that serves the Spark's 35B: aien-dev/aien-sovereign-core-mv branch ship/motor-l387
-  commit 59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3 (a development build, not a Core release tag)
-  evidence: Core evidence/l387-motor-ship (merge train 20261022T0244Z-bfc41659, timing runs)
-GPU path: the engine's statically linked libomega_gpu.a (omega ship/motor-l387 6de999da) talks to
+engine: aien-serve-http sha256 6fb04197c272aa1d0235e7644b6e91953ff9b90f5145b250d674ff9fe41806e9,
+  built from aien-dev/aien-sovereign-core-mv main with Core's path-independent container recipe
+  commit d3dec0eb18818808212bdf99db5c8612bcfcb9ef (a development build, not a Core release tag)
+  evidence: two container builds from two checkout paths gave the same sha256 (Core DRA-43)
+GPU path: the engine's statically linked libomega_gpu.a (omega-mv a647b6a9, 036b7491) talks to
   /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. There is no separate CUDA++ runtime.
 model: Qwen/Qwen3.6-35B-A3B-FP8 revision 95a723d08a9490559dae23d0cff1d9466213d989 (37.5 GB)
   This is the only model offered. A 27B is to come; it is not offered in this release.
-evidence: this engine binary serving the 35B on a GB10 EXERCISED (it is the live server's build);
+evidence: this engine binary serving the 35B on a GB10: NOT_RUN (not the live server's build);
   this installer's GB10 install and first token, and the 3x physical qualification: NOT_RUN.
 signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a
   (an alpha key; it is rotated to a ceremony key before beta)
