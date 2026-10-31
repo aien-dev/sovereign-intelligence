@@ -21,6 +21,7 @@ text o_mf "--manifest"
 text o_eaddr "127.0.0.1:18100"
 text o_ebin "--engine-bin"
 text o_pf "--pause-file"
+text o_tf "--engine-token-file"
 text o_vkey "volunteer key "
 text o_lend "lend"
 text o_startw "start"
@@ -252,7 +253,9 @@ pstr o_pidf
 ret pidget o_name
 end
 
-note The packed run command: config from the release, key, the wizard's manifest and model folder.
+note The packed run command: config from the release, key, the wizard's manifest and model folder,
+note and the engine's bearer token file (the path only; the program checks and reads it itself, as
+note execprog gives it an empty environment with no HOME).
 fn largs to void
 pkclr
 pvol
@@ -282,6 +285,9 @@ pkpath
 pkstr o_pf
 plend
 pstr o_paus
+pkpath
+pkstr o_tf
+ptkfile
 pkpath
 end
 

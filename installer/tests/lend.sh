@@ -96,8 +96,8 @@ out=$(aien "$h" lend start 2>&1); rc=$?
 
 if [ -z "${OH_VOLUNTEER:-}" ]; then
     for c in lend-wizard-yes-makes-key lend-wizard-yes-keeps-key lend-start-without-key-refuses lend-start \
-             lend-start-twice lend-status lend-pause-resume lend-quit lend-status-after-quit \
-             lend-uninstall-stops-agent; do nr "$c" "OH_VOLUNTEER not set"; done
+             lend-start-passes-token-file lend-start-loads-token lend-start-twice lend-status lend-pause-resume \
+             lend-quit lend-status-after-quit lend-uninstall-stops-agent; do nr "$c" "OH_VOLUNTEER not set"; done
 else
     mkstage "$S/stage-lend" yes
     h=$(mkhome yes "$S/stage-lend")
@@ -125,6 +125,17 @@ else
     [ $rc -eq 0 ] && [ -n "$pid" ] && printf '%s' "$out" | grep -q "lending started, pid $pid" \
         && [ "$(basename "$(readlink "/proc/$pid/exe")")" = oh-infer-volunteer ] \
         && grep -q "model test-model verified" "$h/$lend/lend.log"; verdict lend-start $?
+    # The engine's bearer token file reaches the program as a path (never the token itself).
+    tokf=$h/.local/share/aienos/auth/bearer-token
+    tr '\0' '\n' < "/proc/$pid/cmdline" > "$S/lend.argv"
+    [ -f "$tokf" ] && grep -A1 -x -- --engine-token-file "$S/lend.argv" | tail -1 | grep -qxF "$tokf" \
+        && ! grep -qF "$(cat "$tokf")" "$S/lend.argv" "$h/$lend/lend.log"; verdict lend-start-passes-token-file $?
+    # A program from before open-humanity#54 ignores the option and logs nothing about a token.
+    if grep -q "engine bearer token" "$h/$lend/lend.log"; then
+        grep -qF "engine bearer token loaded from $tokf" "$h/$lend/lend.log"; verdict lend-start-loads-token $?
+    else
+        nr lend-start-loads-token "this oh-infer-volunteer predates --engine-token-file"
+    fi
     out=$(aien "$h" lend start 2>&1); rc=$?
     [ $rc -eq 0 ] && printf '%s' "$out" | grep -q "lending is already running, pid $pid"; verdict lend-start-twice $?
     out=$(aien "$h" lend status 2>&1); rc=$?

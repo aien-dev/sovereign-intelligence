@@ -39,4 +39,4 @@ The wizard also refuses a token that is damaged, the wrong length or a symbolic 
 
 ## Known gap
 
-`oh-infer-volunteer`, the lending program, does not send the token yet. Against an engine that enforces it, its requests get 401 until that program is changed (aien-dev/open-humanity).
+`oh-infer-volunteer`, the lending program, sends the token only from aien-dev/open-humanity#54 (draft, not merged) on. The wizard already passes it `--engine-token-file ~/.local/share/aienos/auth/bearer-token`; the program pinned today (open-humanity c0484649) ignores that option, so against an engine that enforces the token its requests get 401 until the pin moves to a commit that includes #54.
