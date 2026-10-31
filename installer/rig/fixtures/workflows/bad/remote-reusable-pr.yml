@@ -1,0 +1,6 @@
+# SYNTHETIC fixture for installer/rig/wfcheck.om (DRA-45). Never runs: it is not under .github/workflows.
+on:
+  pull_request:
+jobs:
+  call:
+    uses: other/repo/.github/workflows/x.yml@0123456789abcdef0123456789abcdef01234567

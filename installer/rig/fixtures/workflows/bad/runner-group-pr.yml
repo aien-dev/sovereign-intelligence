@@ -1,0 +1,9 @@
+# SYNTHETIC fixture for installer/rig/wfcheck.om (DRA-45). Never runs: it is not under .github/workflows.
+on:
+  pull_request:
+jobs:
+  build:
+    runs-on:
+      group: spark
+    steps:
+      - run: echo x
