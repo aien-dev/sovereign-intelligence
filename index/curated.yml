@@ -18,7 +18,7 @@ layers:
     blurb: "NVIDIA's open kernel module today; my own driver, aien-gpu, is being written inside CUDA++."
   - key: kernel
     title: "Kernel and operating system"
-    blurb: "Aienux, the kernel, and AienOS, the operating system SI is built on."
+    blurb: "Aienux, the kernel, and AienOS, the operating system. Neither is in the SI alpha, which runs on DGX OS Linux."
   - key: runtime
     title: "CUDA++ runtime"
     blurb: "GPU programs with no NVIDIA user-space software."
