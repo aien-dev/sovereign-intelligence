@@ -1,0 +1,672 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note evcheck.om: checks the evidence JSONL of the SI Alpha end-to-end harness (DRA-55, DRA-59),
+note schema si-rig-e2e/1. Usage:
+note   evcheck FILE              schema mode: every record valid, any mode, any exit codes
+note   evcheck --want MODE FILE  certify: also every record has mode MODE (REAL or FAKE), all four
+note                             steps install verify chat uninstall are present, every exit_code is
+note                             0 and engine_sha256 is not all zeros
+note Composition (a program unit): { printf 'om2\n'; cat installer/rig/vendor/json.om
+note installer/rig/evcheck.om; } | omc. vendor/json.om is a byte copy of omega-mv bf54b19f
+note seed/json/json.om; arrays handed to js_* are locals, as its README requires.
+note One record per line, a JSON object with exactly these members, each once:
+note   schema "si-rig-e2e/1"   step: one of install verify chat uninstall, in that order, no repeats
+note   mode "REAL" or "FAKE", the same in every record
+note   release_tag: 1..128 bytes, no escapes, the same in every record
+note   engine_sha256: 64 lowercase hex digits, the same in every record
+note   model_repo "Qwen/Qwen3.6-35B-A3B-FP8"   model_commit "95a723d08a9490559dae23d0cff1d9466213d989"
+note   start_utc, end_utc: YYYY-MM-DDTHH:MM:SSZ; start <= end, and end <= the next record's start
+note   exit_code: an integer that fits a long
+note Output: PROBLEM line N: message per finding, then EVCHECK PASS records=N mode=M [certified=M]
+note or EVCHECK FAIL problems=K. Exit 0 pass, 1 a problem, 2 usage, 4 the file could not be read or
+note is larger than 262143 bytes.
+
+note per-run state; mode 1 REAL, 2 FAKE
+global pb uchar 4096
+global pbn ulong 1
+global prob ulong 1
+global lno ulong 1
+global nrec ulong 1
+global lstep ulong 1
+global mode0 ulong 1
+global want ulong 1
+global zsha ulong 1
+global badx ulong 1
+global lastend uchar 20
+global tag0 uchar 128
+global tag0n ulong 1
+global sha0 uchar 64
+note value token of each field in the current record, and how often its key appeared
+global fv ulong 11
+global fc ulong 11
+
+text t_nl "\n"
+text t_prob "PROBLEM line "
+text t_cs ": "
+text t_usage "usage: evcheck [--want REAL|FAKE] FILE\n"
+text t_io "evcheck: cannot read the file, or it is larger than 262143 bytes\n"
+text t_pass "EVCHECK PASS records="
+text t_mode " mode="
+text t_cert " certified="
+text t_fail "EVCHECK FAIL problems="
+text t_real "REAL"
+text t_fake "FAKE"
+text t_wantf "--want"
+text k_sch "schema"
+text k_step "step"
+text k_mode "mode"
+text k_tag "release_tag"
+text k_sha "engine_sha256"
+text k_repo "model_repo"
+text k_comm "model_commit"
+text k_st "start_utc"
+text k_end "end_utc"
+text k_exit "exit_code"
+text v_sch "si-rig-e2e/1"
+text v_repo "Qwen/Qwen3.6-35B-A3B-FP8"
+text v_comm "95a723d08a9490559dae23d0cff1d9466213d989"
+text s_inst "install"
+text s_ver "verify"
+text s_chat "chat"
+text s_unin "uninstall"
+text m_json "not one JSON object"
+text m_unk "unknown member"
+text m_dup "member appears more than once"
+text m_miss "missing member "
+text m_sch "schema is not si-rig-e2e/1"
+text m_step "step is not install, verify, chat or uninstall"
+text m_order "step out of order (install, verify, chat, uninstall; no repeats)"
+text m_mode "mode is not REAL or FAKE"
+text m_mmix "mode differs from the first record"
+text m_tag "release_tag is not 1..128 plain bytes"
+text m_tagx "release_tag differs from the first record"
+text m_sha "engine_sha256 is not 64 lowercase hex digits"
+text m_shax "engine_sha256 differs from the first record"
+text m_repo "model_repo is not Qwen/Qwen3.6-35B-A3B-FP8"
+text m_comm "model_commit is not 95a723d08a9490559dae23d0cff1d9466213d989"
+text m_ts "timestamp is not YYYY-MM-DDTHH:MM:SSZ: "
+text m_se "end_utc is before start_utc"
+text m_mono "start_utc is before the previous record's end_utc"
+text m_exit "exit_code is not an integer"
+text m_none "no records"
+text m_want "certify: mode is not the wanted mode"
+text m_steps "certify: the run does not have all four steps"
+text m_xnz "certify: a step exit_code is not 0"
+text m_zsha "certify: engine_sha256 is all zeros"
+
+note ======== output ========
+
+fn pr t view uchar * to void
+w = write 1 t 0 len t
+end
+
+fn prn v ulong to void
+d = new uchar 20 0
+o = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+put o i get d sub sub k 1 i
+end
+w = write 1 o 0 k
+end
+
+fn prmode m ulong to void
+if eq m 1
+pr t_real
+ret
+end
+pr t_fake
+end
+
+note a finding on the current line (line 0 = the whole file)
+fn prob1 t view uchar * to void
+put prob 0 add get prob 0 1
+pr t_prob
+prn get lno 0
+pr t_cs
+pr t
+pr t_nl
+end
+
+fn prob2 t view uchar * u view uchar * to void
+put prob 0 add get prob 0 1
+pr t_prob
+prn get lno 0
+pr t_cs
+pr t
+pr u
+pr t_nl
+end
+
+note ======== members ========
+
+fn fldix ln view uchar * o ulong to ulong
+if js_streq ln o k_sch
+ret 0
+end
+if js_streq ln o k_step
+ret 1
+end
+if js_streq ln o k_mode
+ret 2
+end
+if js_streq ln o k_tag
+ret 3
+end
+if js_streq ln o k_sha
+ret 4
+end
+if js_streq ln o k_repo
+ret 5
+end
+if js_streq ln o k_comm
+ret 6
+end
+if js_streq ln o k_st
+ret 7
+end
+if js_streq ln o k_end
+ret 8
+end
+if js_streq ln o k_exit
+ret 9
+end
+ret 99
+end
+
+fn fname i ulong to void
+if eq i 0
+pr k_sch
+ret
+end
+if eq i 1
+pr k_step
+ret
+end
+if eq i 2
+pr k_mode
+ret
+end
+if eq i 3
+pr k_tag
+ret
+end
+if eq i 4
+pr k_sha
+ret
+end
+if eq i 5
+pr k_repo
+ret
+end
+if eq i 6
+pr k_comm
+ret
+end
+if eq i 7
+pr k_st
+ret
+end
+if eq i 8
+pr k_end
+ret
+end
+pr k_exit
+end
+
+note collects member value tokens into fv/fc; false when the record cannot be checked further
+fn members ln view uchar * tp view uint * to bool
+for i ulong 10
+put fv i 0
+put fc i 0
+end
+ok = true
+k = js_first tp 0
+while ne k jsnone bound 999999
+f = fldix ln js_off tp k
+if eq f 99
+prob1 m_unk
+ok = false
+else
+if gt get fc f 0
+prob1 m_dup
+ok = false
+end
+put fc f add get fc f 1
+put fv f add k 1
+end
+k = js_mnext tp k
+end
+for i ulong 10
+if eq get fc i 0
+put prob 0 add get prob 0 1
+pr t_prob
+prn get lno 0
+pr t_cs
+pr m_miss
+fname i
+pr t_nl
+ok = false
+end
+end
+ret ok
+end
+
+note plain string at token t: no escapes, so its bytes are ln[off+1 .. off+1+len)
+fn plain tp view uint * t ulong to bool
+if ne js_type tp t 6
+ret false
+end
+ret eq js_span tp t add js_slen tp t 2
+end
+
+note ======== fields ========
+
+fn ckstep ln view uchar * tp view uint * to void
+t = js_off tp get fv 1
+s = ulong 0
+if js_streq ln t s_inst
+s = 1
+end
+if js_streq ln t s_ver
+s = 2
+end
+if js_streq ln t s_chat
+s = 3
+end
+if js_streq ln t s_unin
+s = 4
+end
+if eq s 0
+prob1 m_step
+ret
+end
+if le s get lstep 0
+prob1 m_order
+end
+put lstep 0 s
+end
+
+fn ckmode ln view uchar * tp view uint * to void
+t = js_off tp get fv 2
+m = ulong 0
+if js_streq ln t t_real
+m = 1
+end
+if js_streq ln t t_fake
+m = 2
+end
+if eq m 0
+prob1 m_mode
+ret
+end
+if eq get mode0 0 0
+put mode0 0 m
+ret
+end
+if ne m get mode0 0
+prob1 m_mmix
+end
+end
+
+fn cktag ln view uchar * tp view uint * to void
+t = get fv 3
+n = js_slen tp t
+if or not plain tp t or eq n 0 gt n 128
+prob1 m_tag
+ret
+end
+o = add js_off tp t 1
+if eq get nrec 0 0
+for i ulong n
+put tag0 i get ln add o i
+end
+put tag0n 0 n
+ret
+end
+same = eq n get tag0n 0
+if same
+for i ulong n
+if ne get tag0 i get ln add o i
+same = false
+end
+end
+end
+if not same
+prob1 m_tagx
+end
+end
+
+fn ishex c uchar to bool
+ret or and ge c 48 le c 57 and ge c 97 le c 102
+end
+
+fn cksha ln view uchar * tp view uint * to void
+t = get fv 4
+if or not plain tp t ne js_slen tp t 64
+prob1 m_sha
+ret
+end
+o = add js_off tp t 1
+z = true
+for i ulong 64
+c = get ln add o i
+if not ishex c
+prob1 m_sha
+ret
+end
+if ne c 48
+z = false
+end
+end
+if z
+put zsha 0 1
+end
+if eq get nrec 0 0
+for i ulong 64
+put sha0 i get ln add o i
+end
+ret
+end
+for i ulong 64
+if ne get sha0 i get ln add o i
+prob1 m_shax
+ret
+end
+end
+end
+
+fn isdig c uchar to bool
+ret and ge c 48 le c 57
+end
+
+note two digits at ln[p], p+1 as a number, or 100 when not digits
+fn dd ln view uchar * p ulong to ulong
+a = get ln p
+b = get ln add p 1
+if or not isdig a not isdig b
+ret 100
+end
+ret add mul sub ulong a 48 10 sub ulong b 48
+end
+
+note YYYY-MM-DDTHH:MM:SSZ at token t
+fn tsok ln view uchar * tp view uint * t ulong to bool
+if or not plain tp t ne js_slen tp t 20
+ret false
+end
+o = add js_off tp t 1
+if or gt dd ln o 99 gt dd ln add o 2 99
+ret false
+end
+if or ne get ln add o 4 45 ne get ln add o 7 45
+ret false
+end
+if or ne get ln add o 10 84 ne get ln add o 13 58
+ret false
+end
+if or ne get ln add o 16 58 ne get ln add o 19 90
+ret false
+end
+m = dd ln add o 5
+d = dd ln add o 8
+if or or eq m 0 gt m 12 or eq d 0 gt d 31
+ret false
+end
+if or gt dd ln add o 11 23 gt dd ln add o 14 59
+ret false
+end
+ret le dd ln add o 17 59
+end
+
+note compare 20 bytes ln[a..) and ln[b..): 0 less, 1 equal, 2 greater
+fn cmp20 ln view uchar * a ulong b ulong to ulong
+for i ulong 20
+x = get ln add a i
+y = get ln add b i
+if lt x y
+ret 0
+end
+if gt x y
+ret 2
+end
+end
+ret 1
+end
+
+fn ckts ln view uchar * tp view uint * to void
+s = get fv 7
+e = get fv 8
+g = true
+if not tsok ln tp s
+prob2 m_ts k_st
+g = false
+end
+if not tsok ln tp e
+prob2 m_ts k_end
+g = false
+end
+if not g
+ret
+end
+so = add js_off tp s 1
+eo = add js_off tp e 1
+if eq cmp20 ln so eo 2
+prob1 m_se
+end
+if gt get nrec 0 0
+for i ulong 20
+x = get lastend i
+y = get ln add so i
+if lt y x
+prob1 m_mono
+break
+end
+if gt y x
+break
+end
+end
+end
+for i ulong 20
+put lastend i get ln add eo i
+end
+end
+
+fn ckexit ln view uchar * tp view uint * to void
+t = get fv 9
+if or ne js_type tp t 7 not js_isl ln js_off tp t
+prob1 m_exit
+ret
+end
+if ne js_tol ln js_off tp t 0
+put badx 0 1
+end
+end
+
+fn ckfix ln view uchar * tp view uint * to void
+if not js_streq ln js_off tp get fv 0 v_sch
+prob1 m_sch
+end
+if not js_streq ln js_off tp get fv 5 v_repo
+prob1 m_repo
+end
+if not js_streq ln js_off tp get fv 6 v_comm
+prob1 m_comm
+end
+end
+
+note ======== records ========
+
+fn record ln view uchar * n ulong to void
+tp = new uint 4112 0
+r = js_init tp 4096 8
+r = js_parse ln tp n
+if or lt r 0 ne js_type tp 0 1
+prob1 m_json
+ret
+end
+if not members ln tp
+ret
+end
+ckfix ln tp
+ckstep ln tp
+ckmode ln tp
+cktag ln tp
+cksha ln tp
+ckts ln tp
+ckexit ln tp
+put nrec 0 add get nrec 0 1
+end
+
+note every non-empty line of src[0 .. n) is one record of at most 4096 bytes
+fn lines src view uchar * n ulong to void
+ln = new uchar 4096 0
+s = ulong 0
+for i ulong add n 1
+if or eq i n eq get src i 10
+put lno 0 add get lno 0 1
+m = sub i s
+if gt m 4096
+prob1 m_json
+else
+if gt m 0
+for j ulong m
+put ln j get src add s j
+end
+record ln m
+end
+end
+s = add i 1
+end
+end
+end
+
+note ======== main ========
+
+fn readf src edit uchar * to long
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret -1
+end
+n = ulong 0
+while lt n len src bound 262145
+k = read int fd src n sub len src n
+if lt k 0
+c = fclose int fd
+ret -1
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+if eq n len src
+ret -1
+end
+ret long n
+end
+
+fn argeq i ulong t view uchar * to bool
+n = argread i pb 0 len pb
+if ne n long len t
+ret false
+end
+for j ulong len t
+if ne get pb j get t j
+ret false
+end
+end
+ret true
+end
+
+note sets want from argument i, false when it is not REAL or FAKE
+fn setwant i ulong to bool
+if argeq i t_real
+put want 0 1
+ret true
+end
+if argeq i t_fake
+put want 0 2
+ret true
+end
+ret false
+end
+
+fn certify to void
+put lno 0 0
+w = get want 0
+if ne get mode0 0 w
+prob1 m_want
+end
+if or ne get lstep 0 4 ne get nrec 0 4
+prob1 m_steps
+end
+if ne get badx 0 0
+prob1 m_xnz
+end
+if ne get zsha 0 0
+prob1 m_zsha
+end
+end
+
+fn main to int
+c = argcnt
+fa = ulong 1
+if eq c 4
+if or not argeq 1 t_wantf not setwant 2
+pr t_usage
+ret 2
+end
+fa = 3
+else
+if ne c 2
+pr t_usage
+ret 2
+end
+end
+n = argread fa pb 0 len pb
+if le n 0
+pr t_usage
+ret 2
+end
+put pbn 0 ulong n
+src = new uchar 262144 0
+r = readf src
+if lt r 0
+pr t_io
+ret 4
+end
+lines src ulong r
+if eq get nrec 0 0
+put lno 0 0
+prob1 m_none
+end
+if ne get want 0 0
+certify
+end
+if gt get prob 0 0
+pr t_fail
+prn get prob 0
+pr t_nl
+ret 1
+end
+pr t_pass
+prn get nrec 0
+pr t_mode
+prmode get mode0 0
+if ne get want 0 0
+pr t_cert
+prmode get want 0
+end
+pr t_nl
+ret 0
+end

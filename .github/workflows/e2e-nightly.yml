@@ -1,0 +1,65 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# Nightly end-to-end run on the self-hosted SI test Spark (DRA-55, DRA-59): install -> verify ->
+# chat -> uninstall of the release tag, evidence JSONL (schema si-rig-e2e/1) certified REAL by
+# installer/rig/evcheck.om and uploaded as an artifact. Schedule and manual dispatch only; the
+# hosted event-guard job refuses every other event before the self-hosted job can start, and
+# installer/rig/wfcheck.om checks those rules on every pull request (DRA-45).
+name: E2E nightly
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to install
+        required: false
+        default: alpha-20261029.1
+permissions:
+  contents: read
+concurrency:
+  group: si-test-spark
+  cancel-in-progress: false
+jobs:
+  event-guard:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - run: |
+          case "${{ github.event_name }}" in
+          schedule|workflow_dispatch) ;;
+          *) echo "e2e nightly refuses event ${{ github.event_name }}"; exit 1 ;;
+          esac
+  e2e:
+    needs: event-guard
+    runs-on: [self-hosted, linux, ARM64, si-test-spark]
+    timeout-minutes: 240
+    env:
+      OMEGA_REV: bf54b19fa590e8ae925c0e80815516dbf41e7326
+      OMC_PIN: 62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
+      TAG: ${{ inputs.tag || 'alpha-20261029.1' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned omega-mv
+        run: |
+          rm -rf "$RUNNER_TEMP/omega"
+          git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"
+          git -C "$RUNNER_TEMP/omega" checkout --quiet "$OMEGA_REV"
+          echo "$OMC_PIN  $RUNNER_TEMP/omega/seed/out/omc" | sha256sum -c -
+          cmp installer/rig/vendor/json.om "$RUNNER_TEMP/omega/seed/json/json.om"
+          { printf 'om2\n'; cat installer/rig/vendor/json.om installer/rig/evcheck.om; } \
+            | "$RUNNER_TEMP/omega/seed/out/omc" > "$RUNNER_TEMP/evcheck"
+          chmod +x "$RUNNER_TEMP/evcheck"
+      - name: Install, verify, chat, uninstall
+        run: sh installer/rig/e2e.sh --tag "$TAG" --out "$RUNNER_TEMP/evidence/e2e.jsonl"
+      - name: Certify the evidence REAL
+        if: always()
+        run: |
+          "$RUNNER_TEMP/evcheck" "$RUNNER_TEMP/evidence/e2e.jsonl"
+          "$RUNNER_TEMP/evcheck" --want REAL "$RUNNER_TEMP/evidence/e2e.jsonl"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: e2e-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/evidence/
+          if-no-files-found: error
