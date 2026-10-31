@@ -1,9 +1,22 @@
 # Roadmap: the stack, from the silicon up
 
-Sovereign Intelligence (SI), built on AienOS, is meant to grow into the ten layers below. This page
-is the roadmap, not a description of the alpha. What the alpha ships today, and its exit criteria,
-are at the top of the [README](../README.md). Only layer 10 (the installer) and the layer 7 engine
-binary are in the alpha release.
+Sovereign Intelligence (SI) is meant to grow into the ten layers below, with AienOS as its operating
+system. This page is the roadmap, not a description of the alpha. What the alpha ships today, and
+its exit criteria, are at the top of the [README](../README.md). Only layer 10 (the installer) and
+the layer 7 engine binary are in the alpha release.
+
+What the alpha contains, by owner:
+
+- **Mine, source published:** the installer and Omega wizard (layer 10, this repository) and the
+  engine binary `aien-serve-http`, sha256 19173f9e, built from
+  [aien-sovereign-core-mv](https://github.com/aien-dev/aien-sovereign-core-mv) commit 59b05a71
+  with omega-mv's `libomega_gpu.a` linked in (layer 7; see [NOTICE](../NOTICE)).
+- **Qwen's:** the Qwen/Qwen3.6-35B-A3B-FP8 weights (revision 95a723d0, 37.5 GB), which the wizard
+  downloads from Hugging Face under their own Apache-2.0 licence. They are not part of the release.
+- **NVIDIA's:** DGX OS Linux, the open kernel module 580.173.02 (layer 2 today) and the signed
+  firmware on the GB10 (layer 1).
+- **Not in the alpha:** Aien (9), Cortex (8), the math engine (6), Omega on the GPU (5), CUDA++ as
+  a separate runtime (4), Aienux and AienOS (3a, 3b) and my own driver aien-gpu (2).
 
 Evidence words: **PROPOSED** (written down), **IMPLEMENTED** (code exists), **EXERCISED** (ran,
 receipts kept), **QUALIFIED** (passed the hardware gate). **NOT_RUN** means the check exists or is
