@@ -1,0 +1,3 @@
+name: Nothing
+on:
+  pull_request:
