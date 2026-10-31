@@ -1,0 +1,9 @@
+{
+  "invariants": [
+    "install.sh installs a release only when SHA256SUMS carries a valid Ed25519 signature from the release key, the bundle's SHA-256 is in that signed list, the bundle has no unsafe paths and every file inside matches its sha256; each refusal installs nothing. Check: bash installer/tests/verify-path.sh (CI job install.sh signature and SHA-256 checks, .github/workflows/installer-verify-path.yml)",
+    "The verification-path test fails when any one of those four checks is removed from install.sh (self-check cases). Check: bash installer/tests/verify-path.sh"
+  ],
+  "name": "installer",
+  "purpose": "The AIEN OS installer for DGX Spark / GB10: install.sh fetches a release, verifies its signature and hashes, and installs it; build.sh makes the bundle; tests/ holds the installer gates",
+  "schema_version": "1.0.0"
+}
