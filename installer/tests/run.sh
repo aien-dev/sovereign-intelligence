@@ -117,6 +117,16 @@ h=$(newhome a5)
 out=$(boot "$h" "$S/root-gb10" "http://127.0.0.1:$PORT/nosig" 2>&1); rc=$?
 [ $rc -eq 2 ] && [ ! -e "$h/.local/share/aienos/current" ]; verdict missing-signature-refused $?
 
+# install.sh logs its progress lines to install.log, and doctor --report carries them in logs.txt.
+h=$S/home-a2
+grep -q "^Signature and SHA-256 match" "$h/.local/share/aienos/install.log" \
+    && grep -q "^=== install.sh $TAG " "$h/.local/share/aienos/install.log"; verdict install-log-written $?
+out=$(cd "$S" && env HOME="$h" AIENOS_PROBE_ROOT="$S/root-gb10" \
+    "$h/.local/share/aienos/current/bin/aienos" doctor --report "$S/a2-report.tar.gz" 2>&1); rc=$?
+[ $rc -eq 0 ] && tar -xzOf "$S/a2-report.tar.gz" aienos-report/logs.txt 2>/dev/null \
+    | grep -q "Signature and SHA-256 match (release key"; verdict report-has-install-log $?
+rm -f "$S/a2-report.tar.gz"
+
 # Uninstall of the real install: no file or link of AienOS is left in the home folder.
 h=$S/home-a2
 out=$(env HOME="$h" "$h/.local/share/aienos/current/bin/aienos" uninstall --yes 2>&1); rc=$?
@@ -228,6 +238,9 @@ out=$(env HOME="$h" "$tb/bin/aienos" uninstall --yes 2>&1); rc=$?
 
 # ---- C: the lending step and aienos lend (tests/lend.sh; OH_VOLUNTEER optional) ----
 sh "$here/lend.sh" "$S/lend"; verdict lend-suite $?
+
+# ---- D: aienos doctor --report on a fake prefix (tests/report.sh) ----
+env AIENOS="$STAGE/bin/aienos" sh "$here/report.sh" "$S/report"; verdict report-suite $?
 
 printf 'AIENOS-TESTS pass=%s fail=%s scratch=%s\n' "$pass" "$fail" "$S"
 [ "$fail" -eq 0 ]
