@@ -1,8 +1,9 @@
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 note main.om: the aienos command. With no argument (or "wizard") it runs the full-screen wizard;
-note "doctor", "chat", "start", "stop", "lend", "verify", "source", "about", "uninstall" and "rollback" are
-note the small commands beside it. Build: concatenate sha256.om lib.om hole.om doctor.om net.om
-note steps.om engine.om lend.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
+note "doctor" ("doctor --report [FILE]" writes a diagnostics archive, report.om), "chat", "start", "stop",
+note "lend", "verify", "source", "about", "uninstall" and "rollback" are the small commands beside it.
+note Build: concatenate sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om
+note report.om, in that order, and compile the result with the pinned omc (see build.sh).
 
 text v_tag "alpha-20261029.1"
 text a_l1 "Sovereign Intelligence alpha-20261029.1: the installer and the aienos command"
@@ -22,7 +23,7 @@ text a_l14 "signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448
 text a_l15 "  (an alpha key; it is rotated to a ceremony key before beta)"
 text s_l1 "My Omega source ships with this release:"
 text s_l2 "/share/aienos/wizard/"
-text s_l3 "  sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om"
+text s_l3 "  sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om report.om"
 text s_l4 "/share/aienos/aienos.om"
 text s_l5 "  the same files concatenated in build order: one unit, one compile"
 text s_l6 "Also online: https://www.aienos.com/alpha/ and https://github.com/aien-dev/sovereign-intelligence"
@@ -67,7 +68,8 @@ text k_stop "stop"
 text k_vfy "verify"
 text k_unin "uninstall"
 text k_roll "rollback"
-text k_help "usage: aienos [wizard [--plain] | doctor | chat | start | stop | lend start|pause|resume|quit|status | verify | source | about | uninstall [--keep-model] [--yes] | rollback]"
+text k_rep "--report"
+text k_help "usage: aienos [wizard [--plain] | doctor [--report [FILE]] | chat | start | stop | lend start|pause|resume|quit|status | verify | source | about | uninstall [--keep-model] [--yes] | rollback]"
 text n_nohome "HOME is not set; I cannot tell where to install."
 text n_badrt "I cannot find my own folder (/proc/self/exe)."
 text n_vok " files match SHA256SUMS"
@@ -687,6 +689,11 @@ end
 ret wizard plain
 end
 if iskey k_doc
+if ge arg 2 0
+if ibis k_rep
+ret creport
+end
+end
 ret cdoctor
 end
 if iskey k_chat
