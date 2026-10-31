@@ -107,10 +107,21 @@ for f in install.sh build.sh tests/run.sh tests/fake-root.sh tests/container.sh 
 OMC=/path/to/omc DIST=OUT/dist STAGE=OUT/stage sh installer/tests/run.sh
 sh installer/tests/host-untouched.sh
 DIST=OUT/dist sh installer/tests/container.sh RECEIPT_DIR    # needs docker
+bash installer/tests/verify-path.sh                          # no secret: generates a test key
 ./index-gen check                                            # offline index check
 ```
 
 `installer/tests/run.sh` needs the signed build output, so it needs the release seed.
+`installer/tests/verify-path.sh` needs no secret: it runs `installer/install.sh` with only the key
+constant swapped for a key generated in the run, against a test release and its negative controls
+(bad signature, tampered bundle, tampered file inside the bundle, unsafe path, missing signature).
+`.github/workflows/installer-verify-path.yml` runs it on every pull request. Besides the tools
+`install.sh` itself calls, the test uses host `openssl` (test key, signature, a throwaway TLS
+certificate and `s_server -HTTP` as the https://127.0.0.1 server), GNU `tar` (`--transform` names
+the `../escape.txt` member of the unsafe-path bundle; `-P` is redundant on GNU tar 1.35, and the
+test exits 2 if the member is missing), `sha256sum`, `awk` (the key swap and the mutants), `od` and `dd`
+(the one-byte flip) and `curl` (waiting for the server). No Python (DRA-38). They are test-only
+and not in the install path.
 
 `.github/workflows/learn.yml` is the check for `docs/learn` and `docs/academy`. The Python is in
 that workflow. It fails if a `.sh`, `.bash`, `.py`, `.js` or `.mjs` file, a shebang, `#include`,

@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# The installer's verification path as a gate (DRA-93): installer/install.sh itself, with only its
+# release key constant swapped for an Ed25519 key generated in this run, against a test release
+# and its negative controls (installer/tests/verify-path.sh). GitHub-hosted arm64 runner only,
+# never a self-hosted runner.
+# No paths filter and no job-level if, on purpose: a required check that is skipped counts as
+# passed, so this job runs on every pull request. Every step runs under bash -euo pipefail; the
+# script exits 2 on a crash and 1 unless all of its expected cases ran and passed.
+name: Installer verification path
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify-path:
+    name: install.sh signature and SHA-256 checks
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Tool versions
+        run: |
+          set -euo pipefail
+          uname -sm
+          openssl version
+          sha256sum --version | sed -n 1p
+          tar --version | sed -n 1p
+          curl --version | sed -n 1p
+      - name: Verification path with negative controls
+        run: |
+          set -euo pipefail
+          bash -n installer/tests/verify-path.sh
+          rc=0
+          bash installer/tests/verify-path.sh "$RUNNER_TEMP/vp" || rc=$?
+          echo "---- installer output per case (refusals are expected for every case but good) ----"
+          for f in $(ls "$RUNNER_TEMP/vp/out" | sort -n); do
+            echo "== $f"
+            cat "$RUNNER_TEMP/vp/out/$f"
+          done
+          echo "verify-path.sh exit $rc"
+          exit "$rc"
