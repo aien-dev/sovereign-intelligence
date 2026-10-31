@@ -1,5 +1,5 @@
 # texttools
 
-- `bin/clean.sh` trims every input line.
-- `bin/report.sh TITLE` prints a heading.
-- `bin/import.sh` is the v1 importer.
+The shell tools that used to live in `bin/` and `lib/` were retired
+(Part of https://github.com/aien-dev/sovereign-intelligence/issues/31).
+Nothing in this folder is left to rename. See `../GRADER.md`.

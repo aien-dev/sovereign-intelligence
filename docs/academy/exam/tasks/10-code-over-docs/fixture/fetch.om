@@ -1,0 +1,6 @@
+note fetch.om: seconds before this program gives up
+note README.md in this folder says 30. This file says 10.
+note Not compiled in the Phase 1 retirement. Do not claim it ran.
+fn main to int
+ret 10
+end

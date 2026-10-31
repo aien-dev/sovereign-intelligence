@@ -32,34 +32,7 @@ Also note the state of the evidence. The README at this pin calls the imported M
 
 ## Example
 
-A host-only inspection of the pinned CUDApp tree. It opens no device; it reads text with `grep`.
-
-```sh
-
-echo "== 1. the build promise (Makefile header)"
-grep -n 'no CUDA toolkit, no NVIDIA user-space library' Makefile
-
-echo "== 2. files that include a CUDA header or link libcuda (first-party C, Makefile, mk/)"
-git grep -l '#include <cuda\|#include "cuda\|-lcuda' -- '*.c' '*.h' Makefile mk
-echo "   the Makefile line that links it, and the target it belongs to:"
-grep -n -- '-lcuda' Makefile | cut -c1-120
-
-echo "== 3. the three device files the driver client opens (kernel entry points)"
-grep -n '"/dev/nvidia' nvrm/nvrm.c native/nvrm/context.om
-
-echo "== 4. what came from the kernel side: the open module's headers, by folder"
-cd third_party/nvidia-open-580.173.02 || exit 2
-for d in kernel-open/common/inc kernel-open/nvidia-uvm src/common/sdk/nvidia/inc src/nvidia/arch/nvalloc/unix/include; do
-    echo "   $(find "$d" -name '*.h' | wc -l | tr -d ' ') headers in $d"
-done
-echo "   $(grep -c '\.h$' SHA256SUMS) headers listed in SHA256SUMS"
-cd "$C" || exit 2
-
-echo "== 5. what still belongs to NVIDIA below the line (ROADMAP.md)"
-grep -n '^| `nvidia.ko`\|^| `nvidia-uvm.ko`\|^| GSP firmware' ROADMAP.md | cut -d'|' -f2,4,5
-```
-
-Command: `sh examples/cuda-01-user-space-and-kernel/run.sh`
+A host-only inspection of the pinned CUDApp tree. It opened no device. The shell listing is retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read [POINTER.md](../examples/cuda-01-user-space-and-kernel/POINTER.md). The recorded output below is that host run, not a new run and not a hardware result.
 
 Recorded output:
 

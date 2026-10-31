@@ -24,7 +24,7 @@ mkdir -p "$out"
 out=$(cd "$out" && pwd)
 S=$(mktemp -d "${TMPDIR:-/tmp}/aienos-ctr.XXXXXX")
 PORT=${AIENOS_TEST_PORT:-18734}
-TAG=alpha-20261026.2
+TAG=alpha-20261029.1
 BUNDLE=aienos-$TAG-linux-arm64.tar.gz
 IMG=ubuntu:24.04
 BASE=aienos-test-base:$TAG

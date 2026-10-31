@@ -8,9 +8,9 @@ Programmers and coding agents who want to write `.om` that the compiler actually
 
 ## Prerequisites
 
-- A Linux AArch64 machine (the compiler's one supported profile is static AArch64 Linux ELF). No GPU is used anywhere in this track.
-- POSIX `sh`, coreutils, `grep`, `sed`, `awk`, and `node` for lesson 6 only (it loads the WebAssembly module; it generates nothing).
-- A clone of [omega-mv](https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/README.md) at commit `19f014f2178ca9cd3473728fe00a475a2398c409`, whose `seed/out/omc` has sha256 `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`. Every `run.sh` checks that hash and exits 90 if it differs. Set `SRC` to the directory holding the clone and, if you like, `OMC` to the compiler.
+- The lessons are seeded Omega sources plus a recorded Linux AArch64 host run. No GPU is used anywhere in this track.
+- The host runners that compiled those sources with the pinned omc were retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Lesson 6's Node WebAssembly oracle was retired with them. The recorded output stays; it is not a new run.
+- A clone of [omega-mv](https://github.com/aien-dev/omega-mv/blob/19f014f2178ca9cd3473728fe00a475a2398c409/README.md) at commit `19f014f2178ca9cd3473728fe00a475a2398c409`, whose `seed/out/omc` has sha256 `befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d`, is what those past runs used.
 
 ## Lessons
 

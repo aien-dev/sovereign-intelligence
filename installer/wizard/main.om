@@ -4,10 +4,10 @@ note "doctor", "chat", "start", "stop", "lend", "verify", "source", "about", "un
 note the small commands beside it. Build: concatenate sha256.om lib.om hole.om doctor.om net.om
 note steps.om engine.om lend.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
 
-text v_tag "alpha-20261026.2"
-text a_l1 "Sovereign Intelligence alpha-20261026.2: the installer and the aienos command"
-text a_l2 "written in Omega (.om), compiled by omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d"
-text a_l3 "  (aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, seed/out/omc)"
+text v_tag "alpha-20261029.1"
+text a_l1 "Sovereign Intelligence alpha-20261029.1: the installer and the aienos command"
+text a_l2 "written in Omega (.om), compiled by omc sha256 62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b"
+text a_l3 "  (aien-dev/omega-mv bf54b19fa590e8ae925c0e80815516dbf41e7326, seed/out/omc)"
 text a_l4 "engine: aien-serve-http sha256 19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb,"
 text a_l5 "  the build that serves the Spark's 35B: aien-dev/aien-sovereign-core-mv branch ship/motor-l387"
 text a_l6 "  commit 59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3 (a development build, not a Core release tag)"

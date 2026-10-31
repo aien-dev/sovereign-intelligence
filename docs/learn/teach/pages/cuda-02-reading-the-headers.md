@@ -24,7 +24,7 @@ CUDApp keeps the exact files it needs, unchanged, in `third_party/nvidia-open-58
 
 ## Example
 
-`ctrl.om` splits control-command numbers into the fields `ctrlxxxx.h` defines and refuses a number with the unused bits 14..15 set. `run.sh` takes every number from the headers with `grep`, and afterwards looks the class part up in `class/cl<class>.h`. The heart of `ctrl.om`:
+`ctrl.om` splits control-command numbers into the fields `ctrlxxxx.h` defines and refuses a number with the unused bits 14..15 set. The past host run took every number from the headers and looked the class part up in `class/cl<class>.h`. The heart of `ctrl.om`:
 
 ```om
 fn main to int
@@ -61,7 +61,7 @@ ret 0
 end
 ```
 
-Command: `sh examples/cuda-02-reading-the-headers/run.sh`
+Command: the retired runner; see `examples/cuda-02-reading-the-headers/POINTER.md`
 
 Recorded output:
 

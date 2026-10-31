@@ -29,8 +29,8 @@ jobs:
       pull-requests: write  # open the pull request and enable auto-merge
       actions: write        # dispatch the index check on the bot branch
     env:
-      OMEGA_REV: 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9
-      OMC_PIN: befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+      OMEGA_REV: bf54b19fa590e8ae925c0e80815516dbf41e7326
+      OMC_PIN: 62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
       GH_TOKEN: ${{ github.token }}
       BRANCH: bot/index-sync
     steps:

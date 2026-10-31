@@ -56,9 +56,8 @@ end
 
 Read it as English: read all the input; go line by line; if a line starts with entry 0 of the word list (`TODO`), count it and print it; at the end print "found", the count, "TODO line(s)". Then I wrote the start of it loosely, the way people often talk: "the count starts at 0", without saying what kind of number. The compiler refuses to guess.
 
-```sh
-sh examples/start-01-you-already-program/run.sh
-```
+The host runner for this lesson was retired (Part of https://github.com/aien-dev/sovereign-intelligence/issues/31). Read the example's POINTER.md and the native Omega sources beside it. The recorded output below is a past Linux AArch64 host run, not a new run and not a hardware result.
+
 
 Recorded output:
 

@@ -25,7 +25,7 @@ The C client also refuses stale and duplicate handles itself before calling the 
 
 ## Example
 
-`objtree.om` is a small model: it takes the allowed (child class, parent class) pairs and an allocation script on stdin, refuses a step whose parent is not live or not of an allowed class, frees subtrees, and prints the live tree. `run.sh` takes every class number from the headers and the order from `nvrm.c`. The allocation check (the full file is in the example folder):
+`objtree.om` is a small model: it takes the allowed (child class, parent class) pairs and an allocation script on stdin, refuses a step whose parent is not live or not of an allowed class, frees subtrees, and prints the live tree. The past host run took every class number from the headers and the order from `nvrm.c`. The allocation check (the full file is in the example folder):
 
 ```om
 fn alloc c ulong p ulong to bool
@@ -69,7 +69,7 @@ ret true
 end
 ```
 
-Command: `sh examples/cuda-04-rm-object-tree/run.sh`
+Command: the retired runner; see `examples/cuda-04-rm-object-tree/POINTER.md`
 
 Recorded output:
 

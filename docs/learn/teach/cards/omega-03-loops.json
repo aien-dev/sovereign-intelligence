@@ -30,11 +30,11 @@
       "examples/omega-03-loops/runaway.om",
       "examples/omega-03-loops/bounded.om",
       "examples/omega-03-loops/toobig.om",
-      "examples/omega-03-loops/run.sh",
-      "examples/omega-03-loops/output.txt"
+      "examples/omega-03-loops/output.txt",
+      "examples/omega-03-loops/POINTER.md"
     ],
     "code": "note loops.om: while with a bound, for with a count, break, and a do-while shape\nfn gcd a uint b uint to uint\nnote Euclid: b falls every pass; 64 passes is far more than 32-bit inputs need\nwhile ne b 0 bound 64\nt = rem a b\na = b\nb = t\nend\nret a\nend\nfn putnum v ulong to long\nnote write v in decimal and a newline. A ulong has at most 20 digits, so bound 20 is proved\nd = new uchar 21 0\no = new uchar 21 0\nn = ulong 0\nx = v\nwhile true bound 20\nput d n uchar add rem x 10 48\nn = add n 1\nx = div x 10\nif eq x 0\nbreak\nend\nend\nfor i ulong n\nput o i get d sub sub n i 1\nend\nput o n 10\nw = write 1 o 0 add n 1\nret w\nend\nfn main to int\ng = gcd 1071 462\nw = putnum ulong g\ns = ulong 0\nfor i ulong 10\ns = add s i\nend\nw = putnum s\nf = ulong 0\nfor i ulong 100\nif gt mul i i 3000\nf = i\nbreak\nend\nend\nw = putnum f\nret 0\nend\n",
-    "command": "sh examples/omega-03-loops/run.sh",
+    "command": "Read examples/omega-03-loops/POINTER.md. Recorded host output: examples/omega-03-loops/output.txt.",
     "output": "omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d\n== 1. gcd(1071, 462) with while+bound, sum of 0..9 with for, first i with i*i > 3000 with break\ncompile loops.om rc=0\n21\n45\n55\nrun loops rc=0\n== 2. trap 4: one pass more than the bound allows (exit 100 + 4)\ncompile runaway.om rc=0\nrun runaway rc=104\n== 3. the fix: a bound that matches the proof\ncompile bounded.om rc=0\nrun bounded rc=10\n== 4. error 8: a written bound outside 1..999999\ncompile toobig.om rc=8\nomc: line 4: error 8\nRESULT PASS\n"
   },
   "common_mistake": "Choosing a bound by feel or making it huge so the trap never fires. Write the termination argument in a note and choose N from it; when trap 4 (exit 104) fires, the proof was wrong, not the bound too small. Also: and/or evaluate both sides, so guard a get with an outer if, not with and.",
