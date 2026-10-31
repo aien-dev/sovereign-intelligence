@@ -4,7 +4,7 @@ Read on 2026-10-31. Each entry gives the rule, file:line evidence that contradic
 proposal: **enforce** (and how) or **delete** (the rule). Nothing here is decided; every proposal
 needs Drake. Pinned sources:
 
-- org: aien-dev/.github@3284ec7f338488a6e8fa7f65f4b39a4c6c63ac78 (CONSTITUTION.md, SECURITY.md, GOVERNANCE.md)
+- org: aien-dev/.github@3284ec7f338488a6e8fa7f65f4b39a4c6c63ac78 (CONSTITUTION.md, SECURITY.md, GOVERNANCE.md, COVENANT.md, AGENT_CODE_OF_CONDUCT.md)
 - rules: aien-dev/aienos.com@db8d526ebf6755786b56004e79b1fada43e61b93 (public/agents/RULES.md, AGENTS.md)
 - SI: aien-dev/sovereign-intelligence@dcae5bd49f4c4903525b42ff401f52a2393e9348
 
@@ -88,3 +88,27 @@ needs Drake. Pinned sources:
 - **Rule:** SI docs and the alpha notes say the engine serves on 18091.
 - **Contradiction:** the wizard uses 18100 (installer/wizard/engine.om:53, main.om:76). This is already tracked in issue #34.
 - **Proposal:** enforce one port in both; resolve under #34.
+
+## 14. COVENANT.md
+
+- **Rule:** none to enforce. COVENANT.md:3 says "It grants no legal rights and restricts none", and COVENANT.md:20 says "This covenant binds no one".
+- **Contradiction:** none found; a nonbinding statement of values cannot be contradicted by code.
+- **Proposal:** keep as values, not a rule; no check. COVENANT.md:22-23 says the legal review of the licensing posture is tracked separately.
+
+## 15. AGENT_CODE_OF_CONDUCT: `cargo test --verbose` as the proof
+
+- **Rule:** AGENT_CODE_OF_CONDUCT.md:27 (Article III.1) and :45 (Article V.2) require every agent change to pass, and every agent PR to include, `cargo test --verbose`.
+- **Contradiction:** SI at dcae5bd4 has no `Cargo.toml` (`git ls-tree -r --name-only dcae5bd4 | grep -c '(^|/)Cargo.toml$'` printed 0); its tests are `.om` and shell, run by `.github/workflows/verify.yml`.
+- **Proposal:** enforce, reworded: "the repository's own test command passes", which verify.yml already checks on every PR; delete the cargo-specific wording.
+
+## 16. AGENT_CODE_OF_CONDUCT: spark-inquisitor audits
+
+- **Rule:** AGENT_CODE_OF_CONDUCT.md:30 (Article III.4) names spark-inquisitor and spark-supervisor as the out-of-band supervisors, and :47 (Article V.2) requires a clean diff audit from spark-inquisitor on every agent PR.
+- **Contradiction:** aien-dev/spark-inquisitor is archived (`gh api repos/aien-dev/spark-inquisitor` reports `archived=true`), and no SI workflow calls it.
+- **Proposal:** delete the spark-inquisitor requirement, or replace it with a named check that runs in SI CI.
+
+## 17. AGENT_CODE_OF_CONDUCT: beacon-core data firewall
+
+- **Rule:** AGENT_CODE_OF_CONDUCT.md:38 (Article IV.3) requires outbound peer traffic to traverse "the Personal Data Firewall (beacon-core)".
+- **Contradiction:** `gh api repos/aien-dev/beacon-core` returns 404; no such repository exists in aien-dev, and nothing on the SI path names it.
+- **Proposal:** delete.
