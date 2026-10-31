@@ -229,5 +229,8 @@ out=$(env HOME="$h" "$tb/bin/aienos" uninstall --yes 2>&1); rc=$?
 # ---- C: the lending step and aienos lend (tests/lend.sh; OH_VOLUNTEER optional) ----
 sh "$here/lend.sh" "$S/lend"; verdict lend-suite $?
 
+# ---- E: the per-install bearer token (tests/token.sh; CORE_ENGINE optional) ----
+sh "$here/token.sh" "$S/token"; verdict token-suite $?
+
 printf 'AIENOS-TESTS pass=%s fail=%s scratch=%s\n' "$pass" "$fail" "$S"
 [ "$fail" -eq 0 ]

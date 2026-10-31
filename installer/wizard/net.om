@@ -1,7 +1,8 @@
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 note net.om: a small HTTP/1.0 client for the engine on 127.0.0.1, written with the native socket
 note words, and the JSON string escaping it needs. No TLS: it only ever talks to the loopback door.
-note Chat replies are read as a server-sent event stream and shown token by token.
+note Chat replies are read as a server-sent event stream and shown token by token. Every request
+note carries the per-install bearer token (made and checked here, kept in ~/.local/share/aienos/auth).
 
 global qb uchar 65536
 global qbn ulong 1
@@ -10,6 +11,8 @@ global hsn ulong 1
 global ab uchar 65536
 global abn ulong 1
 global nt ulong 4
+global tk uchar 64
+global tkn ulong 1
 text j_open "{\"stream\":true,\"max_tokens\":1024,\"messages\":["
 text j_close "]}"
 text j_user "{\"role\":\"user\",\"content\":\""
@@ -17,7 +20,13 @@ text j_asst "{\"role\":\"assistant\",\"content\":\""
 text j_end "\"}"
 text j_comma ","
 text h_post "POST /v1/chat/completions HTTP/1.0"
-text h_host "Host: 127.0.0.1"
+text h_host "Host: 127.0.0.1:"
+text h_auth "Authorization: Bearer "
+text k_dir "/auth"
+text k_file "/auth/bearer-token"
+text f_tok1 "The engine's access token is missing, damaged or readable by others."
+text f_tok2 "Remove the folder ~/.local/share/aienos/auth and run aienos again;"
+text f_tok3 "a new token is made there (folder mode 700, file mode 600, yours only)."
 text h_ctype "Content-Type: application/json"
 text h_clen "Content-Length: "
 text h_get1 "GET "
@@ -166,7 +175,8 @@ put qbn 0 0
 qstr h_get1
 qstr t
 qline h_get2
-qline h_host
+qhost p
+qauth
 qcrlf
 r = sendq int fd
 if ne r 0
@@ -190,6 +200,163 @@ end
 
 fn alive p ulong to bool
 ret eq hget p h_health 200
+end
+
+fn qhost p ulong to void
+qstr h_host
+qnum p
+qcrlf
+end
+
+note ---------- the per-install bearer token ----------
+note ~/.local/share/aienos/auth (0700) holds bearer-token (0600): 64 lowercase hex digits made from
+note 32 getrandom bytes, and a newline. It goes to the engine as AIEN_SERVE_HTTP_BEARER_TOKEN (see
+note eargs) and on every request here as "Authorization: Bearer". It is never printed or logged.
+
+note The header line, when a valid token can be loaded; nothing otherwise.
+fn qauth to void
+if eq get tkn 0 0
+x = tkload
+end
+if eq get tkn 0 64
+qstr h_auth
+for i ulong 64
+qbyte get tk i
+end
+qcrlf
+end
+end
+
+fn ptkdir to void
+pbase
+pstr k_dir
+end
+
+fn ptkfile to void
+pbase
+pstr k_file
+end
+
+note Little-endian 32-bit field of the last stat at sb[o].
+fn sbu32 o ulong to ulong
+x = ulong 0
+for i ulong 4
+x = or x shl ulong get sb add o i mul i 8
+end
+ret x
+end
+
+note lstat pb (a link is not followed): true when it is type ty (4 folder, 8 file), owned by this
+note user, with exactly the permission bits md.
+fn tkmode ty ulong md ulong to bool
+r = lstat pb 0 get pbn 0 sb 0 128
+if ne r 0
+ret false
+end
+if ne stype ty
+ret false
+end
+if ne and sbu32 16 4095 md
+ret false
+end
+u = ulong geteuid
+ret eq sbu32 24 u
+end
+
+fn tkhex c uchar to bool
+if and ge c 48 le c 57
+ret true
+end
+ret and ge c 97 le c 102
+end
+
+note Load the token into tk. True only when the folder is 0700 and the file 0600, both this user's
+note and neither a link, and the file is exactly 64 lowercase hex digits and a newline.
+fn tkload to bool
+put tkn 0 0
+ptkdir
+if not tkmode 4 448
+ret false
+end
+ptkfile
+if not tkmode 8 384
+ret false
+end
+if ne ssize 65
+ret false
+end
+t = new uchar 66 0
+fd = fopen pb 0 get pbn 0 557056 0
+if lt fd 0
+ret false
+end
+n = read int fd t 0 66
+c = fclose int fd
+if ne n 65
+ret false
+end
+if ne get t 64 10
+ret false
+end
+for i ulong 64
+if not tkhex get t i
+ret false
+end
+put tk i get t i
+end
+put tkn 0 64
+ret true
+end
+
+note Make the token when there is none: the folder 0700, then the file 0600 (created exclusively,
+note never through a link), then load it. An existing token is kept. False when the token cannot be
+note made or does not pass tkload; the wizard then refuses to start the engine.
+fn tkmake to bool
+ptkdir
+r = makedir pb 0 get pbn 0 448
+if and ne r 0 ne r -17
+ret false
+end
+note A folder others can open is refused before any token is written into it.
+if not tkmode 4 448
+ret false
+end
+ptkfile
+r = lstat pb 0 get pbn 0 sb 0 128
+if eq r -2
+w = tknew
+if ne w 0
+ret false
+end
+end
+ret tkload
+end
+
+note Write a new token to the file named by pb. Returns 0 or a negative error.
+fn tknew to long
+g = new uchar 32 0
+t = new uchar 65 10
+k = random g 0 32 0
+if ne k 32
+ret -5
+end
+for i ulong 32
+put t mul i 2 hexd ulong shr get g i 4
+put t add mul i 2 1 hexd ulong and get g i 15
+end
+fd = fopen pb 0 get pbn 0 557249 384
+if lt fd 0
+ret fd
+end
+c = fchmod int fd 384
+w = write int fd t 0 65
+s = fsync int fd
+c = fclose int fd
+if ne w 65
+x = unlink pb 0 get pbn 0
+ret -5
+end
+ret 0
 end
 
 note Decode one \uXXXX escape's four hex digits at rb[o].
@@ -347,7 +514,8 @@ fn chatreq p ulong to long
 body = add add len j_open get hsn 0 len j_close
 put qbn 0 0
 qline h_post
-qline h_host
+qhost p
+qauth
 qline h_ctype
 qstr h_clen
 qnum body

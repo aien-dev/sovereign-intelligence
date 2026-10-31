@@ -772,6 +772,19 @@ show
 r = ask
 ret false
 end
+if not tkmake
+pc 4
+pl f_tok1
+pln
+pl f_tok2
+pln
+pl f_tok3
+pc 2
+prompt t_close
+show
+r = ask
+ret false
+end
 pl i_md1
 plbase
 pl t_models

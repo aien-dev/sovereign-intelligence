@@ -2,17 +2,108 @@ note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 note fake-engine.om: a test stand-in for aien-serve-http, used only by tests/run.sh. It listens on
 note 127.0.0.1:18100, answers GET /health with 200, and answers any POST with a short server-sent
 note event stream (two content deltas, one with a JSON \u escape, then [DONE]). It never opens a GPU
-note device. It serves at most 64 connections, then exits.
+note device. It serves at most 64 connections, then exits. Like Core main's engine it refuses to
+note start without AIEN_SERVE_HTTP_BEARER_TOKEN and answers a POST without the exact header
+note "Authorization: Bearer <token>" with 401. It logs one line per POST (never the token).
 om2
 
 global buf uchar 65536
 global addr uchar 16
+global tok uchar 256
+global tokn ulong 1
 text r_ok "HTTP/1.0 200 OK"
+text r_401 "HTTP/1.0 401 Unauthorized"
 text r_ct "Content-Type: text/event-stream"
+text r_json "Content-Type: application/json"
+text r_err "{\"error\":{\"message\":\"valid bearer authorization required\",\"type\":\"authentication_error\"}}"
 text ev1 "data: {\"choices\":[{\"delta\":{\"role\":\"assistant\",\"content\":\"Hello from the fake engine\"}}]}"
 text ev2 "data: {\"choices\":[{\"delta\":{\"content\":\", caf\\u00e9 \\\"ok\\\"\"}}]}"
 text ev3 "data: [DONE]"
 text okb "ok"
+text k_env "AIEN_SERVE_HTTP_BEARER_TOKEN="
+text h_auth "Authorization: Bearer "
+text m_noenv "fake-engine: AIEN_SERVE_HTTP_BEARER_TOKEN must be set to a nonempty private credential"
+text m_ok "fake-engine: POST authorized (bearer token matches)"
+text m_bad "fake-engine: POST refused with 401 (bearer token missing or wrong)"
+
+note One line on fd fd (1 goes to engine.log when the wizard starts it).
+fn say fd int t view uchar * to void
+r = write fd t 0 len t
+put buf 0 10
+r = write fd buf 0 1
+end
+
+note Copy the token from the environment into tok. False when it is absent, empty or too long.
+fn envtok to bool
+e = new uchar 512 0
+c = envcnt
+for i ulong ulong c
+n = envread i e 0 512
+if gt n long len k_env
+if haspre e
+put tokn 0 sub ulong n len k_env
+if gt get tokn 0 len tok
+ret false
+end
+for j ulong get tokn 0
+put tok j get e add len k_env j
+end
+ret true
+end
+end
+end
+ret false
+end
+
+fn haspre e view uchar 512 to bool
+for i ulong len k_env
+if ne get e i get k_env i
+ret false
+end
+end
+ret true
+end
+
+note Does the request in buf[0..n) carry the line "Authorization: Bearer <token>"?
+fn authok n ulong to bool
+nd = new uchar 320 0
+put nd 0 13
+put nd 1 10
+m = ulong 2
+for i ulong len h_auth
+put nd add m i get h_auth i
+end
+m = add m len h_auth
+for i ulong get tokn 0
+put nd add m i get tok i
+end
+m = add m get tokn 0
+put nd m 13
+put nd add m 1 10
+m = add m 2
+ret found nd m n
+end
+
+fn found nd view uchar 320 m ulong n ulong to bool
+if lt n m
+ret false
+end
+for s ulong add sub n m 1
+if eqat nd m s
+ret true
+end
+end
+ret false
+end
+
+fn eqat nd view uchar 320 m ulong s ulong to bool
+for k ulong m
+if ne get buf add s k get nd k
+ret false
+end
+end
+ret true
+end
 
 fn sendt fd int t view uchar * to void
 r = send fd t 0 len t 0
@@ -34,18 +125,27 @@ k = waitio fd 1 5000000000
 if le k 0
 ret
 end
-n = recv fd buf 0 len buf 0
+n = recv fd buf 0 sub len buf 1 0
 if le n 0
 ret
 end
 g = get buf 0
-line fd r_ok
 if eq g 71
+line fd r_ok
 crlf fd
 sendt fd okb
 ret
 end
-line fd r_ct
+if not authok ulong n
+say 1 m_bad
+line fd r_401
+line fd r_json
+crlf fd
+sendt fd r_err
+ret
+end
+say 1 m_ok
+line fd r_ok
 crlf fd
 line fd ev1
 crlf fd
@@ -57,6 +157,14 @@ crlf fd
 end
 
 fn main to int
+if not envtok
+say 2 m_noenv
+ret 3
+end
+if eq get tokn 0 0
+say 2 m_noenv
+ret 3
+end
 put addr 0 2
 put addr 2 70
 put addr 3 180

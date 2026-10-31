@@ -28,6 +28,9 @@ text e_cu1 "libcuda"
 text e_cu2 "libcublas"
 text e_cu3 "libcudart"
 text e_cu4 "libnvidia-"
+text e_sh "sh"
+text e_c "-c"
+text e_tramp "IFS= read -r AIEN_SERVE_HTTP_BEARER_TOKEN < \"$0\" && export AIEN_SERVE_HTTP_BEARER_TOKEN && exec \"$@\""
 text f_skip1 "I am not starting the engine now: "
 text f_mem "another model is using this GB10's memory."
 text f_lock "another process holds the GB10 lock."
@@ -68,9 +71,20 @@ text r_pre "releases/"
 text r_none "There is no other release to roll back to."
 text r_ok "current now points to "
 
-note The packed argument list of the live 35B server's command (same flags), on PORT.
-fn eargs to void
+note The packed argument list of the live 35B server's command (same flags), on PORT. execprog gives
+note the child an empty environment, so the engine runs through sh -c, which reads the bearer token
+note from its file (path in argv, never the token) into AIEN_SERVE_HTTP_BEARER_TOKEN and execs the
+note engine in the same process. False when sh is missing.
+fn eargs to bool
 pkclr
+if not findbin e_sh
+ret false
+end
+pkpath
+pkstr e_c
+pkstr e_tramp
+ptkfile
+pkpath
 pclr
 proot
 pstr e_bin
@@ -90,11 +104,18 @@ pkstr e_thk
 pkstr e_off
 pkstr e_slot
 pkstr e_slotv
+ret true
 end
 
-note Start the engine in its own session, output appended to engine.log, pid in engine.pid.
+note Start the engine in its own session, output appended to engine.log, pid in engine.pid. Makes
+note the bearer token first when there is none; -13 when it cannot be made or is not private.
 fn estart to long
-eargs
+if not tkmake
+ret -13
+end
+if not eargs
+ret -2
+end
 pbase
 pstr e_log
 lfd = fopen pb 0 get pbn 0 525377 384
@@ -122,6 +143,20 @@ pbase
 pstr e_pid
 r = spill k
 ret pid
+end
+
+note After estart failed: the token message on the terminal when the token is the reason.
+fn tkcli to void
+if ne get tkn 0 0
+ret
+end
+emit f_tok1
+putb 10
+emit f_tok2
+putb 10
+emit f_tok3
+putb 10
+w = flush
 end
 
 note Put "PID\n" into rb; returns its length.
@@ -278,6 +313,19 @@ put ui 6 0
 show
 p = estart
 if lt p 0
+if eq get tkn 0 0
+pclear
+pc 4
+pl f_tok1
+pln
+pl f_tok2
+pln
+pl f_tok3
+pc 2
+prompt t_close
+show
+r = ask
+end
 ret false
 end
 if not ewait 2400
