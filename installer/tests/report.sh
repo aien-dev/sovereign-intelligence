@@ -69,6 +69,20 @@ have=$(tar -tzf "$out")
 [ "$have" = "$want" ] && ok "member list" || no "member list: $(printf '%s' "$have" | tr '\n' ' ')"
 mkdir -p "$S/x"
 tar -xzf "$out" -C "$S/x"
+
+# docs/doctor-report.md: its member list and, per member block, every field name (text before ": ")
+# must appear at the start of a line of the real member. DOC= overrides the page (negative control).
+doc=${DOC:-$here/../../docs/doctor-report.md}
+dm=$(awk '/^```text aienos-report\//{print $2}' "$doc")
+[ "$dm" = "$want" ] && ok "doc: member list" || no "doc: member list: $(printf '%s' "$dm" | tr '\n' ' ')"
+miss=$(awk -v x="$S/x" '
+    /^```text aienos-report\// { f = x "/" $2; n = 0; while ((getline l < f) > 0) have[++n] = l; close(f); on = 1; next }
+    on && /^```/ { on = 0; next }
+    on && index($0, ": ") { k = substr($0, 1, index($0, ": ") + 1); hit = 0
+        for (i = 1; i <= n; i++) if (substr(have[i], 1, length(k)) == k) { hit = 1; break }
+        if (!hit) print k }' "$doc")
+[ -z "$miss" ] && ok "doc: documented fields in real output" || no "doc: fields missing from output: $miss"
+
 n=$(gzip -dc "$out" | grep -ac CANARY)
 [ "$n" -eq 0 ] && ok "no canary in archive" || no "canary lines in archive: $n"
 gzip -dc "$out" | grep -aq "$h" && no "home path in archive" || ok "home path redacted"
