@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# Every workflow file must parse as YAML (installer/tests/workflow-yaml.sh), on a GitHub-hosted arm64
+# runner only. A merge that leaves conflict markers in a workflow is caught here, before GitHub
+# refuses the file; every fixture under installer/tests/fixtures/workflow-yaml/bad must be refused.
+name: Workflow YAML
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  parse:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Parse every workflow and the negative controls
+        run: sh installer/tests/workflow-yaml.sh
