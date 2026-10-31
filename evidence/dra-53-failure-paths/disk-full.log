@@ -1,0 +1,12 @@
+  ok   install: exit non-zero (got 2)
+  ok   install: says the bundle could not be unpacked
+  ok   install: no current link, no command, no installed-files
+  ok   install: no staging folder left
+  ok   install: no temporary folder left
+  ok   negative control (limit lifted: installs and verifies): opposite
+  ok   model: wizard exit non-zero (got 1)
+  ok   model: says the download failed
+  ok   model: no model file, no verified marker
+  ok   model: no engine started
+  ok   negative control (limit lifted: model verifies): opposite
+RESULT disk-full PASS EXERCISED(host, EFBIG stand-in for ENOSPC) cases=install,model control=opposite/opposite spark=NOT_RUN

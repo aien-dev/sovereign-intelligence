@@ -1,0 +1,28 @@
+      GET /model/weights.bin range=- status=200 sent=5000000
+      GET /model/weights.bin range=- status=200 sent=5000000
+  ok   served/good: wizard exit non-zero (got 1)
+  ok   served/good: says the download or a hash check failed
+  ok   served/good: no weights.bin, no .part, no verified marker kept
+  ok   served/good: the engine was never started (no engine.log)
+      GET /model/weights.bin range=- status=200 sent=5000000
+  ok   on-disk: wizard exit 0 (got 0)
+  ok   on-disk: the corrupted file was dropped and weights.bin downloaded again
+  ok   on-disk: weights.bin verified, marker written
+  ok   after: first run exit 0 and model verified (got 0)
+      verify: 15 files match SHA256SUMS
+      verify: model file SCRATCH/model-corrupt/home-after/.local/share/aienos/models/test-model/weights.bin does not match its SHA-256; the next aienos run downloads it again
+  ok   after: aienos verify exit non-zero (got 1)
+  ok   after: aienos verify names weights.bin
+  ok   after: the verified marker was withdrawn
+      GET /model/weights.bin range=- status=200 sent=5000000
+  ok   after: re-run exit 0 (got 0)
+  ok   after: re-run downloaded weights.bin again
+  ok   after: weights.bin verified, marker written
+  ok   after: aienos verify exit 0 again
+      GET /model/weights.bin range=- status=200 sent=5000000
+  ctl  served/mut: wizard exit non-zero (got 0): broken
+  ctl  served/mut: says the download or a hash check failed: broken
+  ctl  served/mut: no weights.bin, no .part, no verified marker kept: broken
+  ctl  served/mut: the engine was never started (no engine.log): broken
+  ok   negative control (no download hash check: the refusal checks fail): opposite
+RESULT model-corrupt PASS EXERCISED(host, 5 MB test model, loopback server) cases=served,on-disk,after control=opposite spark=NOT_RUN

@@ -557,6 +557,16 @@ end
 num ulong k
 emit n_vok
 putb 10
+m = mvfy
+if lt m 0
+w = flush
+ret 1
+end
+if gt m 0
+num ulong m
+emit m_vok
+putb 10
+end
 w = flush
 ret 0
 end
