@@ -172,14 +172,21 @@ while True:
                   b'data: {"choices":[{"delta":{"content":"captured"}}]}\r\n\r\ndata: [DONE]\r\n\r\n')
     c.close()
 EOF
-capture() { # name command...
+# The wizard talks only to its own engine: engine.pid must name a live process whose executable
+# ends in aien-serve-http (DRA-53). The listener therefore runs from a copy of the Python
+# interpreter named aien-serve-http and stands in the home's engine.pid while the command runs.
+mkdir -p "$S/cap-bin"
+cp "$(readlink -f "$(command -v python3)")" "$S/cap-bin/aien-serve-http"
+capture() { # name command... (the command's home is $h)
     n=$1; shift
     rm -f "$S/$n.req" "$S/$n.ready"
-    python3 "$S/capture.py" "$S/$n.req" "$PORT" "$S/$n.ready" > "$S/$n.cap.log" 2>&1 &
+    "$S/cap-bin/aien-serve-http" "$S/capture.py" "$S/$n.req" "$PORT" "$S/$n.ready" > "$S/$n.cap.log" 2>&1 &
     cp=$!
     i=0; while [ ! -e "$S/$n.ready" ] && [ $i -lt 50 ]; do i=$((i + 1)); sleep 0.1; done
+    printf '%s\n' "$cp" > "$h/.local/share/aienos/engine.pid"
     "$@" > "$S/$n.out" 2>&1
     kill $cp 2>/dev/null; wait $cp 2>/dev/null
+    rm -f "$h/.local/share/aienos/engine.pid"
     tr -d '\r' < "$S/$n.req" > "$S/$n.txt"
 }
 capture cap chat "$h"
@@ -258,13 +265,15 @@ if [ -z "${CORE_ENGINE:-}" ] || ! command -v bwrap > /dev/null 2>&1; then
         nr "$c" "set CORE_ENGINE (Core main aien-serve-http) and install bwrap"
     done
 else
-    install -m 755 "$CORE_ENGINE" "$S/core-engine"
+    # Named aien-serve-http like the shipped engine, so the wizard accepts it as its engine (DRA-53).
+    mkdir -p "$S/core"
+    install -m 755 "$CORE_ENGINE" "$S/core/aien-serve-http"
     mkdir -p "$S/core-model"
     box() { # port log [token]
         if [ $# -ge 3 ]; then set -- "$1" "$2" "AIEN_SERVE_HTTP_BEARER_TOKEN=$3"; else set -- "$1" "$2" "AIENOS_NO_TOKEN=1"; fi
         env -i PATH=/usr/bin:/bin CUDA_VISIBLE_DEVICES= NVIDIA_VISIBLE_DEVICES=none "$3" \
             bwrap --die-with-parent --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp \
-            "$S/core-engine" --engine stub --bind 127.0.0.1 --port "$1" --model-dir "$S/core-model" \
+            "$S/core/aien-serve-http" --engine stub --bind 127.0.0.1 --port "$1" --model-dir "$S/core-model" \
             --stub-reply "Hello from the Core stub engine" > "$2" 2>&1
     }
     boxup() { # log -> port, or empty
@@ -291,10 +300,14 @@ else
     else
         no core-matrix-401-401-200 "engine did not start (see $S/core1.log)"
     fi
-    kill $bp 2>/dev/null; wait $bp 2>/dev/null; pkill -f "$S/core-engine" 2>/dev/null; sleep 0.3
+    kill $bp 2>/dev/null; wait $bp 2>/dev/null; pkill -f "$S/core/aien-serve-http" 2>/dev/null; sleep 0.3
     # The wizard's own chat against it, on the wizard's port.
     box "$PORT" "$S/core2.log" "$ct" & bp=$!
     if boxup "$S/core2.log" > /dev/null; then
+        # The engine process inside bwrap (same pid namespace) stands in the home's engine.pid.
+        for ep in $(pgrep -f "$S/core/aien-serve-http"); do
+            [ "$(readlink "/proc/$ep/exe")" = "$S/core/aien-serve-http" ] && printf '%s\n' "$ep" > "$h/.local/share/aienos/engine.pid"
+        done
         out=$(chat "$h"); printf '%s\n' "$out" > "$S/core-right.out"
         printf '%s' "$out" | grep -q "model> Hello from the Core stub engine"; verdict core-wizard-chat-200 $?
         cp "$(tokf "$h")" "$S/core.tok"; cat "$S/other" > "$(tokf "$h")"
@@ -309,6 +322,7 @@ else
         done
     fi
     kill $bp 2>/dev/null; wait $bp 2>/dev/null
+    rm -f "$h/.local/share/aienos/engine.pid"
 fi
 
 printf 'AIENOS-TOKEN-TESTS pass=%s fail=%s notrun=%s scratch=%s\n' "$pass" "$fail" "$notrun" "$S"
