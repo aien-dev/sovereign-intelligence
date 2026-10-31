@@ -1,0 +1,1064 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note report.om: "aienos doctor --report [FILE]". One tar.gz of install diagnostics that an alpha tester
+note can attach to an issue. Everything comes from local files; no socket is opened. The archive is
+note built here (ustar members inside a gzip of stored deflate blocks), so no host tar or gzip runs.
+note Privacy is by construction: only the files named below are read, a log line is copied only when
+note zone keeps it, the lending key and log are never read, and the home folder is written as ~.
+
+global zb uchar 1048576
+global zbn ulong 1
+global zh uchar 16
+global zc ulong 4
+
+text z_dir "aienos-report/"
+text z_pre "aienos-report-"
+text z_ext ".tar.gz"
+text z_ust "ustar"
+text z_mrd "README.txt"
+text z_mver "versions.txt"
+text z_msys "system.txt"
+text z_mdoc "doctor.txt"
+text z_msum "checksums.txt"
+text z_mrs "release.SHA256SUMS"
+text z_mrg "release.SHA256SUMS.sig"
+text z_msvc "service.txt"
+text z_mlog "logs.txt"
+text z_ver "/VERSION"
+text z_bsh "/.bundle-sha256"
+text z_rsum "/release.SHA256SUMS"
+text z_rsig "/release.SHA256SUMS.sig"
+text z_ilog "/install.log"
+text z_pver "/proc/version"
+text z_osrl "/proc/sys/kernel/osrelease"
+text z_osr "/etc/os-release"
+text z_dgx "/etc/dgx-release"
+text z_nmod "/sys/module/nvidia/version"
+text z_ndrv "/proc/driver/nvidia/version"
+text z_cuj "/usr/local/cuda/version.json"
+text z_k1 "PRETTY_NAME="
+text z_k2 "VERSION_ID="
+text z_k3 "DGX_PRETTY_NAME="
+text z_k4 "DGX_SWBUILD_VERSION="
+text z_k5 "DGX_OTA_VERSION="
+text z_k6 "MemTotal:"
+text z_k7 "MemFree:"
+text z_k8 "MemAvailable:"
+text z_k9 "Mapped:"
+text z_k10 "SwapTotal:"
+text z_k11 "SwapFree:"
+text z_jc "\"cuda\""
+text z_jv "\"version\""
+text z_dq "\""
+text z_bp "aienos-"
+text z_bs "-linux-arm64.tar.gz"
+text z_a1 "aien-serve-http: "
+text z_a2 "qwen"
+text z_a3 "=== "
+text z_a4 "curl: "
+text z_x1 "chatcmpl"
+text z_x2 "bearer"
+text z_x3 "authorization"
+text z_x4 "token="
+text z_x5 "api_key"
+text z_x6 "api-key"
+text z_x7 "apikey"
+text z_x8 "password"
+text z_x9 "secret"
+text z_x10 "cookie"
+text z_x11 "hf_"
+text z_x12 "\"content\""
+text z_x13 "\"messages\""
+text z_x14 "\"prompt\""
+text z_x15 "\"role\""
+text z_cs ": "
+text z_sp2 "  "
+text z_nf "(not found)"
+text z_lno "(not present)"
+text z_r1 "aienos doctor --report: install diagnostics for an AienOS alpha tester report."
+text z_r2 "Made on this computer by bin/aienos (Omega). It opened no network connection and sent nothing;"
+text z_r3 "you decide whether to share this file. Your home folder is written as ~."
+text z_r4 "Members:"
+text z_r5 "  versions.txt   this release and its build pins (aienos about, VERSION, the current link)"
+text z_r6 "  system.txt     kernel, OS and DGX OS versions, NVIDIA driver, CUDA version, memory, free disk"
+text z_r7 "  doctor.txt     the eight checks of aienos doctor"
+text z_r8 "  checksums.txt  SHA-256 of every installed file against the release's SHA256SUMS, and of the"
+text z_r9 "                 downloaded bundle against the signed release manifest"
+text z_r10 "  release.SHA256SUMS, release.SHA256SUMS.sig  the signed release manifest and its Ed25519 signature"
+text z_r11 "  service.txt    engine and lending process state (AienOS installs no system service)"
+text z_r12 "  logs.txt       recent lines of install.log, download.log and engine.log, filtered"
+text z_r13 "Never included: prompts, chat text, conversation ids or history, keys, tokens or other secrets."
+text z_r14 "Only the files named above are read. A log line is copied only when it names no conversation"
+text z_r15 "id, credential or message content, and a download or engine log line only when it starts with"
+text z_r16 "the program's own prefix; other lines are counted, not copied. The lending key and log are not read."
+text z_v1 "release folder: "
+text z_v2 "~/.local/share/aienos/current -> "
+text z_v3 "releases in ~/.local/share/aienos/releases:"
+text z_v4 "--- VERSION (this release)"
+text z_c0 "SHA-256 computed now for every file of this release, against the release's own SHA256SUMS."
+text z_c1 "bundle sha256 recorded by install.sh (.bundle-sha256): "
+text z_c2 "release.SHA256SUMS: not present"
+text z_c3 "signed release manifest (release.SHA256SUMS) entry for the bundle: "
+text z_c4 "not listed"
+text z_c5 "bundle: MATCHES the signed release manifest"
+text z_c6 "bundle: DIFFERS from the signed release manifest"
+text z_c7 "signature: install.sh checked release.SHA256SUMS.sig (Ed25519, openssl) before unpacking; both"
+text z_c8 "  files are in this archive, so the check can be repeated offline with the release key."
+text z_c9 "SHA256SUMS: not present"
+text z_f1 "ok      "
+text z_f2 "CHANGED "
+text z_f3 "MISSING "
+text z_f4 " want "
+text z_f5 " have "
+text z_f6 "files: "
+text z_f7 " ok, "
+text z_f8 " changed, "
+text z_f9 " missing"
+text z_m0 "model manifest (share/aienos/model.manifest): not present"
+text z_m1 "model: "
+text z_m2 ", "
+text z_m3 " bytes in "
+text z_m4 " files (release manifest)"
+text z_m5 "model download: verified (.aienos-verified present; the wizard checked every file's SHA-256 when it downloaded them; not re-hashed here)"
+text z_m6 "model download: not complete or not verified"
+text z_s1 "kernel: "
+text z_s2 "kernel release: "
+text z_s3 "NVIDIA kernel module (/sys/module/nvidia/version): "
+text z_s4 "NVIDIA driver (/proc/driver/nvidia/version): "
+text z_s5 "CUDA toolkit (/usr/local/cuda/version.json; not part of AienOS): "
+text z_s6 "free disk in the home folder (df -B1 --output=avail): "
+text z_s7 " bytes"
+text z_d1 "verdict: this machine can take this alpha (no check failed)"
+text z_d2 "verdict: at least one check failed"
+text z_e0 "autostart: none. AienOS installs no systemd unit, service or login item; the engine runs only"
+text z_e1 "  after aienos chat, aienos start or the wizard starts it, and aienos stop ends it."
+text z_e2 "engine: running, pid "
+text z_e3 " (/proc/PID/exe ends in aien-serve-http)"
+text z_e4 "engine CUDA user-space libraries in /proc/PID/maps: "
+text z_e5 "engine: not running (a stale engine.pid is present)"
+text z_e6 "engine: not running"
+text z_e7 "engine address: http://127.0.0.1:18100/v1 (not probed: this report opens no connection)"
+text z_e8 "lending program: in this release"
+text z_e9 "lending program: not in this release"
+text z_e10 "lending key: present (not copied)"
+text z_e11 "lending key: none"
+text z_e12 "lending: running, pid "
+text z_e13 "lending: not running"
+text z_e14 "lending paused: yes"
+text z_e15 "lending paused: no"
+text z_e16 "lending log ~/.local/share/aienos/lend/lend.log: "
+text z_e17 " bytes (not copied)"
+text z_l0 "Recent lines of AienOS's own logs, filtered as README.txt says."
+text z_lh "--- ~/.local/share/aienos"
+text z_l1 "lines copied: "
+text z_l2 "lines left out: "
+text z_w1 "Wrote "
+text z_w2 " ("
+text z_w3 " bytes)."
+text z_w4 "It holds versions, checksums, system strings, the doctor's checks, service state and filtered"
+text z_w5 "logs; no prompts, chats, conversation ids, keys or tokens. Read it before you share it:"
+text z_w6 "  tar -xzOf "
+text z_w7 "Attach it to an alpha tester issue: https://github.com/aien-dev/sovereign-intelligence/issues/new/choose"
+text z_n1 "I could not write the report to "
+text z_n2 "It already exists, or its folder is not writable. Nothing was written."
+
+note ---------- the command ----------
+
+fn creport to int
+put obn 0 0
+put zbn 0 0
+put zc 1 div ulong realns 1000000000
+zreadme
+zadd z_mrd
+zvers
+zadd z_mver
+zsys
+zadd z_msys
+zdoc
+zadd z_mdoc
+zsums
+zadd z_msum
+zcopy z_rsum z_mrs
+zcopy z_rsig z_mrg
+zsvc
+zadd z_msvc
+zlogs
+zadd z_mlog
+zend
+ret zsave
+end
+
+note The output path into pb: FILE when given (inside it when it is a folder), else the default name
+note in the current folder. The file is created new (O_EXCL), mode 0600.
+fn zsave to int
+pclr
+if gt arg 3 0
+for i ulong get ibn 0
+pbyte get ib i
+end
+if and pexist eq stype 4
+pbyte 47
+zname
+end
+else
+zname
+end
+fd = int fopen pb 0 get pbn 0 524481 384
+if lt fd 0
+ret zfail
+end
+ok = zgz fd
+r = fstat fd sb 0 128
+c = fclose fd
+if not ok
+x = unlink pb 0 get pbn 0
+ret zfail
+end
+emit z_w1
+zpout
+emit z_w2
+num ssize
+zl z_w3
+zl z_w4
+zl z_w5
+emit z_w6
+zpout
+putb 10
+zl z_w7
+w = flush
+ret 0
+end
+
+fn zfail to int
+emit z_n1
+zpout
+putb 10
+zl z_n2
+w = flush
+ret 1
+end
+
+fn zname to void
+pstr z_pre
+pstr v_tag
+pbyte 45
+pnum get zc 1
+pstr z_ext
+end
+
+fn zpout to void
+for i ulong get pbn 0
+putb get pb i
+end
+end
+
+fn zl t view uchar * to void
+emit t
+putb 10
+end
+
+note ---------- members ----------
+
+fn zreadme to void
+zl z_r1
+zl z_r2
+zl z_r3
+putb 10
+zl z_r4
+zl z_r5
+zl z_r6
+zl z_r7
+zl z_r8
+zl z_r9
+zl z_r10
+zl z_r11
+zl z_r12
+putb 10
+zl z_r13
+zl z_r14
+zl z_r15
+zl z_r16
+end
+
+fn zvers to void
+pclear
+about
+for i ulong get ptn 0
+b = get pt i
+if or ge b 7 eq b 10
+putb b
+end
+end
+putb 10
+putb 10
+emit z_v1
+pclr
+proot
+zpb
+putb 10
+emit z_v2
+pbase
+pstr r_cur
+n = readlnk pb 0 get pbn 0 rb 0 512
+if gt n 0
+put rbn 0 ulong n
+zred 0 ulong n
+end
+putb 10
+zl z_v3
+zrels
+zl z_v4
+pclr
+proot
+pstr z_ver
+k = slurp
+if lt k 0
+zl z_lno
+ret
+end
+zred 0 get rbn 0
+end
+
+note The names in ~/.local/share/aienos/releases, one per line.
+fn zrels to void
+d = new uchar 8192 0
+pbase
+pstr r_rel
+fd = int fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+zl z_lno
+ret
+end
+n = getdnts fd d 0 8192
+c = fclose fd
+if le n 0
+ret
+end
+o = ulong 0
+while lt o ulong n bound 8192
+rl = or ulong get d add o 16 shl ulong get d add o 17 8
+if eq rl 0
+break
+end
+zdname d add o 19
+o = add o rl
+end
+end
+
+fn zdname d view uchar 8192 o ulong to void
+if eq get d o 46
+ret
+end
+emit z_sp2
+k = ulong 0
+while and ne get d add o k 0 lt k 200 bound 256
+putb get d add o k
+k = add k 1
+end
+putb 10
+end
+
+fn zsys to void
+zfirst z_s1 z_pver
+zfirst z_s2 z_osrl
+zkey z_osr z_k1
+zkey z_osr z_k2
+zkey z_dgx z_k3
+zkey z_dgx z_k4
+zkey z_dgx z_k5
+zfirst z_s3 z_nmod
+zfirst z_s4 z_ndrv
+zcuda
+zkey c_mem z_k6
+zkey c_mem z_k7
+zkey c_mem z_k8
+zkey c_mem z_k9
+zkey c_mem z_k10
+zkey c_mem z_k11
+emit z_s6
+f = dfree
+if eq f 0
+zl z_nf
+ret
+end
+num f
+zl z_s7
+end
+
+note Label l, then the first line (at most 300 bytes) of the probe file f.
+fn zfirst l view uchar * f view uchar * to void
+emit l
+pprobe f
+n = slurp
+if le n 0
+zl z_nf
+ret
+end
+e = rbfind 0 t_nl
+if gt e 300
+e = 300
+end
+zred 0 e
+putb 10
+end
+
+note "f: " then the line of probe file f that starts with key k. Only that line is copied.
+fn zkey f view uchar * k view uchar * to void
+emit f
+emit z_cs
+pprobe f
+n = slurp
+if ge n 0
+o = ulong 0
+while lt o get rbn 0 bound 524289
+e = rbfind o t_nl
+if rbat o k
+zred o e
+putb 10
+ret
+end
+o = add e 1
+end
+end
+emit k
+putb 32
+zl z_nf
+end
+
+note The CUDA toolkit version: the string after "version" in the "cuda" object of version.json.
+fn zcuda to void
+emit z_s5
+pprobe z_cuj
+n = slurp
+if le n 0
+zl z_nf
+ret
+end
+a = rbfind 0 z_jc
+b = rbfind a z_jv
+c = rbfind add b len z_jv z_dq
+d = rbfind add c 1 z_dq
+if or ge d get rbn 0 gt sub d c 64
+zl z_nf
+ret
+end
+zred add c 1 d
+putb 10
+end
+
+fn zdoc to void
+need = mneed
+ok = doctor need
+for i ulong NCHK
+cline i false
+putb 10
+end
+if ok
+zl z_d1
+else
+zl z_d2
+end
+end
+
+fn zsums to void
+zl z_c0
+emit z_v1
+pclr
+proot
+zpb
+putb 10
+zbund
+zfiles
+zmodel
+end
+
+note The bundle's hash as install.sh recorded it, against the bundle line of the signed manifest.
+fn zbund to void
+h = new uchar 64 0
+pclr
+proot
+pstr z_bsh
+n = slurp
+emit z_c1
+if lt get rbn 0 64
+zl z_lno
+ret
+end
+for i ulong 64
+put h i get rb i
+end
+zred 0 64
+putb 10
+pclr
+proot
+pstr z_rsum
+m = mload
+if lt m 0
+zl z_c2
+ret
+end
+o = zbline
+emit z_c3
+if ge o get mfn 0
+zl z_c4
+ret
+end
+zmf o 64
+putb 10
+same = true
+for i ulong 64
+if ne get mf add o i get h i
+same = false
+end
+end
+if same
+zl z_c5
+else
+zl z_c6
+end
+zl z_c7
+zl z_c8
+end
+
+note Offset in mf of the line "HEX  aienos-TAG-linux-arm64.tar.gz", or the length of mf.
+fn zbline to ulong
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if zbis o e
+ret o
+end
+o = add e 1
+end
+ret get mfn 0
+end
+
+fn zbis o ulong e ulong to bool
+a = add o 66
+b = add a len z_bp
+c = add b len v_tag
+if ne e add c len z_bs
+ret false
+end
+if not ishex o e
+ret false
+end
+x = and mfat a z_bp mfat b v_tag
+ret and x mfat c z_bs
+end
+
+note Every "HEX  PATH" line of root/SHA256SUMS: hash the file now and say ok, CHANGED or MISSING.
+fn zfiles to void
+pclr
+proot
+pstr t_sums
+n = mload
+if lt n 0
+zl z_c9
+ret
+end
+k = new ulong 3 0
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+r = zfile o e
+put k r add get k r 1
+end
+o = add e 1
+end
+emit z_f6
+num get k 0
+emit z_f7
+num get k 1
+emit z_f8
+num get k 2
+zl z_f9
+end
+
+fn zfile o ulong e ulong to ulong
+pclr
+proot
+pbyte 47
+n = sub sub e o 66
+for i ulong n
+pbyte get mf add add o 66 i
+end
+r = fhash
+if lt r 0
+emit z_f3
+zmf add o 66 n
+putb 10
+ret 2
+end
+if dgis o
+emit z_f1
+zmf add o 66 n
+putb 10
+ret 0
+end
+emit z_f2
+zmf add o 66 n
+emit z_f4
+zmf o 64
+emit z_f5
+for i ulong 32
+b = get dg i
+putb hexd ulong shr b 4
+putb hexd ulong and b 15
+end
+putb 10
+ret 1
+end
+
+fn zmf o ulong n ulong to void
+for i ulong n
+putb get mf add o i
+end
+end
+
+fn zmodel to void
+if not mopen
+zl z_m0
+ret
+end
+emit z_m1
+for i ulong get mnn 0
+putb get mnm i
+end
+emit z_m2
+num mbytes
+emit z_m3
+num mfiles
+zl z_m4
+if mdone
+zl z_m5
+else
+zl z_m6
+end
+end
+
+fn zsvc to void
+zl z_e0
+zl z_e1
+p = epid
+if gt p 0
+emit z_e2
+num p
+zl z_e3
+emit z_e4
+snum ecuda p
+putb 10
+else
+pbase
+pstr e_pid
+if pexist
+zl z_e5
+else
+zl z_e6
+end
+end
+zl z_e7
+zlend
+end
+
+fn zlend to void
+if lhave
+zl z_e8
+else
+zl z_e9
+end
+if lkey
+zl z_e10
+else
+zl z_e11
+end
+q = lpid
+if gt q 0
+emit z_e12
+num q
+putb 10
+else
+zl z_e13
+end
+plend
+pstr o_paus
+if pexist
+zl z_e14
+else
+zl z_e15
+end
+emit z_e16
+plend
+pstr o_logf
+if eq pstat 0
+num ssize
+zl z_e17
+else
+zl z_lno
+end
+end
+
+fn zlogs to void
+put zc 2 0
+put zc 3 0
+zl z_l0
+ztail z_ilog 60 false
+ztail t_curlog 40 true
+ztail e_log 80 true
+emit z_l1
+num get zc 2
+putb 10
+emit z_l2
+num get zc 3
+putb 10
+end
+
+note ---------- log tails ----------
+
+note The last nl lines of ~/.local/share/aienos + t (read from its last 64 KiB), each through zone.
+fn ztail t view uchar * nl ulong strict bool to void
+emit z_lh
+emit t
+putb 10
+pbase
+pstr t
+fd = int fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+zl z_lno
+ret
+end
+r = fstat fd sb 0 128
+off = ulong 0
+if gt ssize 65536
+off = sub ssize 65536
+end
+p = fseek fd long off 0
+k = ulong 0
+while lt k 65536 bound 65537
+m = read fd rb k sub 65536 k
+if le m 0
+break
+end
+k = add k ulong m
+end
+c = fclose fd
+put rbn 0 k
+zlines gt off 0 nl strict
+end
+
+note rb holds a log tail; skip drops its first (partial) line. Hand the last nl lines to zone.
+fn zlines skip bool nl ulong strict bool to void
+n = get rbn 0
+s = ulong 0
+if skip
+s = add rbfind 0 t_nl 1
+end
+b = n
+if and gt b s eq get rb sub b 1 10
+b = sub b 1
+end
+k = ulong 0
+while gt b s bound 524289
+if eq get rb sub b 1 10
+k = add k 1
+if eq k nl
+break
+end
+end
+b = sub b 1
+end
+o = b
+while lt o n bound 524289
+e = rbfind o t_nl
+zone o e strict
+o = add e 1
+end
+end
+
+note Copy rb[o .. e) (at most 400 bytes) unless it names a conversation id, credential or message
+note content; strict also needs a known program prefix. Counts copied and left-out lines.
+fn zone o ulong e ulong strict bool to void
+if eq o e
+ret
+end
+keep = not zdeny o e
+if and keep strict
+keep = zallow o
+end
+if not keep
+put zc 3 add get zc 3 1
+ret
+end
+put zc 2 add get zc 2 1
+f = e
+if gt sub e o 400
+f = add o 400
+end
+zred o f
+putb 10
+end
+
+fn zallow o ulong to bool
+a = or rbat o z_a1 rbat o z_a2
+b = or rbat o z_a3 rbat o z_a4
+ret or a b
+end
+
+fn zdeny o ulong e ulong to bool
+a = or zhas o e z_x1 zhas o e z_x2
+a = or a or zhas o e z_x3 zhas o e z_x4
+a = or a or zhas o e z_x5 zhas o e z_x6
+a = or a or zhas o e z_x7 zhas o e z_x8
+a = or a or zhas o e z_x9 zhas o e z_x10
+a = or a or zhas o e z_x11 zhas o e z_x12
+a = or a or zhas o e z_x13 zhas o e z_x14
+ret or a zhas o e z_x15
+end
+
+note Does lowercase t occur in rb[o .. e), ignoring ASCII case?
+fn zhas o ulong e ulong t view uchar * to bool
+if lt sub e o len t
+ret false
+end
+i = o
+while le add i len t e bound 524289
+if zati i t
+ret true
+end
+i = add i 1
+end
+ret false
+end
+
+fn zati i ulong t view uchar * to bool
+for j ulong len t
+c = get rb add i j
+if and ge c 65 le c 90
+c = add c 32
+end
+if ne c get t j
+ret false
+end
+end
+ret true
+end
+
+note rb[o .. e) into ob with the home folder written as ~ and control bytes (except tab and
+note newline) as ?.
+fn zred o ulong e ulong to void
+h = get hbn 0
+i = o
+while lt i e bound 524289
+if and gt h 1 zhat i e
+putb 126
+i = add i h
+else
+c = get rb i
+if or ge c 32 or eq c 9 eq c 10
+putb c
+else
+putb 63
+end
+i = add i 1
+end
+end
+end
+
+fn zhat i ulong e ulong to bool
+h = get hbn 0
+if gt add i h e
+ret false
+end
+for j ulong h
+if ne get rb add i j get hb j
+ret false
+end
+end
+ret true
+end
+
+note The path in pb, through zred.
+fn zpb to void
+n = get pbn 0
+for i ulong n
+put rb i get pb i
+end
+put rbn 0 n
+zred 0 n
+end
+
+note ---------- the archive ----------
+
+note A public release file copied whole as member m (skipped when absent; checksums.txt says so).
+fn zcopy t view uchar * m view uchar * to void
+pclr
+proot
+pstr t
+n = slurp
+if lt n 0
+ret
+end
+k = get rbn 0
+if gt k len ob
+k = len ob
+end
+for i ulong k
+put ob i get rb i
+end
+put obn 0 k
+zadd m
+end
+
+note Append ob[0 .. obn) to the archive as the ustar member aienos-report/NAME, then empty ob.
+fn zadd t view uchar * to void
+n = get obn 0
+o = get zbn 0
+put obn 0 0
+if gt add add o 1536 n len zb
+ret
+end
+for i ulong 512
+put zb add o i 0
+end
+for i ulong len z_dir
+put zb add o i get z_dir i
+end
+for i ulong len t
+put zb add add o len z_dir i get t i
+end
+zhdr o n
+for i ulong n
+put zb add add o 512 i get ob i
+end
+p = add add o 512 n
+while ne rem p 512 0 bound 512
+put zb p 0
+p = add p 1
+end
+put zbn 0 p
+end
+
+note The numeric fields, magic and checksum of the header at zb[o].
+fn zhdr o ulong n ulong to void
+zoct add o 100 7 420
+zoct add o 108 7 0
+zoct add o 116 7 0
+zoct add o 124 11 n
+zoct add o 136 11 get zc 1
+put zb add o 156 48
+for i ulong len z_ust
+put zb add add o 257 i get z_ust i
+end
+put zb add o 263 48
+put zb add o 264 48
+for i ulong 8
+put zb add add o 148 i 32
+end
+s = ulong 0
+for i ulong 512
+s = add s ulong get zb add o i
+end
+zoct add o 148 6 s
+put zb add o 155 32
+end
+
+note v as w octal digits at zb[o ..), then a zero byte.
+fn zoct o ulong w ulong v ulong to void
+x = v
+for i ulong w
+put zb add o sub sub w 1 i uchar add and x 7 48
+x = shr x 3
+end
+put zb add o w 0
+end
+
+note The end of the archive: two zero blocks.
+fn zend to void
+o = get zbn 0
+for i ulong 1024
+put zb add o i 0
+end
+put zbn 0 add o 1024
+end
+
+note zb as gzip: header, stored deflate blocks of at most 65535 bytes, CRC-32, size (RFC 1951/1952).
+fn zgz fd int to bool
+n = get zbn 0
+for i ulong 10
+put zh i 0
+end
+put zh 0 31
+put zh 1 139
+put zh 2 8
+zle 4 get zc 1 4
+put zh 9 3
+if not zhw fd 10
+ret false
+end
+o = ulong 0
+while true bound 64
+k = sub n o
+if gt k 65535
+k = 65535
+end
+fin = eq add o k n
+put zh 0 0
+if fin
+put zh 0 1
+end
+zle 1 k 2
+zle 3 xor k 65535 2
+if not zhw fd 5
+ret false
+end
+if not zbw fd o k
+ret false
+end
+o = add o k
+if fin
+break
+end
+end
+zle 0 zcrc n 4
+zle 4 n 4
+ret zhw fd 8
+end
+
+fn zle o ulong v ulong w ulong to void
+for i ulong w
+put zh add o i uchar and shr v mul i 8 255
+end
+end
+
+fn zhw fd int n ulong to bool
+w = write fd zh 0 n
+ret eq w long n
+end
+
+fn zbw fd int o ulong k ulong to bool
+d = ulong 0
+while lt d k bound 65537
+w = write fd zb add o d sub k d
+if le w 0
+ret false
+end
+d = add d ulong w
+end
+ret true
+end
+
+note CRC-32 (reflected, polynomial 0xEDB88320) of zb[0 .. n).
+fn zcrc n ulong to ulong
+c = ulong 4294967295
+for i ulong n
+c = xor c ulong get zb i
+for j ulong 8
+if eq and c 1 1
+c = xor shr c 1 3988292384
+else
+c = shr c 1
+end
+end
+end
+ret xor c 4294967295
+end

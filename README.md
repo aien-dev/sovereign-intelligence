@@ -43,6 +43,8 @@ git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intell
 
 It checks the machine first (anything else gets a friendly note and nothing changes), downloads release [alpha-20261026.2](https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2) by exact tag (model: Qwen3.6-35B-A3B-FP8, 37.5 GB; the 27B is to come), verifies the Ed25519 signature of SHA256SUMS (alpha key ff949504…f54a, see [KEYS](KEYS)) and every SHA-256 before unpacking, installs into ~/.local/share/aienos (no sudo), and opens the Omega wizard. Remove everything with `aienos uninstall`.
 
+Something wrong? `aienos doctor --report report.tar.gz` writes install diagnostics to attach to a tester issue, with no network connection and no chats, keys or tokens; see [an example report](docs/doctor-report.md).
+
 Check a release by hand:
 
 ```sh

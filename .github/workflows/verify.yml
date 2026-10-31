@@ -22,7 +22,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Shell syntax
-        run: for f in install.sh build.sh tests/run.sh tests/lend.sh tests/fake-root.sh tests/container.sh tests/host-untouched.sh tools/sign.sh tools/release.sh; do sh -n "installer/$f"; done
+        run: for f in install.sh build.sh tests/run.sh tests/lend.sh tests/fake-root.sh tests/container.sh tests/host-untouched.sh tests/report.sh tools/sign.sh tools/release.sh; do sh -n "installer/$f"; done
       - name: Pinned omega-mv
         run: |
           git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"
@@ -35,7 +35,7 @@ jobs:
       - name: Compile the wizard twice
         run: |
           set -eu
-          (cd installer/wizard && cat sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om) > "$RUNNER_TEMP/aienos.om"
+          (cd installer/wizard && cat sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om report.om) > "$RUNNER_TEMP/aienos.om"
           omc="$RUNNER_TEMP/omega/seed/out/omc"
           "$omc" < "$RUNNER_TEMP/aienos.om" > "$RUNNER_TEMP/a1" 2> "$RUNNER_TEMP/e1"
           "$omc" < "$RUNNER_TEMP/aienos.om" > "$RUNNER_TEMP/a2" 2> "$RUNNER_TEMP/e2"
