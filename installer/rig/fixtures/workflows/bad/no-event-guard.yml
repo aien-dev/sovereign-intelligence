@@ -1,0 +1,8 @@
+# SYNTHETIC fixture for installer/rig/wfcheck.om (DRA-45). Never runs: it is not under .github/workflows.
+on:
+  workflow_dispatch:
+jobs:
+  rig:
+    runs-on: [self-hosted, linux, ARM64, si-test-spark]
+    steps:
+      - run: echo rig

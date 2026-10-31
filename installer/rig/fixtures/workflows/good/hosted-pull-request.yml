@@ -1,0 +1,10 @@
+# SYNTHETIC fixture for installer/rig/wfcheck.om (DRA-45). Never runs: it is not under .github/workflows.
+name: good hosted
+on:
+  pull_request:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - run: echo hosted

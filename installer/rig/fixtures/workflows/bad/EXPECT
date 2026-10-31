@@ -1,0 +1,26 @@
+# bad fixture<TAB>text the PROBLEM line must contain
+pull-request.yml	forbidden trigger for a self-hosted workflow: pull_request
+pull-request-target.yml	forbidden trigger for a self-hosted workflow: pull_request_target
+on-scalar-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+on-flow-list-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+on-block-list-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+on-true-key-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+on-flow-mapping.yml	UNPARSED
+workflow-run.yml	forbidden trigger for a self-hosted workflow: workflow_run
+issue-comment.yml	forbidden trigger for a self-hosted workflow: issue_comment
+push-unfiltered.yml	push is not limited to branches [main]
+push-other-branch.yml	push branch filter names a branch other than main: dev
+push-wildcard.yml	push branch filter names a branch other than main: **
+push-tags.yml	push filter allows other refs: tags
+push-branches-ignore.yml	push filter allows other refs: branches-ignore
+no-event-guard.yml	self-hosted workflow has no event-guard job
+guard-self-hosted.yml	event-guard runs on a self-hosted runner
+guard-no-event-name.yml	event-guard never reads github.event_name
+job-not-needing-guard.yml	self-hosted job does not need event-guard: rig
+expression-label-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+runner-group-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+custom-label-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+remote-reusable-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+no-on.yml	UNPARSED no on: key
+lookalike-label-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+two-labels-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
