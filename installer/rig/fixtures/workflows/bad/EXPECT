@@ -24,3 +24,5 @@ remote-reusable-pr.yml	forbidden trigger for a self-hosted workflow: pull_reques
 no-on.yml	UNPARSED no on: key
 lookalike-label-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
 two-labels-pr.yml	forbidden trigger for a self-hosted workflow: pull_request
+no-failure-notify.yml	scheduled self-hosted workflow has no hosted failure-notify job
+notify-self-hosted.yml	scheduled self-hosted workflow has no hosted failure-notify job

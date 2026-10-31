@@ -18,3 +18,11 @@ jobs:
     runs-on: [self-hosted, linux, ARM64, si-test-spark]
     steps:
       - run: echo rig
+  notify:
+    needs: [event-guard, rig]
+    if: failure()
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    steps:
+      - run: gh issue create --title nightly --body "@maintainer failed"

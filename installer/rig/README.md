@@ -22,6 +22,9 @@ A workflow with a self-hosted job passes only when:
 2. It has a job named `event-guard` on a GitHub-hosted runner whose text reads
    `github.event_name` (it fails the run on any other event).
 3. Every self-hosted job lists `event-guard` in `needs`.
+4. When `on:` names `schedule`, a GitHub-hosted job's text contains `failure()`, `gh issue` and
+   `issues: write` (DRA-59: nobody watches a scheduled run, so its failure must notify the
+   maintainer). This is a text check of the job, not proof the notice is sent.
 
 Operator rule that the checker cannot see: a self-hosted runner must never be registered with a
 GitHub-hosted image label such as `ubuntu-24.04-arm`.
@@ -41,3 +44,32 @@ this repository's workflows must pass, `fixtures/workflows/good` must pass, and 
 `fixtures/workflows/bad` is a negative control that must exit 1 with the problem text listed in
 `fixtures/workflows/bad/EXPECT`. `.github/workflows/rig-check.yml` runs it on every pull request,
 on a GitHub-hosted runner.
+
+## e2e: install, verify, chat, uninstall (DRA-55, DRA-59)
+
+`sh installer/rig/e2e.sh --tag TAG --out OUT.jsonl` runs four steps on this machine: install
+(`git clone --branch TAG`, `install.sh`, then the plain wizard), `aienos verify`, `aienos chat` (a
+non-empty `model>` line is also required, because chat exits 0 after an engine error), and
+`aienos uninstall --yes`. Every step runs even after a failure, so uninstall always runs. Each
+step writes one JSON line (schema `si-rig-e2e/1`): `step`, `mode` (`REAL` or `FAKE`),
+`release_tag`, `engine_sha256` (of the installed `bin/aien-serve-http`), `model_repo` and
+`model_commit` (from the installed `model.manifest`), `start_utc`, `end_utc` and `exit_code`.
+Step logs go to `OUT.logs/`. `--fake` replaces every step with a stub and writes `mode: FAKE`.
+
+`evcheck FILE` checks the schema: exactly those members, the pinned model revision, steps in
+order, the same mode, tag and engine hash in every record, and timestamps that never go back.
+`evcheck --want REAL FILE` certifies a run: also all four steps, every exit code 0, a non-zero
+engine hash and every record in mode `REAL`, so FAKE evidence can never be certified as REAL.
+Exit 0 pass, 1 a problem, 2 usage, 4 unreadable. evcheck uses `vendor/json.om`, a byte copy of
+omega-mv `bf54b19f` `seed/json/json.om`; `e2e-test.sh` checks the copy with `cmp`.
+
+`sh installer/rig/e2e-test.sh OMC` is the host arm (FAKE only): a FAKE run must pass evcheck,
+and five negative controls must be refused (a missing member, a bad sha256, a start before the
+previous end, FAKE records with `--want REAL`, and a record relabelled REAL). Rig checks runs it
+on every pull request. `.github/workflows/e2e-nightly.yml` runs the REAL harness nightly and on
+manual dispatch on the runner labelled `si-test-spark`, certifies the evidence with
+`--want REAL` and uploads it. A REAL run needs the test Spark and a registered runner. When the
+run fails, the hosted `notify-failure` job (`issues: write`, never on a fork) runs
+`installer/rig/notify-failure.sh`: it comments on the open issue labelled `nightly-failure`, or
+opens one assigned to the maintainer (`vars.SI_MAINTAINER`, default `drakestapleton`), with an
+@-mention and the run URL.
