@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# Test-rig checks on every pull request and on main, on GitHub-hosted arm64 runners only (never a
+# self-hosted runner): installer/rig/wfcheck.om must pass on every workflow in this repository, so
+# no workflow that a pull request can start ever reaches a self-hosted runner (DRA-45), and every
+# negative-control fixture must be refused.
+name: Rig checks
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  rig:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    env:
+      OMEGA_REV: bf54b19fa590e8ae925c0e80815516dbf41e7326
+      OMC_PIN: 62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned omega-mv
+        run: |
+          git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"
+          git -C "$RUNNER_TEMP/omega" checkout --quiet "$OMEGA_REV"
+          echo "$OMC_PIN  $RUNNER_TEMP/omega/seed/out/omc" | sha256sum -c -
+      - name: Workflow trigger guard and negative controls
+        run: sh installer/rig/test.sh "$RUNNER_TEMP/omega/seed/out/omc"

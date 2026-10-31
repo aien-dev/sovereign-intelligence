@@ -1,0 +1,1072 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note wfcheck.om: refuses a GitHub Actions workflow that a pull request could start on a self-hosted
+note runner (SI Alpha DRA-45). Run from anywhere:
+note   wfcheck PATH...   each PATH is a workflow file, or a directory whose *.yml and *.yaml are read
+note A job runs on GitHub's hosted runners only when its runs-on is one label from the GitHub-hosted
+note image list k_hl below (exact match). Anything else (self-hosted, a custom label, several labels,
+note a runner group, an expression, a remote reusable workflow) counts as self-hosted: an unknown
+note form fails closed. A self-hosted runner must never be given a GitHub-hosted image label.
+note A workflow with a self-hosted job passes only when
+note   1. its on: names workflow_dispatch, schedule, and push limited to branches [main] (no tags,
+note      tags-ignore or branches-ignore), and nothing else;
+note   2. it has a job event-guard on a hosted runner whose text reads github.event_name;
+note   3. every self-hosted job lists event-guard in needs.
+note YAML outside the subset in installer/rig/README.md is reported UNPARSED, which is a problem.
+note Exit 0 pass; 1 a problem; 2 usage; 4 a file or directory could not be read, or is too large.
+om2
+
+note A file is at most 983040 bytes; every byte loop moves at least one byte per pass.
+global fb uchar 983040
+global fbn ulong 1
+global pb uchar 4096
+global pbn ulong 1
+global dp uchar 4096
+global dpn ulong 1
+global db uchar 32768
+global sb uchar 128
+note Non-blank, non-comment lines: content start and end (comment and trailing space removed),
+note indent in spaces, raw start and end, line number.
+global lso ulong 32768
+global leo ulong 32768
+global lin ulong 32768
+global lrs ulong 32768
+global lre ulong 32768
+global lno ulong 32768
+global nln ulong 1
+note Scalar elements of one value (start, length into fb).
+global es ulong 64
+global en ulong 64
+global nel ulong 1
+note The key and value of the last pkey line.
+global ks ulong 1
+global kn ulong 1
+global vs ulong 1
+global vn ulong 1
+note Jobs of the current file: key line, self-hosted, needs event-guard, reads github.event_name.
+global jln ulong 256
+global jsh ulong 256
+global jng ulong 256
+global jev ulong 256
+global njob ulong 1
+global prob ulong 1
+global ferr ulong 1
+global nfile ulong 1
+global nself ulong 1
+
+text t_nl "\n"
+text t_prob "PROBLEM "
+text t_col ":"
+text t_cs ": "
+text t_host "HOSTED "
+text t_self "SELF-HOSTED "
+text t_pass "WFCHECK PASS files="
+text t_fail "WFCHECK FAIL problems="
+text t_shc " self-hosted="
+text t_ferr "WFCHECK FILE-ERROR "
+text t_big " (unreadable, over 983040 bytes or over 32768 lines)"
+text t_usage "usage: wfcheck PATH...  (a workflow file or a directory of *.yml/*.yaml)\n"
+text t_none "WFCHECK FAIL no workflow file found\n"
+text k_on "on"
+text k_true "true"
+text k_jobs "jobs"
+text k_runs "runs-on"
+text k_uses "uses"
+text k_needs "needs"
+text k_guard "event-guard"
+text k_wd "workflow_dispatch"
+text k_sched "schedule"
+text k_push "push"
+text k_br "branches"
+text k_tags "tags"
+text k_tagi "tags-ignore"
+text k_bri "branches-ignore"
+text k_pth "paths"
+text k_pthi "paths-ignore"
+text k_main "main"
+text k_null "null"
+text k_tilde "~"
+text k_evn "github.event_name"
+text k_dot "./"
+text k_hl " ubuntu-latest ubuntu-24.04 ubuntu-22.04 ubuntu-24.04-arm ubuntu-22.04-arm ubuntu-slim windows-latest windows-2025 windows-2022 windows-11-arm macos-latest macos-26 macos-15 macos-14 macos-13 macos-15-intel "
+text k_yml ".yml"
+text k_yaml ".yaml"
+text k_expr "${{"
+text r_unp "UNPARSED "
+text r_key "expected a key: value line"
+text r_flow "a flow mapping, multi-line flow, anchor or block scalar where a plain value is needed"
+text r_on "no on: key"
+text r_dup "a second on: or jobs: key"
+text r_noev "on: names no event"
+text r_pkey "an unknown push filter key"
+text r_jobs "jobs: has no job"
+text r_nrun "a job with neither runs-on nor uses"
+text r_runs "runs-on names no label"
+text r_needs "needs is not a list of job ids"
+text m_trig "forbidden trigger for a self-hosted workflow: "
+text m_pany "push is not limited to branches [main]"
+text m_pbr "push branch filter names a branch other than main: "
+text m_pflt "push filter allows other refs: "
+text m_nog "self-hosted workflow has no event-guard job"
+text m_gsh "event-guard runs on a self-hosted runner"
+text m_gev "event-guard never reads github.event_name"
+text m_need "self-hosted job does not need event-guard: "
+
+note ---- output on stdout ----
+
+fn pr t view uchar * to void
+w = write 1 t 0 len t
+end
+
+fn prf s ulong n ulong to void
+w = write 1 fb s n
+end
+
+fn prp to void
+w = write 1 pb 0 get pbn 0
+end
+
+fn prn v ulong to void
+d = new uchar 20 0
+o = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+put o i get d sub sub k 1 i
+end
+w = write 1 o 0 k
+end
+
+note PROBLEM <path>:<line>: then the caller's message and a newline.
+fn pstart k ulong to void
+put prob 0 add get prob 0 1
+pr t_prob
+prp
+pr t_col
+prn get lno k
+pr t_cs
+end
+
+fn unp k ulong t view uchar * to void
+pstart k
+pr r_unp
+pr t
+pr t_nl
+end
+
+fn probt k ulong t view uchar * to void
+pstart k
+pr t
+pr t_nl
+end
+
+fn probs k ulong t view uchar * s ulong n ulong to void
+pstart k
+pr t
+prf s n
+pr t_nl
+end
+
+note ---- byte spans of fb ----
+
+fn speq s ulong n ulong t view uchar * to bool
+if ne n len t
+ret false
+end
+for i ulong n
+if ne get fb add s i get t i
+ret false
+end
+end
+ret true
+end
+
+fn spre s ulong n ulong t view uchar * to bool
+if lt n len t
+ret false
+end
+for i ulong len t
+if ne get fb add s i get t i
+ret false
+end
+end
+ret true
+end
+
+note Does fb[s..s+n) contain t?
+fn shas s ulong n ulong t view uchar * to bool
+if lt n len t
+ret false
+end
+m = add sub n len t 1
+for i ulong m
+if spre add s i len t t
+ret true
+end
+end
+ret false
+end
+
+fn keq t view uchar * to bool
+ret speq get ks 0 get kn 0 t
+end
+
+fn eleq i ulong t view uchar * to bool
+ret speq get es i get en i t
+end
+
+fn isws c uchar to bool
+ret or eq c 32 eq c 9
+end
+
+note ---- files ----
+
+fn rdfb to long
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+n = ulong 0
+while lt n len fb bound 983041
+k = read int fd fb n sub len fb n
+if lt k 0
+c = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+put fbn 0 n
+if eq n len fb
+ret -27
+end
+ret long n
+end
+
+note ---- lines ----
+
+note End of content at s..e: a # that starts a comment (at the content start or after a space,
+note outside a quoted scalar) ends it; trailing spaces, tabs and CR are dropped.
+fn prevb j ulong s ulong to uchar
+if eq j s
+ret uchar 32
+end
+ret get fb sub j 1
+end
+
+fn qopen p uchar to bool
+ret or or isws p eq p 91 or eq p 44 or eq p 123 eq p 58
+end
+
+fn cend s ulong e ulong to ulong
+q = uchar 0
+j = s
+while lt j e bound 983041
+c = get fb j
+if eq q 0
+if and eq c 35 isws prevb j s
+break
+end
+if and or eq c 34 eq c 39 qopen prevb j s
+q = c
+end
+else
+if eq c q
+q = uchar 0
+end
+end
+j = add j 1
+end
+while gt j s bound 983041
+p = get fb sub j 1
+if not or isws p eq p 13
+break
+end
+j = sub j 1
+end
+ret j
+end
+
+fn addln s ulong e ulong no ulong to bool
+c = s
+while and lt c e eq get fb c 32 bound 983041
+c = add c 1
+end
+x = cend c e
+if eq x c
+ret true
+end
+n = get nln 0
+if ge n len lso
+ret false
+end
+put lso n c
+put leo n x
+put lin n sub c s
+put lrs n s
+put lre n e
+put lno n no
+put nln 0 add n 1
+ret true
+end
+
+fn lines to bool
+put nln 0 0
+n = get fbn 0
+i = ulong 0
+no = ulong 1
+while lt i n bound 983041
+s = i
+while and lt i n ne get fb i 10 bound 983041
+i = add i 1
+end
+if not addln s i no
+ret false
+end
+i = add i 1
+no = add no 1
+end
+ret true
+end
+
+note ---- one line ----
+
+fn isli k ulong to bool
+c = get lso k
+e = get leo k
+if ne get fb c 45
+ret false
+end
+if eq add c 1 e
+ret true
+end
+ret isws get fb add c 1
+end
+
+note A key line: sets ks kn (quotes removed) and vs vn (value after the colon and spaces).
+fn pkey k ulong to bool
+c = get lso k
+e = get leo k
+b = get fb c
+if or isli k badst b
+ret false
+end
+j = c
+if or eq b 34 eq b 39
+j = add c 1
+while and lt j e ne get fb j b bound 983041
+j = add j 1
+end
+if ge j e
+ret false
+end
+put ks 0 add c 1
+put kn 0 sub sub j c 1
+j = add j 1
+if or ge j e ne get fb j 58
+ret false
+end
+else
+while lt j e bound 983041
+if and eq get fb j 58 or eq add j 1 e isws get fb add j 1
+break
+end
+j = add j 1
+end
+if ge j e
+ret false
+end
+put ks 0 c
+put kn 0 sub j c
+end
+j = add j 1
+while and lt j e isws get fb j bound 983041
+j = add j 1
+end
+put vs 0 j
+put vn 0 sub e j
+ret true
+end
+
+note ---- values ----
+
+note A byte that cannot start a plain scalar here: { [ & * | > !
+fn badst b uchar to bool
+if or or eq b 123 eq b 91 or eq b 38 eq b 42
+ret true
+end
+ret or or eq b 124 eq b 62 eq b 33
+end
+
+note Add the scalar s..s+n (spaces and one pair of quotes removed). False: not a plain scalar.
+fn addel s ulong n ulong to bool
+a = s
+z = add s n
+while and lt a z isws get fb a bound 983041
+a = add a 1
+end
+while gt z a bound 983041
+if not isws get fb sub z 1
+break
+end
+z = sub z 1
+end
+if eq a z
+ret false
+end
+b = get fb a
+if badst b
+ret false
+end
+q = or eq b 34 eq b 39
+if and q ge sub z a 2
+if eq get fb sub z 1 b
+a = add a 1
+z = sub z 1
+end
+end
+k = get nel 0
+if ge k len es
+ret false
+end
+put es k a
+put en k sub z a
+put nel 0 add k 1
+ret true
+end
+
+note A value on the key's line: a flow list [a, b] or one scalar. Count, or -1 when unparsed.
+fn vinl s ulong n ulong to long
+put nel 0 0
+if or speq s n k_null speq s n k_tilde
+ret 0
+end
+if ne get fb s 91
+if addel s n
+ret 1
+end
+ret -1
+end
+if ne get fb sub add s n 1 93
+ret -1
+end
+a = add s 1
+z = sub add s n 1
+p = a
+for i ulong sub z a
+c = get fb add a i
+if or eq c 91 eq c 123
+ret -1
+end
+if eq c 44
+if not addel p sub add a i p
+ret -1
+end
+p = add add a i 1
+end
+end
+if gt z p
+if not addel p sub z p
+ret -1
+end
+else
+if gt get nel 0 0
+ret -1
+end
+end
+ret long get nel 0
+end
+
+note The value below key line k: a block list (count), nothing (0), a mapping (-2) or -1.
+fn vblk k ulong to long
+put nel 0 0
+ind = get lin k
+i = add k 1
+n = get nln 0
+if ge i n
+ret 0
+end
+ci = get lin i
+if lt ci ind
+ret 0
+end
+if and eq ci ind not isli i
+ret 0
+end
+if not isli i
+ret -2
+end
+j = i
+while lt j n bound 32769
+lj = get lin j
+if lt lj ci
+break
+end
+if gt lj ci
+ret -1
+end
+if not isli j
+break
+end
+s = add get lso j 1
+e = get leo j
+if shas s sub e s t_cs
+ret -1
+end
+if not addel s sub e s
+ret -1
+end
+j = add j 1
+end
+ret long get nel 0
+end
+
+note The value of the key line k just parsed by pkey.
+fn vals k ulong to long
+if gt get vn 0 0
+ret vinl get vs 0 get vn 0
+end
+ret vblk k
+end
+
+note ---- on: ----
+
+fn evok k ulong s ulong n ulong to void
+if or speq s n k_wd speq s n k_sched
+ret
+end
+if speq s n k_push
+probt k m_pany
+ret
+end
+probs k m_trig s n
+end
+
+note branches: under push. True when it names main and nothing else.
+fn chkbr q ulong to bool
+c = vals q
+if le c 0
+probt q m_pany
+ret false
+end
+ok = true
+for i ulong ulong c
+if not eleq i k_main
+probs q m_pbr get es i get en i
+ok = false
+end
+end
+ret ok
+end
+
+fn chkpush j ulong to void
+if gt get vn 0 0
+if or speq get vs 0 get vn 0 k_null speq get vs 0 get vn 0 k_tilde
+probt j m_pany
+ret
+end
+unp j r_flow
+ret
+end
+ind = get lin j
+n = get nln 0
+i = add j 1
+if or ge i n le get lin i ind
+probt j m_pany
+ret
+end
+pi = get lin i
+br = false
+told = false
+q = i
+while and lt q n gt get lin q ind bound 32769
+if eq get lin q pi
+if not pkey q
+unp q r_key
+told = true
+else
+if keq k_br
+if chkbr q
+br = true
+end
+told = true
+else
+if or keq k_tags or keq k_tagi keq k_bri
+probs q m_pflt get ks 0 get kn 0
+told = true
+else
+if not or keq k_pth keq k_pthi
+unp q r_pkey
+told = true
+end
+end
+end
+end
+end
+q = add q 1
+end
+if and not br not told
+probt j m_pany
+end
+end
+
+fn evkey j ulong to void
+s = get ks 0
+n = get kn 0
+if speq s n k_push
+chkpush j
+ret
+end
+evok j s n
+end
+
+fn chkon k ulong to void
+if gt get vn 0 0
+c = vinl get vs 0 get vn 0
+if lt c 0
+unp k r_flow
+ret
+end
+if eq c 0
+unp k r_noev
+end
+for i ulong ulong c
+evok k get es i get en i
+end
+ret
+end
+c = vblk k
+if eq c -1
+unp k r_flow
+ret
+end
+if ge c 0
+if eq c 0
+unp k r_noev
+end
+for i ulong ulong c
+evok k get es i get en i
+end
+ret
+end
+ci = get lin add k 1
+n = get nln 0
+j = add k 1
+while and lt j n ge get lin j ci bound 32769
+if eq get lin j ci
+if pkey j
+evkey j
+else
+unp j r_key
+end
+end
+j = add j 1
+end
+end
+
+note ---- jobs: ----
+
+fn hlat s ulong n ulong p ulong to bool
+for i ulong n
+if ne get fb add s i get k_hl add p i
+ret false
+end
+end
+ret true
+end
+
+note Is es[i] exactly one of the space-separated labels in k_hl?
+fn hostlb i ulong to bool
+s = get es i
+n = get en i
+m = len k_hl
+if ge add n 2 m
+ret false
+end
+for p ulong sub m add n 1
+e = add add p n 1
+if and eq get k_hl p 32 eq get k_hl e 32
+if hlat s n add p 1
+ret true
+end
+end
+end
+ret false
+end
+
+note runs-on of key line q (just parsed): 1 self-hosted, 0 hosted, 2 no label.
+fn runsr q ulong to ulong
+if shas get vs 0 get vn 0 k_expr
+ret 1
+end
+c = vals q
+if lt c 0
+ret 1
+end
+if eq c 0
+ret 2
+end
+if gt c 1
+ret 1
+end
+for i ulong ulong c
+if not hostlb i
+ret 1
+end
+end
+ret 0
+end
+
+note One direct key line q of job x (just parsed). True for runs-on and uses.
+fn jkey x ulong q ulong to bool
+if keq k_runs
+r = runsr q
+if eq r 2
+unp q r_runs
+end
+put jsh x r
+ret true
+end
+if keq k_uses
+if not spre get vs 0 get vn 0 k_dot
+put jsh x 1
+end
+ret true
+end
+if keq k_needs
+jneeds x q
+end
+ret false
+end
+
+note Analyse job x: its direct keys are the lines at the first indent below its key line.
+fn jobana x ulong to void
+k = get jln x
+ind = get lin k
+n = get nln 0
+q = add k 1
+put jsh x 0
+put jng x 0
+put jev x 0
+if or ge q n le get lin q ind
+unp k r_nrun
+ret
+end
+ji = get lin q
+seen = false
+last = q
+while and lt q n gt get lin q ind bound 32769
+last = q
+if eq get lin q ji
+if pkey q
+if jkey x q
+seen = true
+end
+end
+end
+q = add q 1
+end
+s = get lrs k
+if shas s sub get lre last s k_evn
+put jev x 1
+end
+if not seen
+unp k r_nrun
+end
+end
+
+fn jneeds x ulong q ulong to void
+c = vals q
+if lt c 0
+unp q r_needs
+ret
+end
+for i ulong ulong c
+if eleq i k_guard
+put jng x 1
+end
+end
+end
+
+fn addjobs k ulong to void
+put njob 0 0
+n = get nln 0
+i = add k 1
+if or ge i n eq get lin i 0
+unp k r_jobs
+ret
+end
+ji = get lin i
+j = i
+while and lt j n gt get lin j 0 bound 32769
+if eq get lin j ji
+if pkey j
+m = get njob 0
+if lt m len jln
+put jln m j
+put njob 0 add m 1
+end
+else
+unp j r_key
+end
+end
+j = add j 1
+end
+end
+
+note Is job x the event-guard job?
+fn isgrd x ulong to bool
+ok = pkey get jln x
+ret and ok keq k_guard
+end
+
+note ---- one workflow ----
+
+fn chkwf to void
+if not lines
+put ferr 0 1
+pr t_ferr
+prp
+pr t_big
+pr t_nl
+ret
+end
+put nfile 0 add get nfile 0 1
+put njob 0 0
+onl = ulong 999999
+jbl = ulong 999999
+n = get nln 0
+for k ulong n
+if and eq get lin k 0 pkey k
+if or keq k_on keq k_true
+if ne onl 999999
+unp k r_dup
+end
+onl = k
+end
+if keq k_jobs
+if ne jbl 999999
+unp k r_dup
+end
+jbl = k
+end
+end
+end
+if ne jbl 999999
+addjobs jbl
+end
+m = get njob 0
+any = false
+for x ulong m
+jobana x
+if eq get jsh x 1
+any = true
+end
+end
+if not any
+pr t_host
+prp
+pr t_nl
+ret
+end
+put nself 0 add get nself 0 1
+pr t_self
+prp
+pr t_nl
+if eq onl 999999
+unp 0 r_on
+else
+ok = pkey onl
+chkon onl
+end
+chkgrd jbl
+end
+
+fn chkgrd jbl ulong to void
+m = get njob 0
+g = ulong 999999
+for x ulong m
+if isgrd x
+g = x
+end
+end
+if eq g 999999
+probt jbl m_nog
+else
+if ne get jsh g 0
+probt get jln g m_gsh
+end
+if eq get jev g 0
+probt get jln g m_gev
+end
+end
+for x ulong m
+if and eq get jsh x 1 eq get jng x 0
+if not isgrd x
+probs get jln x m_need get ks 0 get kn 0
+end
+end
+end
+end
+
+fn dofile to void
+r = rdfb
+if lt r 0
+put ferr 0 1
+pr t_ferr
+prp
+pr t_big
+pr t_nl
+ret
+end
+chkwf
+end
+
+note ---- paths ----
+
+fn dbu16 o ulong to ulong
+ret or ulong get db o shl ulong get db add o 1 8
+end
+
+fn dname o ulong to ulong
+k = ulong 0
+while lt add o k len db bound 300
+if eq get db add o k 0
+ret k
+end
+k = add k 1
+end
+ret k
+end
+
+note Does the entry name db[o..o+n) end in t?
+fn dsuf o ulong n ulong t view uchar * to bool
+if le n len t
+ret false
+end
+b = sub add o n len t
+for i ulong len t
+if ne get db add b i get t i
+ret false
+end
+end
+ret true
+end
+
+note pb = dp + "/" + db[o..o+n); false when it does not fit.
+fn dpath o ulong n ulong to bool
+d = get dpn 0
+if ge add add d n 1 len pb
+ret false
+end
+for i ulong d
+put pb i get dp i
+end
+put pb d 47
+for i ulong n
+put pb add add d 1 i get db add o i
+end
+put pbn 0 add add d 1 n
+ret true
+end
+
+fn dodir to void
+fd = fopen dp 0 get dpn 0 540672 0
+if lt fd 0
+put ferr 0 1
+ret
+end
+while true bound 100000
+n = getdnts int fd db 0 len db
+if le n 0
+break
+end
+o = ulong 0
+while lt o ulong n bound 32768
+rl = dbu16 add o 16
+nl = dname add o 19
+if and gt nl 0 ne get db add o 19 46
+if or dsuf add o 19 nl k_yml dsuf add o 19 nl k_yaml
+if dpath add o 19 nl
+dofile
+else
+put ferr 0 1
+end
+end
+end
+if eq rl 0
+break
+end
+o = add o rl
+end
+end
+c = fclose int fd
+end
+
+fn doarg i ulong to void
+n = argread i pb 0 len pb
+if le n 0
+put ferr 0 1
+ret
+end
+put pbn 0 ulong n
+r = stat pb 0 ulong n sb 0 128
+if ne r 0
+put ferr 0 1
+pr t_ferr
+prp
+pr t_big
+pr t_nl
+ret
+end
+mode = or ulong get sb 16 shl ulong get sb 17 8
+if eq and mode 61440 16384
+for j ulong ulong n
+put dp j get pb j
+end
+put dpn 0 ulong n
+dodir
+ret
+end
+dofile
+end
+
+fn main to int
+c = argcnt
+if lt c 2
+pr t_usage
+ret 2
+end
+for i ulong sub ulong c 1
+doarg add i 1
+end
+if ne get ferr 0 0
+ret 4
+end
+if eq get nfile 0 0
+pr t_none
+ret 1
+end
+if gt get prob 0 0
+pr t_fail
+prn get prob 0
+pr t_nl
+ret 1
+end
+pr t_pass
+prn get nfile 0
+pr t_shc
+prn get nself 0
+pr t_nl
+ret 0
+end
