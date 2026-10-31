@@ -107,10 +107,15 @@ for f in install.sh build.sh tests/run.sh tests/fake-root.sh tests/container.sh 
 OMC=/path/to/omc DIST=OUT/dist STAGE=OUT/stage sh installer/tests/run.sh
 sh installer/tests/host-untouched.sh
 DIST=OUT/dist sh installer/tests/container.sh RECEIPT_DIR    # needs docker
+bash installer/tests/verify-path.sh                          # no secret: generates a test key
 ./index-gen check                                            # offline index check
 ```
 
 `installer/tests/run.sh` needs the signed build output, so it needs the release seed.
+`installer/tests/verify-path.sh` needs no secret: it runs `installer/install.sh` with only the key
+constant swapped for a key generated in the run, against a test release and its negative controls
+(bad signature, tampered bundle, tampered file inside the bundle, unsafe path, missing signature).
+`.github/workflows/installer-verify-path.yml` runs it on every pull request.
 
 `.github/workflows/learn.yml` is the check for `docs/learn` and `docs/academy`. The Python is in
 that workflow. It fails if a `.sh`, `.bash`, `.py`, `.js` or `.mjs` file, a shebang, `#include`,
