@@ -22,7 +22,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Shell syntax
-        run: for f in install.sh build.sh tests/run.sh tests/lend.sh tests/fake-root.sh tests/container.sh tests/host-untouched.sh tests/report.sh tools/sign.sh tools/release.sh; do sh -n "installer/$f"; done
+        run: for f in install.sh build.sh tests/run.sh tests/lend.sh tests/token.sh tests/fake-root.sh tests/container.sh tests/host-untouched.sh tests/report.sh tools/sign.sh tools/release.sh; do sh -n "installer/$f"; done
       - name: Pinned omega-mv
         run: |
           git clone --filter=blob:none https://github.com/aien-dev/omega-mv.git "$RUNNER_TEMP/omega"

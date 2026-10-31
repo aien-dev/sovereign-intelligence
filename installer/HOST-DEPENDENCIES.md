@@ -28,7 +28,7 @@ needs a first download, so a few lines of `sh` stay as the entry point either wa
 
 ## The wizard (`bin/aienos`, Omega)
 
-The wizard is Omega. It calls three host programs through `fork` and `execprog`, each recorded
+The wizard is Omega. It calls four host programs through `fork` and `execprog`, each recorded
 here because Omega lacks a word for the job today.
 
 | Program | Version seen | Used for | Omega replacement |
@@ -36,6 +36,7 @@ here because Omega lacks a word for the job today.
 | `curl` | 8.5.0 | downloads the model files from Hugging Face over HTTPS (with resume) | an HTTPS client unit in Omega; the SHA-256 check of every file is already Omega |
 | `stty size` | coreutils 9.4 | reads the terminal size | a `ttysize` host word (Linux `TIOCGWINSZ`); `devctl` only allows FIONREAD and NVRM requests today |
 | `df -B1 --output=avail` | coreutils 9.4 | free space in the home folder (wizard, `doctor`, and `system.txt` of `doctor --report`) | a `fsstat` host word (Linux `statfs`) |
+| `sh` (dash) | 0.5.12 | starts the engine through `sh -c 'IFS= read -r AIEN_SERVE_HTTP_BEARER_TOKEN < "$0" && export AIEN_SERVE_HTTP_BEARER_TOKEN && exec "$@"' ~/.local/share/aienos/auth/bearer-token aien-serve-http ...`, which puts the per-install token into the engine's environment (argv carries the file's path, never the token; `exec` keeps the PID) | an `execprog` form that passes chosen environment entries (the word the proxy note below also needs) |
 
 Notes:
 

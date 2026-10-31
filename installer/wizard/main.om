@@ -46,6 +46,7 @@ text p_l6 "/engine.log   the engine's log, when it runs"
 text p_l7 "Not touched: NVIDIA's driver, the CUDA toolkit, libcuda, cuBLAS, /usr, /etc. No sudo."
 text p_l8 "Undo everything at any time:  aienos uninstall"
 text p_l9 "   the model: "
+text p_l10 "/auth/bearer-token   the engine's private access token"
 text p_ok "Press Enter for the last question"
 text c_l1 "Type yes to begin. Anything else stops here, and nothing changes."
 text c_q "yes or no"
@@ -435,6 +436,11 @@ plbase
 pc 2
 pl p_l6
 pln
+pc 6
+plbase
+pc 2
+pl p_l10
+pln
 pl p_l5
 pln
 pln
@@ -584,6 +590,7 @@ ret 2
 end
 p = estart
 if lt p 0
+tkcli
 ret 1
 end
 emit n_start

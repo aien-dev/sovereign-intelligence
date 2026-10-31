@@ -242,5 +242,8 @@ sh "$here/lend.sh" "$S/lend"; verdict lend-suite $?
 # ---- D: aienos doctor --report on a fake prefix (tests/report.sh) ----
 env AIENOS="$STAGE/bin/aienos" sh "$here/report.sh" "$S/report"; verdict report-suite $?
 
+# ---- E: the per-install bearer token (tests/token.sh; CORE_ENGINE optional) ----
+sh "$here/token.sh" "$S/token"; verdict token-suite $?
+
 printf 'AIENOS-TESTS pass=%s fail=%s scratch=%s\n' "$pass" "$fail" "$S"
 [ "$fail" -eq 0 ]
