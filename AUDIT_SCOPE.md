@@ -117,8 +117,9 @@ constant swapped for a key generated in the run, against a test release and its 
 (bad signature, tampered bundle, tampered file inside the bundle, unsafe path, missing signature).
 `.github/workflows/installer-verify-path.yml` runs it on every pull request. Besides the tools
 `install.sh` itself calls, the test uses host `openssl` (test key, signature, a throwaway TLS
-certificate and `s_server -HTTP` as the https://127.0.0.1 server), GNU `tar` (`-P --transform` for
-the bundle with a `../` member), `sha256sum`, `awk` (the key swap and the mutants), `od` and `dd`
+certificate and `s_server -HTTP` as the https://127.0.0.1 server), GNU `tar` (`--transform` names
+the `../escape.txt` member of the unsafe-path bundle; `-P` is redundant on GNU tar 1.35, and the
+test exits 2 if the member is missing), `sha256sum`, `awk` (the key swap and the mutants), `od` and `dd`
 (the one-byte flip) and `curl` (waiting for the server). No Python (DRA-38). They are test-only
 and not in the install path.
 
