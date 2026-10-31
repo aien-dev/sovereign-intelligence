@@ -35,7 +35,21 @@ RELEASE_PUB_PEM='-----BEGIN PUBLIC KEY-----
 MCowBQYDK2VwAyEA/5SVBLQnaAA51TwzyFxEhUa1fVkOsezuO7LtbC6q9Uo=
 -----END PUBLIC KEY-----'
 
-say() { printf '%s\n' "$*"; }
+# Progress lines go to the terminal and, once the AienOS folder exists, are appended to
+# ~/.local/share/aienos/install.log, the log "aienos doctor --report" collects. Only say() lines
+# are logged: no prompt, answer, key or chat content passes through say(). Lines said before the
+# folder exists are held in $said and written when it is made, so a refused install leaves no file.
+log=
+said=
+say() {
+    printf '%s\n' "$*"
+    if [ -n "$log" ]; then
+        printf '%s\n' "$*" >> "$log" 2>/dev/null || true
+    else
+        said="$said$*
+"
+    fi
+}
 not_here() {
     say "$1"
     say "This alpha runs on Linux arm64 with an NVIDIA GB10 (DGX Spark) only."
@@ -100,6 +114,8 @@ say "Signature and SHA-256 match (release key $RELEASE_PUB_HEX)."
 
 # 4. Unpack into a staging folder, check every file again, then move it into place.
 mkdir -p "$base/releases"
+log=$base/install.log
+{ printf '=== install.sh %s %s\n' "$TAG" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"; printf '%s' "$said"; } >> "$log" 2>/dev/null || true
 if tar -tzf "$tmp/$BUNDLE" | grep -Eq '^/|(^|/)\.\.(/|$)'; then
     say "The bundle contains an unsafe path. Nothing was installed."
     exit 1

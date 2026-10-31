@@ -18,7 +18,7 @@ the machine, so it has to be something every DGX Spark can already run: POSIX `s
 | `openssl` | 3.0.13 | checks the Ed25519 signature of SHA256SUMS (`pkeyutl -verify -rawin`) |
 | `sha256sum` | coreutils 9.4 | checks the bundle against the signed SHA256SUMS, then every file inside it |
 | `tar`, `gzip` | 1.35, 1.12 | unpacks the bundle (after the checks) |
-| `mktemp`, `ln`, `mv`, `cp`, `sed`, `awk`, `cat` | coreutils 9.4, sed 4.9, gawk 5.2.1 | staging, links, the launcher template |
+| `mktemp`, `ln`, `mv`, `cp`, `sed`, `awk`, `cat`, `date` | coreutils 9.4, sed 4.9, gawk 5.2.1 | staging, links, the launcher template; `date -u` stamps the `===` header line of `~/.local/share/aienos/install.log` (the progress lines `doctor --report` collects) |
 | `xdg-user-dir`, `gio` | xdg-user-dirs, 2.80.0 | optional: finds the desktop folder and marks the icon trusted |
 
 Omega replacement path: a static Omega program, `aienos-get`, doing the same steps with the
@@ -35,7 +35,7 @@ here because Omega lacks a word for the job today.
 |---|---|---|---|
 | `curl` | 8.5.0 | downloads the model files from Hugging Face over HTTPS (with resume) | an HTTPS client unit in Omega; the SHA-256 check of every file is already Omega |
 | `stty size` | coreutils 9.4 | reads the terminal size | a `ttysize` host word (Linux `TIOCGWINSZ`); `devctl` only allows FIONREAD and NVRM requests today |
-| `df -B1 --output=avail` | coreutils 9.4 | free space in the home folder | a `fsstat` host word (Linux `statfs`) |
+| `df -B1 --output=avail` | coreutils 9.4 | free space in the home folder (wizard, `doctor`, and `system.txt` of `doctor --report`) | a `fsstat` host word (Linux `statfs`) |
 
 Notes:
 
