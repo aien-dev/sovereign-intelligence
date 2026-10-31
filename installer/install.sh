@@ -84,7 +84,9 @@ done
 
 base=$HOME/.local/share/aienos
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/aienos-install.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+stage=
+# A staging folder left by an error or Ctrl+C goes too (a power cut leaves it; the next run removes it).
+trap 'rm -rf "$tmp" ${stage:+"$stage"}' EXIT HUP INT TERM
 
 fetch() {
     curl -fsSL --retry 3 --proto '=https,http' -o "$tmp/$1" "$BASE_URL/$1" \
@@ -123,7 +125,11 @@ fi
 stage=$base/releases/.$TAG.new
 rm -rf "$stage"
 mkdir -p "$stage"
-tar -xzf "$tmp/$BUNDLE" -C "$stage" --no-same-owner --no-same-permissions
+if ! tar -xzf "$tmp/$BUNDLE" -C "$stage" --no-same-owner --no-same-permissions; then
+    rm -rf "$stage"
+    say "Could not unpack the bundle into $base (is the disk full?). Nothing was installed."
+    exit 2
+fi
 if ! (cd "$stage" && sha256sum --quiet -c SHA256SUMS >/dev/null 2>&1); then
     rm -rf "$stage"
     say "A file inside the bundle does not match its SHA-256. Nothing was installed."
@@ -148,37 +154,37 @@ cp "$tmp/SHA256SUMS.sig" "$dest/release.SHA256SUMS.sig"
 ln -sfn "releases/$TAG" "$base/current.new"
 mv -T "$base/current.new" "$base/current"
 
-# 5. The command, the menu entry, the desktop icon. Every path written is listed in
-#    installed-files so "aienos uninstall" removes exactly these.
+# 5. The command, the menu entry, the desktop icon. Every path is listed in installed-files.new
+#    before it is written, so "aienos uninstall" removes exactly these even after an interrupted run.
 list=$base/installed-files
 : > "$list.new"
 mkdir -p "$HOME/.local/bin" "$HOME/.local/share/applications" \
     "$HOME/.local/share/icons/hicolor/scalable/apps"
-ln -sfn "$base/current/bin/aienos" "$HOME/.local/bin/aienos"
 printf '%s\n' "$HOME/.local/bin/aienos" >> "$list.new"
+ln -sfn "$base/current/bin/aienos" "$HOME/.local/bin/aienos"
 icon=$HOME/.local/share/icons/hicolor/scalable/apps/aienos.svg
-cp "$base/current/share/aienos/aienos.svg" "$icon"
 printf '%s\n' "$icon" >> "$list.new"
+cp "$base/current/share/aienos/aienos.svg" "$icon"
 # The launcher template ships in the bundle; only its two paths are filled in here.
 entry() {
     sed -e "s|@AIENOS@|$base/current/bin/aienos|g" -e "s|@ICON@|$icon|g" \
         "$base/current/share/aienos/aienos.desktop.in"
 }
 menu=$HOME/.local/share/applications/aienos.desktop
-entry > "$menu"
 printf '%s\n' "$menu" >> "$list.new"
+entry > "$menu"
 desk=
 if command -v xdg-user-dir >/dev/null 2>&1; then
     desk=$(xdg-user-dir DESKTOP 2>/dev/null || true)
 fi
 [ -n "$desk" ] || desk=$HOME/Desktop
 if [ "$desk" != "$HOME" ] && [ -d "$desk" ]; then
+    printf '%s\n' "$desk/aienos.desktop" >> "$list.new"
     entry > "$desk/aienos.desktop"
     chmod 755 "$desk/aienos.desktop"
     if command -v gio >/dev/null 2>&1; then
         gio set "$desk/aienos.desktop" metadata::trusted true >/dev/null 2>&1 || true
     fi
-    printf '%s\n' "$desk/aienos.desktop" >> "$list.new"
 fi
 mv "$list.new" "$list"
 

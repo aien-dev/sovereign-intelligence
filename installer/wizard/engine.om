@@ -38,6 +38,8 @@ text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
 text f_load1 "Starting the engine (Core ship/motor-l387 59b05a71) and loading the 35B onto the GB10."
 text f_load2 "The first load reads about 37.5 GB, so it can take a few minutes."
 text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
+text e_busy1 "The engine's port 127.0.0.1:18100 is used by another program."
+text e_busy2 "AienOS does not talk to it. Stop that program, then run aienos again."
 text f_q "Say hello in one short sentence, and tell me what you are."
 text f_you "you    "
 text f_ai "model  "
@@ -55,6 +57,7 @@ text d_l5 "  aienos source      where my .om source lives"
 text d_l6 "  aienos uninstall   remove everything AienOS put on this machine"
 text d_l7 "OpenAI-style API:    http://127.0.0.1:18100/v1/chat/completions"
 text u_list "/installed-files"
+text u_listn "/installed-files.new"
 text u_sure "This removes AienOS from this machine. Type yes to remove it"
 text u_keep "--keep-model"
 text u_yes "--yes"
@@ -175,6 +178,19 @@ fn epid to ulong
 pbase
 pstr e_pid
 ret pidget e_name
+end
+
+note Is PORT taken by a program that is not this release's engine (no live engine.pid)?
+fn ptaken to bool
+if ne epid 0
+ret false
+end
+fd = tcp PORT
+if lt fd 0
+ret false
+end
+c = fclose int fd
+ret true
 end
 
 note The pid in the file named by pb when /proc/PID/exe still ends in nm, else 0.
@@ -305,6 +321,17 @@ r = ask
 ret true
 end
 if not alive PORT
+if ptaken
+pclear
+pc 4
+pl e_busy1
+pc 2
+pl e_busy2
+prompt t_close
+show
+r = ask
+ret false
+end
 pl f_load1
 pln
 pl f_load2
@@ -464,10 +491,19 @@ end
 ret true
 end
 
-note Unlink every path in installed-files that lies inside the home folder.
+note Unlink every path in installed-files, and in installed-files.new that an interrupted install
+note left behind, that lies inside the home folder.
 fn ulist to void
 pbase
 pstr u_list
+ulfile
+pbase
+pstr u_listn
+ulfile
+end
+
+note Unlink every path listed in the file named by pb that lies inside the home folder.
+fn ulfile to void
 n = mload
 if lt n 0
 ret
