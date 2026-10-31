@@ -1,0 +1,48 @@
+  ok   good: install.sh killed (exit 137)
+  ok   good: the killed run left tmp/aienos-install.6yBBu5 with its dead pid
+      tmp: total 28
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 07:11 aienos-fp.1
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.badpid
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 07:11 aienos-installer.1
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.live
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.other
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.young
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 07:11 x-aienos-install.1
+      rm -rf SCRATCH/noL/s/tmp/aienos-install.6yBBu5
+      rm -rf SCRATCH/noL/s/tmp/aienos-install.link
+      rm -rf SCRATCH/noL/s/tmp/aienos-install.old
+      rm -rf SCRATCH/noL/s/home-good/.local/share/aienos/releases/.alpha-20261029.1.new
+      rm -rf SCRATCH/noL/s/home-good/.local/share/aienos/releases/alpha-20261029.1.old
+      rm -rf SCRATCH/noL/s/tmp/aienos-install.fbV5hM SCRATCH/noL/s/home-good/.local/share/aienos/releases/.alpha-20261029.1.new
+  ok   good: re-run exit 0 (got 0)
+  ok   good: re-run gives a complete verified install
+  ok   good: the killed run's folder tmp/aienos-install.6yBBu5 is gone
+  ok   good: the pid-less folder two hours old is gone
+  ok   good: a live run's folder is kept
+  ok   good: a pid-less folder younger than 60 min is kept
+  ok   good: a folder whose pid is not a number (and young) is kept
+  BAD  good: the planted symlink and its target's files are kept
+  ok   good: folders outside the aienos-install.* prefix are kept
+  ok   good: another user's folder is kept (never passed to rm)
+-rf SCRATCH/noL/s/tmp/aienos-install.link
+  BAD  good: rm never named a path that must stay
+  ok   good: rm removed the killed run's folder by name
+  BAD  good: no temp folder of the re-run itself left
+  ok   nocl: install.sh killed (exit 137)
+  ok   nocl: the killed run left tmp/aienos-install.1rvJyE with its dead pid
+      tmp: total 40
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 07:11 aienos-fp.1
+      tmp: drwx------ 2 USER USER 4096 Oct 31 09:11 aienos-install.1rvJyE
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.badpid
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 07:11 aienos-installer.1
+      tmp: lrwxrwxrwx 1 USER USER   77 Oct 31 09:11 aienos-install.link -> SCRATCH/noL/s/victim-nocl
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.live
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 07:11 aienos-install.old
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.other
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 09:11 aienos-install.young
+      tmp: drwxrwxr-x 2 USER USER 4096 Oct 31 07:11 x-aienos-install.1
+      rm -rf SCRATCH/noL/s/home-nocl/.local/share/aienos/releases/.alpha-20261029.1.new
+      rm -rf SCRATCH/noL/s/home-nocl/.local/share/aienos/releases/alpha-20261029.1.old
+      rm -rf SCRATCH/noL/s/tmp/aienos-install.MBvgwE SCRATCH/noL/s/home-nocl/.local/share/aienos/releases/.alpha-20261029.1.new
+  ok   negative control (install.sh without the cleanup keeps tmp/aienos-install.1rvJyE): opposite
+RESULT stale-tmp FAIL EXERCISED(host) cases=kill-rerun,live,young,badpid,old,symlink,other-user,other-prefix control=opposite spark=NOT_RUN bad=3 scratch=SCRATCH/noL/s
