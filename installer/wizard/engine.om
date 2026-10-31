@@ -1,5 +1,5 @@
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-note engine.om: start, watch and stop the engine (aien-serve-http, Core ship/motor-l387, engine omega) on
+note engine.om: start, watch and stop the engine (aien-serve-http, Core main d3dec0eb, engine omega) on
 note 127.0.0.1, check from /proc that it loaded no CUDA library, the first-chat screen, the done
 note screen, the uninstaller and the rollback.
 
@@ -32,7 +32,7 @@ text f_skip1 "I am not starting the engine now: "
 text f_mem "another model is using this GB10's memory."
 text f_lock "another process holds the GB10 lock."
 text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
-text f_load1 "Starting the engine (Core ship/motor-l387 59b05a71) and loading the 35B onto the GB10."
+text f_load1 "Starting the engine (Core main d3dec0eb) and loading the 35B onto the GB10."
 text f_load2 "The first load reads about 37.5 GB, so it can take a few minutes."
 text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
 text f_q "Say hello in one short sentence, and tell me what you are."

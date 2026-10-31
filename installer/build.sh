@@ -6,10 +6,12 @@
 #
 # OMEGA_SRC  a clone of aien-dev/omega-mv at OMEGA_REV: its seed/out/omc compiles the wizard
 #            and its om/sha256/sha256-om2.om is the source wizard/sha256.om is derived from.
-# ENGINE     aien-serve-http built from aien-dev/aien-sovereign-core-mv at CORE_REV (branch
-#            ship/motor-l387) linking omega ship/motor-l387 libomega_gpu.a sha256 110295ef: the
-#            live 35B server's build. Its bytes are pinned as ENGINE_SHA256 (this build has no
-#            --version; its usage line from --help goes into VERSION).
+# ENGINE     aien-serve-http built from aien-dev/aien-sovereign-core-mv main at CORE_REV with Core's
+#            path-independent container recipe (DRA-43, core#859):
+#              CORE_REV=<CORE_REV> scripts/repro-container-build.sh /abs/new/dir
+#            which links libomega_gpu.a from omega-mv a647b6a9 (Core's omega.lock at CORE_REV),
+#            sha256 036b7491. Its bytes are pinned as ENGINE_SHA256; its --help usage line and its
+#            --version build identity go into VERSION.
 # OUT        output folder: OUT/stage (the bundle tree) and OUT/dist (the release assets).
 #
 # Optional, the Open Humanity lending program (aienos lend):
@@ -28,8 +30,8 @@ cd "$(dirname "$0")"
 TAG=alpha-20261029.1
 OMEGA_REV=bf54b19fa590e8ae925c0e80815516dbf41e7326
 OMC_PIN=62775d2a391cfef7cde64e387655caa9809a267093112910ec76bfa568f3712b
-CORE_REV=59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3
-ENGINE_SHA256=19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb
+CORE_REV=d3dec0eb18818808212bdf99db5c8612bcfcb9ef
+ENGINE_SHA256=6fb04197c272aa1d0235e7644b6e91953ff9b90f5145b250d674ff9fe41806e9
 OH_REV=c048464950ed40baf0d98c7bcb9e1e860aa69b87
 OH_COORDINATOR=https://www.aienos.com/oh/v1/volunteer
 ORDER="sha256.om lib.om hole.om doctor.om net.om steps.om engine.om lend.om main.om"
@@ -87,6 +89,9 @@ have=$(sha256sum "$engine" | cut -d' ' -f1)
 [ "$have" = "$ENGINE_SHA256" ] || fail 7 "$engine sha256 $have, want $ENGINE_SHA256"
 grep -aq "$CORE_REV" "$engine" || fail 7 "$engine does not embed Core commit $CORE_REV"
 "$engine" --help > "$work/engine.usage" 2>&1 || true
+"$engine" --version > "$work/engine.version" 2>&1 || fail 7 "$engine has no --version"
+grep -qx "sovereign-core commit: $CORE_REV (dirty 0)" "$work/engine.version" \
+    || fail 7 "$engine --version does not name clean Core commit $CORE_REV"
 grep -q -- "--batch-slots N" "$work/engine.usage" || fail 7 "$engine has no --batch-slots"
 readelf -d "$engine" | awk '/NEEDED/ { print $NF }' | tr -d '[]' > "$work/engine.needed"
 if grep -Eiq 'cuda|cublas|nvidia|nvrtc' "$work/engine.needed"; then
@@ -120,10 +125,11 @@ install -m 644 bundle/README.txt "$stage/README.txt"
         "$(sha256sum "$work/aienos.1" | cut -d' ' -f1)" "$(sha256sum "$work/aienos.om" | cut -d' ' -f1)"
     printf 'compiler: aien-dev/omega-mv %s seed/out/omc sha256 %s\n' "$OMEGA_REV" "$OMC_PIN"
     printf 'engine: bin/aien-serve-http sha256 %s\n' "$(sha256sum "$engine" | cut -d' ' -f1)"
-    printf 'engine source: aien-dev/aien-sovereign-core-mv %s (branch ship/motor-l387)\n' "$CORE_REV"
-    printf 'engine GPU library: omega ship/motor-l387 6de999da libomega_gpu.a sha256 110295ef23dc7561eea371636347c005835f37b82c22f92401aa8a887a3ca990\n'
+    printf 'engine source: aien-dev/aien-sovereign-core-mv %s (main, core scripts/repro-container-build.sh)\n' "$CORE_REV"
+    printf 'engine GPU library: omega-mv a647b6a9821fffcf52ba9ce813f75afa4b84be62 libomega_gpu.a sha256 036b7491d85a2d0781360c194402f345ad2f63720dab1b8f6d0cbc5c09f87d3e\n'
     printf 'engine NEEDED: %s\n' "$(tr '\n' ' ' < "$work/engine.needed")"
     sed 's/^/engine --help: /' "$work/engine.usage"
+    sed 's/^/engine --version: /' "$work/engine.version"
     if [ -n "$vol" ]; then
         printf 'lending: bin/oh-infer-volunteer sha256 %s, from aien-dev/open-humanity %s (main, open-humanity#51)\n' \
             "$(sha256sum "$vol" | cut -d' ' -f1)" "$OH_REV"
