@@ -1,0 +1,1180 @@
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note stock.om: post-reset check for the SI Alpha test DGX Spark (DRA-44). Read-only: it opens files
+note and directories for reading only and never writes, creates, renames or removes anything.
+note   stock [ROOT]   ROOT is the tree to check; without it $SI_STOCK_ROOT, and without that /.
+note Every Sovereign Intelligence leftover and every missing stock item is one line
+note   DEVIATION <kind> <detail>
+note then STOCK PASS homes=N, or STOCK FAIL deviations=N. installer/rig/RESET-TO-STOCK.md lists
+note what each kind means and where the installer creates it.
+note Kinds: user, si-file, hf-model, si-clone, unit, port, process, package, driver, stock-file,
+note unchecked (a file the check needs could not be read, so the tree is not shown to be stock).
+note Exit 0 stock; 1 a deviation; 2 usage; 4 ROOT is not a readable directory. A trap (exit 100+N,
+note e.g. a path over 4095 bytes) is never a pass.
+om2
+
+const P1 ulong 18100
+const P2 ulong 18091
+const P3 ulong 18300
+
+note Root prefix (trailing slashes removed, so / is empty), path builder, current home.
+global rt uchar 4096
+global rtn ulong 1
+global pb uchar 4096
+global pbn ulong 1
+global hb uchar 4096
+global hbn ulong 1
+global eb uchar 4096
+global sb uchar 128
+note Line reader over one file: buffer, unread start, data end, scan position, eof, error, fd,
+note current line start and length.
+global rb uchar 65536
+global rbs ulong 1
+global rbe ulong 1
+global rsc ulong 1
+global reof ulong 1
+global lerr ulong 1
+global rfd long 1
+global lst ulong 1
+global lnn ulong 1
+global flen ulong 1
+note Homes from etc/passwd: bytes, offsets, lengths, count; was a uid 0 line seen.
+global hbuf uchar 262144
+global hof ulong 1024
+global hln ulong 1024
+global nh ulong 1
+global hused ulong 1
+global hroot ulong 1
+note XDG_DESKTOP_DIR value; a small file (comm, driver version); dpkg stanza state.
+global xb uchar 4096
+global xbn ulong 1
+global cb uchar 256
+global cbn ulong 1
+global pk uchar 256
+global pkn ulong 1
+global pok ulong 1
+global pf ulong 16
+global ndev ulong 1
+
+text t_dev "DEVIATION "
+text t_sp " "
+text t_nl "\n"
+text t_root "STOCK ROOT "
+text t_slash "/"
+text t_pass "STOCK PASS homes="
+text t_fail "STOCK FAIL deviations="
+text t_usage "usage: stock [ROOT]   (ROOT defaults to $SI_STOCK_ROOT, then /)\n"
+text t_rerr "STOCK ERROR root is not a readable directory: "
+text t_unrd " unreadable"
+text t_miss " missing"
+text t_pid " pid="
+text t_exp " expected "
+text t_nopw "/etc/passwd has no uid 0 entry"
+text t_many "more homes than the check holds (1024 homes, 262144 bytes)"
+text k_env "SI_STOCK_ROOT="
+text k_pw "/etc/passwd"
+text k_dgx "/etc/dgx-release"
+text k_dpkg "/var/lib/dpkg/status"
+text k_drvf "/sys/module/nvidia/version"
+text k_drv "580.173.02"
+text k_proc "/proc"
+text k_tcp "/proc/net/tcp"
+text k_tcp6 "/proc/net/tcp6"
+text k_comm "/comm"
+text k_aien "aien"
+text k_flint "flint"
+text k_ohinf "oh-infer"
+text k_p1 "aien-serve-http"
+text k_p2 "oh-infer-volunt"
+text k_p3 "aienos"
+text k_pkgs "curl openssl coreutils tar gzip sed xdg-user-dirs"
+text k_pkg "Package: "
+text k_stat "Status: "
+text k_inst "Status: install ok installed"
+text k_xdg "XDG_DESKTOP_DIR=\""
+text k_hvar "$HOME"
+text k_dsk "/Desktop"
+text k_dent "/aienos.desktop"
+text k_udirs ".config/user-dirs.dirs"
+text h1 ".local/share/aienos"
+text h2 ".local/bin/aienos"
+text h3 ".local/share/applications/aienos.desktop"
+text h4 ".local/share/icons/hicolor/scalable/apps/aienos.svg"
+text h5 "Desktop/aienos.desktop"
+text h6 ".cache/huggingface/hub/models--Qwen--Qwen3.6-35B-A3B-FP8"
+text h7 "sovereign-intelligence"
+text h8 ".config/systemd/user"
+text sd1 "/etc/systemd/system"
+text sd2 "/etc/systemd/user"
+text sd3 "/run/systemd/system"
+text sd4 "/run/systemd/transient"
+text sd5 "/usr/lib/systemd/system"
+text sd6 "/usr/lib/systemd/user"
+text sd7 "/usr/local/lib/systemd/system"
+text sd8 "/usr/local/lib/systemd/user"
+text d_user "user"
+text d_file "si-file"
+text d_model "hf-model"
+text d_clone "si-clone"
+text d_unit "unit"
+text d_port "port"
+text d_proc "process"
+text d_pkg "package"
+text d_drv "driver"
+text d_stock "stock-file"
+text d_unchk "unchecked"
+
+note ---- output on stdout ----
+
+fn pr t view uchar * to void
+w = write 1 t 0 len t
+end
+
+fn prnl to void
+pr t_nl
+end
+
+fn prn v ulong to void
+d = new uchar 20 0
+o = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+put o i get d sub sub k 1 i
+end
+w = write 1 o 0 k
+end
+
+note The path in pb as the checked system sees it (without the root prefix).
+fn prt to void
+w = write 1 pb get rtn 0 sub get pbn 0 get rtn 0
+end
+
+fn prrb s ulong n ulong to void
+w = write 1 rb s n
+end
+
+fn deviate t view uchar * to void
+put ndev 0 add get ndev 0 1
+pr t_dev
+pr t
+pr t_sp
+end
+
+note DEVIATION unchecked <path in pb> unreadable
+fn unchk to void
+deviate d_unchk
+prt
+pr t_unrd
+prnl
+end
+
+note ---- path builder pb (a path over 4095 bytes traps 3: never a pass) ----
+
+fn pclr to void
+put pbn 0 0
+end
+
+fn pbyte c uchar to void
+put pb get pbn 0 c
+put pbn 0 add get pbn 0 1
+end
+
+fn pstr t view uchar * to void
+for i ulong len t
+pbyte get t i
+end
+end
+
+fn proot to void
+for i ulong get rtn 0
+pbyte get rt i
+end
+end
+
+fn phome to void
+for i ulong get hbn 0
+pbyte get hb i
+end
+end
+
+note pb = root + home + "/" + rel
+fn hpath rel view uchar * to void
+pclr
+proot
+phome
+pbyte 47
+pstr rel
+end
+
+note Does the path in pb exist (a dangling symbolic link counts)?
+fn here to bool
+r = lstat pb 0 get pbn 0 sb 0 128
+ret eq r 0
+end
+
+note ---- line reader ----
+
+fn lopen to bool
+put rbs 0 0
+put rbe 0 0
+put rsc 0 0
+put reof 0 0
+put lerr 0 0
+fd = fopen pb 0 get pbn 0 524288 0
+put rfd 0 fd
+ret ge fd 0
+end
+
+fn lclose to void
+if ge get rfd 0 0
+c = fclose int get rfd 0
+end
+put rfd 0 -1
+end
+
+note Move the unread bytes to the front and read more. False on a read error or a line longer
+note than rb (lerr set); at end of file reof is set.
+fn lfill to bool
+s = get rbs 0
+e = get rbe 0
+if gt s 0
+for i ulong sub e s
+put rb i get rb add s i
+end
+e = sub e s
+put rbe 0 e
+put rsc 0 sub get rsc 0 s
+put rbs 0 0
+end
+if eq e len rb
+put lerr 0 1
+ret false
+end
+k = read int get rfd 0 rb e sub len rb e
+if lt k 0
+put lerr 0 1
+ret false
+end
+if eq k 0
+put reof 0 1
+ret true
+end
+put rbe 0 add e ulong k
+ret true
+end
+
+note Next line (newline excluded) at rb[lst .. lst+lnn). False at end of file or on lerr.
+note Each pass returns, sets reof, or reads at least one byte into a 65536-byte buffer.
+fn lnext to bool
+while true bound 999999
+j = get rsc 0
+e = get rbe 0
+while lt j e bound 65537
+if eq get rb j 10
+put lst 0 get rbs 0
+put lnn 0 sub j get rbs 0
+put rbs 0 add j 1
+put rsc 0 add j 1
+ret true
+end
+j = add j 1
+end
+put rsc 0 e
+if ne get reof 0 0
+if lt get rbs 0 e
+put lst 0 get rbs 0
+put lnn 0 sub e get rbs 0
+put rbs 0 e
+ret true
+end
+ret false
+end
+if not lfill
+ret false
+end
+end
+ret false
+end
+
+fn rbpre s ulong n ulong t view uchar * to bool
+if lt n len t
+ret false
+end
+for i ulong len t
+if ne get rb add s i get t i
+ret false
+end
+end
+ret true
+end
+
+fn lpre t view uchar * to bool
+ret rbpre get lst 0 get lnn 0 t
+end
+
+fn leq t view uchar * to bool
+if ne get lnn 0 len t
+ret false
+end
+ret lpre t
+end
+
+note Field k of the current line split at ":"; returns its start, length in flen.
+fn colf k ulong to ulong
+s = get lst 0
+e = add s get lnn 0
+f = ulong 0
+st = s
+for i ulong get lnn 0
+j = add s i
+if eq get rb j 58
+if eq f k
+put flen 0 sub j st
+ret st
+end
+f = add f 1
+st = add j 1
+end
+end
+put flen 0 0
+if eq f k
+put flen 0 sub e st
+end
+ret st
+end
+
+note Field k of the current line split at runs of spaces; returns its start, length in flen.
+fn spf k ulong to ulong
+s = get lst 0
+e = add s get lnn 0
+f = ulong 0
+inw = false
+st = s
+for i ulong get lnn 0
+j = add s i
+sp = eq get rb j 32
+if and inw sp
+if eq f k
+put flen 0 sub j st
+ret st
+end
+f = add f 1
+inw = false
+end
+if and not inw not sp
+inw = true
+st = j
+end
+end
+put flen 0 0
+if and inw eq f k
+put flen 0 sub e st
+end
+ret st
+end
+
+note Decimal rb[s .. s+n); 4294967296 when empty, too long or not a number.
+fn rbnum s ulong n ulong to ulong
+if or eq n 0 gt n 10
+ret 4294967296
+end
+v = ulong 0
+for i ulong n
+c = get rb add s i
+if or lt c 48 gt c 57
+ret 4294967296
+end
+v = add mul v 10 ulong sub c 48
+end
+ret v
+end
+
+fn hexd c uchar to ulong
+if and ge c 48 le c 57
+ret ulong sub c 48
+end
+if and ge c 65 le c 70
+ret ulong sub c 55
+end
+if and ge c 97 le c 102
+ret ulong sub c 87
+end
+ret 99
+end
+
+note ---- small whole files into cb ----
+
+fn rdcb to long
+put cbn 0 0
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+n = ulong 0
+while lt n len cb bound 257
+k = read int fd cb n sub len cb n
+if lt k 0
+c = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+put cbn 0 n
+ret long n
+end
+
+fn cbtrim to void
+while gt get cbn 0 0 bound 257
+c = get cb sub get cbn 0 1
+if and ne c 10 ne c 32
+ret
+end
+put cbn 0 sub get cbn 0 1
+end
+end
+
+fn cbeq t view uchar * to bool
+if ne get cbn 0 len t
+ret false
+end
+for i ulong len t
+if ne get cb i get t i
+ret false
+end
+end
+ret true
+end
+
+note ---- directory entries (Linux getdents64 records) ----
+
+fn dreclen d view uchar 8192 o ulong to ulong
+ret or ulong get d add o 16 shl ulong get d add o 17 8
+end
+
+fn dnlen d view uchar 8192 o ulong to ulong
+k = ulong 0
+while lt add add o 19 k len d bound 257
+if eq get d add add o 19 k 0
+ret k
+end
+k = add k 1
+end
+ret k
+end
+
+fn dotent d view uchar 8192 o ulong k ulong to bool
+if or eq k 0 gt k 2
+ret false
+end
+if ne get d add o 19 46
+ret false
+end
+if eq k 1
+ret true
+end
+ret eq get d add o 20 46
+end
+
+fn dpre d view uchar 8192 o ulong k ulong t view uchar * to bool
+if lt k len t
+ret false
+end
+for i ulong len t
+if ne get d add add o 19 i get t i
+ret false
+end
+end
+ret true
+end
+
+fn dhas d view uchar 8192 o ulong k ulong t view uchar * to bool
+if lt k len t
+ret false
+end
+for j ulong add sub k len t 1
+if dpre d add o j sub k j t
+ret true
+end
+end
+ret false
+end
+
+fn dcat d view uchar 8192 o ulong k ulong to void
+for i ulong k
+pbyte get d add add o 19 i
+end
+end
+
+fn alldig d view uchar 8192 o ulong k ulong to bool
+if eq k 0
+ret false
+end
+for i ulong k
+c = get d add add o 19 i
+if or lt c 48 gt c 57
+ret false
+end
+end
+ret true
+end
+
+note ---- users and homes (etc/passwd) ----
+
+fn hadd s ulong n ulong to void
+u = get hused 0
+if or ge get nh 0 len hof gt add u n len hbuf
+deviate d_unchk
+pr t_many
+prnl
+ret
+end
+for i ulong n
+put hbuf add u i get rb add s i
+end
+put hof get nh 0 u
+put hln get nh 0 n
+put hused 0 add u n
+put nh 0 add get nh 0 1
+end
+
+note name:password:uid:gid:gecos:home:shell. A user named aien* is a deviation; uid 0 and every
+note uid from 1000 (or an unreadable uid) gives a home to check.
+fn pwline to void
+s = colf 0
+n = get flen 0
+if eq n 0
+ret
+end
+if rbpre s n k_aien
+deviate d_user
+prrb s n
+prnl
+end
+u = colf 2
+uid = rbnum u get flen 0
+if eq uid 0
+put hroot 0 1
+end
+h = colf 5
+hn = get flen 0
+if or eq uid 0 ge uid 1000
+if and gt hn 0 eq get rb h 47
+hadd h hn
+end
+end
+end
+
+fn passwd to void
+pclr
+proot
+pstr k_pw
+if not lopen
+unchk
+ret
+end
+while lnext bound 999999
+pwline
+end
+lclose
+if ne get lerr 0 0
+unchk
+ret
+end
+if eq get hroot 0 0
+deviate d_stock
+pr t_nopw
+prnl
+end
+end
+
+fn hset i ulong to void
+o = get hof i
+n = get hln i
+for j ulong n
+put hb j get hbuf add o j
+end
+put hbn 0 n
+end
+
+fn hchk kind view uchar * rel view uchar * to void
+hpath rel
+if here
+deviate kind
+prt
+prnl
+end
+end
+
+note ---- the XDG desktop folder (install.sh asks xdg-user-dir DESKTOP) ----
+
+fn xval to void
+s = add get lst 0 len k_xdg
+e = add get lst 0 get lnn 0
+n = ulong 0
+while lt add s n e bound 65537
+c = get rb add s n
+if or eq c 34 ge n len xb
+break
+end
+put xb n c
+n = add n 1
+end
+put xbn 0 n
+end
+
+fn xpre t view uchar * to bool
+if lt get xbn 0 len t
+ret false
+end
+for i ulong len t
+if ne get xb i get t i
+ret false
+end
+end
+ret true
+end
+
+note xb[o .. xbn) equals t?
+fn xeqat o ulong t view uchar * to bool
+if ne sub get xbn 0 o len t
+ret false
+end
+for i ulong len t
+if ne get xb add o i get t i
+ret false
+end
+end
+ret true
+end
+
+fn xadd o ulong to void
+for i ulong sub get xbn 0 o
+pbyte get xb add o i
+end
+end
+
+fn xchk to void
+n = get xbn 0
+if eq n 0
+ret
+end
+pclr
+proot
+if xpre k_hvar
+if eq n len k_hvar
+ret
+end
+if xeqat len k_hvar k_dsk
+ret
+end
+phome
+xadd len k_hvar
+else
+if ne get xb 0 47
+ret
+end
+xadd 0
+end
+pstr k_dent
+if here
+deviate d_file
+prt
+prnl
+end
+end
+
+fn xdg to void
+put xbn 0 0
+hpath k_udirs
+if not lopen
+ret
+end
+while lnext bound 999999
+if lpre k_xdg
+xval
+end
+end
+lclose
+xchk
+end
+
+note ---- systemd units named aien*, flint* or *oh-infer* ----
+
+fn unitnm d view uchar 8192 o ulong k ulong to bool
+a = dpre d o k k_aien
+b = dpre d o k k_flint
+c = dhas d o k k_ohinf
+ret or or a b c
+end
+
+note One directory entry at d[o]: report it when its name matches, else descend one level
+note (multi-user.target.wants and the like). Returns the next offset.
+fn uent d view uchar 8192 o ulong depth ulong to ulong
+rl = dreclen d o
+if eq rl 0
+ret 8192
+end
+k = dnlen d o
+if dotent d o k
+ret add o rl
+end
+sv = get pbn 0
+pbyte 47
+dcat d o k
+if unitnm d o k
+deviate d_unit
+prt
+prnl
+else
+if and eq get d add o 18 4 eq depth 0
+udir 1
+end
+end
+put pbn 0 sv
+ret add o rl
+end
+
+note The unit directory in pb. A directory that is not there holds no unit.
+fn udir depth ulong to void
+d = new uchar 8192 0
+fd = fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+ret
+end
+while true bound 100000
+n = getdnts int fd d 0 8192
+if lt n 0
+unchk
+break
+end
+if eq n 0
+break
+end
+o = ulong 0
+while lt o ulong n bound 8192
+o = uent d o depth
+end
+end
+c = fclose int fd
+end
+
+fn sysdir t view uchar * to void
+pclr
+proot
+pstr t
+udir 0
+end
+
+fn units to void
+sysdir sd1
+sysdir sd2
+sysdir sd3
+sysdir sd4
+sysdir sd5
+sysdir sd6
+sysdir sd7
+sysdir sd8
+end
+
+fn homes to void
+for i ulong get nh 0
+hset i
+hchk d_file h1
+hchk d_file h2
+hchk d_file h3
+hchk d_file h4
+hchk d_file h5
+xdg
+hchk d_model h6
+hchk d_clone h7
+hpath h8
+udir 0
+end
+end
+
+note ---- listening ports (proc/net/tcp, tcp6: sl local rem st ...; st 0A is LISTEN) ----
+
+fn lport a ulong n ulong to ulong
+e = add a n
+c = e
+for i ulong n
+if eq get rb add a i 58
+c = add add a i 1
+end
+end
+if ge c e
+ret 0
+end
+v = ulong 0
+for i ulong sub e c
+h = hexd get rb add c i
+if gt h 15
+ret 0
+end
+v = add mul v 16 h
+end
+ret v
+end
+
+fn tcpln to void
+a = spf 1
+an = get flen 0
+b = spf 3
+if ne get flen 0 2
+ret
+end
+if ne get rb b 48
+ret
+end
+c = get rb add b 1
+if and ne c 65 ne c 97
+ret
+end
+p = lport a an
+if or or eq p P1 eq p P2 eq p P3
+deviate d_port
+prn p
+pr t_sp
+prt
+prnl
+end
+end
+
+fn ports f view uchar * to void
+pclr
+proot
+pstr f
+if not lopen
+unchk
+ret
+end
+first = true
+while lnext bound 999999
+if first
+first = false
+else
+tcpln
+end
+end
+lclose
+if ne get lerr 0 0
+unchk
+end
+end
+
+note ---- processes (proc/PID/comm, which the kernel cuts to 15 bytes) ----
+
+fn pmatch d view uchar 8192 o ulong k ulong to void
+cbtrim
+a = cbeq k_p1
+b = cbeq k_p2
+c = cbeq k_p3
+if or or a b c
+deviate d_proc
+w = write 1 cb 0 get cbn 0
+pr t_pid
+w = write 1 d add o 19 k
+prnl
+end
+end
+
+fn pent d view uchar 8192 o ulong to ulong
+rl = dreclen d o
+if eq rl 0
+ret 8192
+end
+k = dnlen d o
+if alldig d o k
+sv = get pbn 0
+pbyte 47
+dcat d o k
+pstr k_comm
+r = rdcb
+put pbn 0 sv
+if gt r 0
+pmatch d o k
+end
+end
+ret add o rl
+end
+
+fn procs to void
+d = new uchar 8192 0
+pclr
+proot
+pstr k_proc
+fd = fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+unchk
+ret
+end
+while true bound 100000
+n = getdnts int fd d 0 8192
+if lt n 0
+unchk
+break
+end
+if eq n 0
+break
+end
+o = ulong 0
+while lt o ulong n bound 8192
+o = pent d o
+end
+end
+c = fclose int fd
+end
+
+note ---- stock packages (var/lib/dpkg/status stanzas) ----
+
+fn pkeq s ulong n ulong to bool
+if ne get pkn 0 n
+ret false
+end
+for i ulong n
+if ne get pk i get k_pkgs add s i
+ret false
+end
+end
+ret true
+end
+
+note Walk the space-separated k_pkgs. mode 0: mark the stanza's package found; 1: report the
+note packages never found installed.
+fn pkwalk mode ulong to void
+m = len k_pkgs
+w = ulong 0
+s = ulong 0
+e = false
+for i ulong add m 1
+if eq i m
+e = true
+else
+e = eq get k_pkgs i 32
+end
+if e
+if eq mode 0
+if pkeq s sub i s
+put pf w 1
+end
+else
+if eq get pf w 0
+deviate d_pkg
+x = write 1 k_pkgs s sub i s
+prnl
+end
+end
+w = add w 1
+s = add i 1
+end
+end
+end
+
+fn pkend to void
+if and eq get pok 0 1 gt get pkn 0 0
+pkwalk 0
+end
+put pkn 0 0
+put pok 0 0
+end
+
+fn pkset to void
+s = add get lst 0 len k_pkg
+n = sub get lnn 0 len k_pkg
+if gt n len pk
+put pkn 0 0
+ret
+end
+for i ulong n
+put pk i get rb add s i
+end
+put pkn 0 n
+end
+
+fn pkline to void
+if eq get lnn 0 0
+pkend
+ret
+end
+if lpre k_pkg
+pkset
+ret
+end
+if lpre k_stat
+put pok 0 0
+if leq k_inst
+put pok 0 1
+end
+end
+end
+
+fn pkgs to void
+pclr
+proot
+pstr k_dpkg
+if not lopen
+unchk
+ret
+end
+while lnext bound 999999
+pkline
+end
+pkend
+lclose
+if ne get lerr 0 0
+unchk
+ret
+end
+pkwalk 1
+end
+
+note ---- driver and stock files ----
+
+fn driver to void
+pclr
+proot
+pstr k_drvf
+r = rdcb
+if lt r 0
+deviate d_drv
+prt
+pr t_unrd
+prnl
+ret
+end
+cbtrim
+if not cbeq k_drv
+deviate d_drv
+w = write 1 cb 0 get cbn 0
+pr t_exp
+pr k_drv
+prnl
+end
+end
+
+fn stockf t view uchar * to void
+pclr
+proot
+pstr t
+if not here
+deviate d_stock
+prt
+pr t_miss
+prnl
+end
+end
+
+note ---- root ----
+
+fn envis n ulong to bool
+if lt n len k_env
+ret false
+end
+for i ulong len k_env
+if ne get eb i get k_env i
+ret false
+end
+end
+ret true
+end
+
+fn envroot to void
+c = envcnt
+for i ulong ulong c
+n = envread i eb 0 4096
+if gt n 0
+if envis ulong n
+m = sub ulong n len k_env
+for j ulong m
+put rt j get eb add len k_env j
+end
+put rtn 0 m
+ret
+end
+end
+end
+end
+
+fn rtrim to void
+while gt get rtn 0 0 bound 4097
+if ne get rt sub get rtn 0 1 47
+ret
+end
+put rtn 0 sub get rtn 0 1
+end
+end
+
+fn rootok to bool
+pclr
+proot
+pbyte 47
+r = stat pb 0 get pbn 0 sb 0 128
+if ne r 0
+ret false
+end
+mode = or ulong get sb 16 shl ulong get sb 17 8
+ret eq and mode 61440 16384
+end
+
+fn main to int
+c = argcnt
+if gt c 2
+pr t_usage
+ret 2
+end
+if eq c 2
+n = argread 1 rt 0 4096
+if le n 0
+pr t_usage
+ret 2
+end
+put rtn 0 ulong n
+else
+envroot
+end
+rtrim
+pr t_root
+if eq get rtn 0 0
+pr t_slash
+else
+w = write 1 rt 0 get rtn 0
+end
+prnl
+if not rootok
+pr t_rerr
+w = write 1 rt 0 get rtn 0
+prnl
+ret 4
+end
+passwd
+homes
+units
+ports k_tcp
+ports k_tcp6
+procs
+pkgs
+driver
+stockf k_dgx
+if gt get ndev 0 0
+pr t_fail
+prn get ndev 0
+prnl
+ret 1
+end
+pr t_pass
+prn get nh 0
+prnl
+ret 0
+end

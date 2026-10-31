@@ -2,7 +2,8 @@
 # Test-rig checks on every pull request and on main, on GitHub-hosted arm64 runners only (never a
 # self-hosted runner): installer/rig/wfcheck.om must pass on every workflow in this repository, so
 # no workflow that a pull request can start ever reaches a self-hosted runner (DRA-45), and every
-# negative-control fixture must be refused.
+# negative-control fixture must be refused. installer/rig/stock.om (DRA-44) must pass a clean FAKE
+# root and catch every planted leftover.
 name: Rig checks
 on:
   pull_request:
@@ -31,3 +32,5 @@ jobs:
         run: sh installer/rig/test.sh "$RUNNER_TEMP/omega/seed/out/omc"
       - name: E2E harness FAKE arms and evcheck negative controls
         run: sh installer/rig/e2e-test.sh "$RUNNER_TEMP/omega/seed/out/omc"
+      - name: Post-reset stock check on FAKE roots and negative controls
+        run: sh installer/rig/stock-test.sh "$RUNNER_TEMP/omega/seed/out/omc"

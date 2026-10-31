@@ -37,6 +37,15 @@ Output: `HOSTED path` or `SELF-HOSTED path` per file, `PROBLEM path:line: messag
 then `WFCHECK PASS files=N self-hosted=M` or `WFCHECK FAIL problems=K`. Exit 0 pass, 1 a problem,
 2 usage, 4 a path could not be read or is too large.
 
+## stock: is this Spark back to stock after a reset (DRA-44)
+
+`stock [ROOT]` reads ROOT (default `$SI_STOCK_ROOT`, else `/`), read-only, and prints
+`DEVIATION <kind> <detail>` for every SI leftover or non-stock value, then `STOCK PASS homes=N` or
+`STOCK FAIL deviations=N`. Exit 0 stock, 1 deviations, 2 usage, 4 the root is not a readable
+folder. What it checks, how to reset a Spark and what the installer adds and removes:
+`RESET-TO-STOCK.md`. `.github/workflows/rig-stock-check.yml` runs it on the test Spark, by hand
+only (`workflow_dispatch`).
+
 ## Checks
 
 `sh installer/rig/test.sh OMC` compiles the tools with the pinned omc and runs every arm:
@@ -44,6 +53,12 @@ this repository's workflows must pass, `fixtures/workflows/good` must pass, and 
 `fixtures/workflows/bad` is a negative control that must exit 1 with the problem text listed in
 `fixtures/workflows/bad/EXPECT`. `.github/workflows/rig-check.yml` runs it on every pull request,
 on a GitHub-hosted runner.
+
+`sh installer/rig/stock-test.sh OMC` compiles `stock.om` and runs it on a FAKE root written under
+mktemp: the clean root must pass (by `$SI_STOCK_ROOT` and by argument) and stay unchanged, and each
+planted leftover (SI files, model cache, clone, units, user, ports, processes, packages, driver,
+missing stock files, unreadable inputs) is a negative control that must fail with exactly its one
+`DEVIATION` line. `rig-check.yml` runs it on every pull request, on a GitHub-hosted runner.
 
 ## e2e: install, verify, chat, uninstall (DRA-55, DRA-59)
 
