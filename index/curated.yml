@@ -257,8 +257,8 @@ repos:
     license: Apache-2.0 WITH LLVM-exception
   - name: openaccel-lab
     layer: engine
-    evidence: PROPOSED
-    purpose: "Cross-backend kernel conformance and performance lab; main holds only the README, the work is on the unmerged wip branch"
+    evidence: EXERCISED
+    purpose: "Cross-backend kernel conformance and performance lab: OpenCL C, Triton, HIP, CUDA and Omega entrants against float64 references, with wrong-kernel controls; CI rows are CPU evidence"
   - name: spark-adapters
     layer: engine
     evidence: IMPLEMENTED

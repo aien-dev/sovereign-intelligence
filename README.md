@@ -154,7 +154,7 @@ Inference, scheduling, evidence and the measurements behind every claim.
 | [benchmarks-mv](https://github.com/aien-dev/benchmarks-mv) | Measurement harnesses and evidence bundles for GB10 | `EXERCISED` | Apache-2.0 | 2026-10-29 |
 | [gpu-head-to-head](https://github.com/aien-dev/gpu-head-to-head) | Predeclared protocol and harness for aien-serve-http vs vLLM vs llama.cpp on one Spark; no results table on main yet | `IMPLEMENTED` | Apache-2.0 WITH LLVM-exception | 2026-10-29 |
 | [omega-gpu-bench](https://github.com/aien-dev/omega-gpu-bench) | Kit to run Omega-written GPU kernels on your own NVIDIA GPU; kernels withdrawn pending a clean-room cubin writer, so it reports NOT_RUN | `IMPLEMENTED` | Apache-2.0 WITH LLVM-exception | 2026-10-29 |
-| [openaccel-lab](https://github.com/aien-dev/openaccel-lab) | Cross-backend kernel conformance and performance lab; main holds only the README, the work is on the unmerged wip branch | `PROPOSED` | Apache-2.0 | 2026-10-29 |
+| [openaccel-lab](https://github.com/aien-dev/openaccel-lab) | Cross-backend kernel conformance and performance lab: OpenCL C, Triton, HIP, CUDA and Omega entrants against float64 references, with wrong-kernel controls; CI rows are CPU evidence | `EXERCISED` | Apache-2.0 | 2026-10-29 |
 | [spark-rsi-mv](https://github.com/aien-dev/spark-rsi-mv) | Self-improvement loop with a separate judge, a signed ledger and a promotion gate | `EXERCISED` | AGPL-3.0-or-later | 2026-10-29 |
 | [spark-supervisor](https://github.com/aien-dev/spark-supervisor) | Process supervisor with health polls and restart backoff | `IMPLEMENTED` | Apache-2.0 WITH LLVM-exception | 2026-10-26 |
 
