@@ -42,6 +42,8 @@ openssl pkeyutl -verify -pubin -inkey release.pub.pem -rawin -in SHA256SUMS -sig
 
 **Evidence:** installer EXERCISED (host 33/33 under read-only root, container 6/6 with a canary control). The engine is byte-identical (sha256 19173f9e…3aeb) to the build serving the 35B on my Spark, rebuilt from Core commit 59b05a71 (branch ship/motor-l387) to the same hash: EXERCISED, not QUALIFIED. A fresh GB10 install and first token through the installer, and the 3x physical qualification: NOT_RUN. The Aien experience is not in this release yet.
 
+**Independent rechecks: 0** (as of 2026-10-31). This changes only when an outside person's recheck is linked. Reviews by agents, including different models under the same operator, do not count.
+
 <br>
 
 ## The stack, and what's yours
