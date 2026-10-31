@@ -29,3 +29,5 @@ jobs:
           echo "$OMC_PIN  $RUNNER_TEMP/omega/seed/out/omc" | sha256sum -c -
       - name: Workflow trigger guard and negative controls
         run: sh installer/rig/test.sh "$RUNNER_TEMP/omega/seed/out/omc"
+      - name: E2E harness FAKE arms and evcheck negative controls
+        run: sh installer/rig/e2e-test.sh "$RUNNER_TEMP/omega/seed/out/omc"
